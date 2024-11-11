@@ -154,8 +154,8 @@ CDK 스택을 배포하려면 아래의 과정이 로컬 환경에 준비되어 
 아래 명령어를 입력해 준비된 CDK 코드를 Github에서 clone 받고, 필요한 패키지를 설치한 뒤, CDK 스택을 배포하기 전에 부트스트랩을 실행합니다. cdk bootstrap 실행 후 아래 스크린샷과 같이 Environment bootstrapped. 라는 메시지가 출력되면 배포를 위한 준비가 완료된 것입니다.
 
 ```bash
-$ git clone https://github.com/ottlseo/bedrock-rag-chatbot.git
-$ cd bedrock-rag-chatbot
+$ git clone https://github.com/aws-samples/kr-tech-blog-sample-code.git
+$ cd kr-tech-blog-sample-code/cdk_bedrock_rag_chatbot
 
 $ npm install
 
