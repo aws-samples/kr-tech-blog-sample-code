@@ -4,6 +4,8 @@
 !jest.config.js
 *.d.ts
 
+cdk.context.json
+
 # DS_store
 .DS_Store
 **/.DS_Store
