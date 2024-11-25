@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
+import { AwsSolutionsChecks } from 'cdk-nag';
 import { Ec2Stack } from '../lib/ec2stack';
 
 const STACK_PREFIX = "RAGChatbot";
@@ -14,6 +15,7 @@ const envSetting = {
 
 const app = new cdk.App();
 
-new Ec2Stack(app, `${STACK_PREFIX}-Ec2Stack`, envSetting);
+cdk.Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 
+new Ec2Stack(app, `${STACK_PREFIX}-Ec2Stack`, envSetting);
 app.synth();
