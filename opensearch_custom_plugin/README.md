@@ -182,7 +182,7 @@ PUT /haneng_test
   }
 }
 
-//데이터 색인
+//Indexing
 POST /_bulk
 { "index" : { "_index" : "haneng_test", "_id" : "1" } }
 { "name" : "손오공" }
@@ -243,7 +243,7 @@ POST /haneng_test/_search
   }
 }
 
-//한영 변환 오타교정 검색 테스트 응답결과
+//English to Koreans conversion typo correction search test results
 {
   "took" : 2,
   "timed_out" : false,
