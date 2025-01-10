@@ -1,4 +1,4 @@
-# Smart Database Assistant with GenAI:Claude3
+# Database Assistant with GenAI:Claude3
 
 # **Why this project is created**
 이 소스코드는 대량의 Aurora MySQL 데이터베이스 관리를 간소화하기 위해 LLM을 적용하는 아이디어에서 시작되었습니다.<br>
