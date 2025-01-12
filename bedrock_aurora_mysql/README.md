@@ -13,6 +13,13 @@ LLM에 Agent 개념을 도입하여, 오류 로그를 분석하고 자연어로 
 - Cloudformation에 db-admin.yaml을 업로드하고 us-east-1에 스택을 생성하세요
 
 ### 2. 스택 생성이 성공하면 콘솔에서 생성된 EC2 인스턴스에 직접 연결하고 다음과 같이 환경을 설정하고 라이브러리를 설치합니다:
+- 실습환경에서 사용된 구성환경은 다음과 같습니다.
+- python : 3.9
+- pip : 24.2
+- langchain-aws : 0.1.16
+- mysql-connector : 2.2.9
+- gdown : 5.2.0
+- metaplotlib : 3.9.2
 ```
     python3 -m venv myenv      
     source myenv/bin/activate  
