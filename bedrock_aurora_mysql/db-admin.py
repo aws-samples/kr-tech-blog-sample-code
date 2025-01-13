@@ -412,8 +412,6 @@ def query_knowledge_base(kb_id, query):
 def connect_to_db(secret_name):
     # Fetch the secret values
     secret_values = get_secret(secret_name)
-    print("---------secret_values:", secret_values)
-    # try:
 
     connection = mysql.connector.connect(
         host=secret_values["host"],
@@ -423,9 +421,6 @@ def connect_to_db(secret_name):
         database=secret_values["dbname"],
     )
     return connection
-    # except Exception as e:
-    #    print(f"Database connect Error: {e}")
-    #    return None
 
 
 # get_database_info 에서 호출
@@ -445,9 +440,7 @@ def save_to_s3(secret_name, metadata_info):
     s3 = boto3.client("s3")
     bucket_name = s3_bucket_name  # 버킷 이름 설정
 
-    # 현재 날짜와 시간을 포함한 폴더 이름 생성
-    # now = datetime.now()
-    folder_name = secret_name  # {now.strftime('%Y%m%d_%H%M%S')}"
+    folder_name = secret_name  
 
     # 데이터베이스 정보를 문자열로 변환
     metadata_info_str = "".join(metadata_info)
@@ -548,17 +541,11 @@ def execute_sql(secret_name, user_query):
     if user_query:
 
         llm_response = interact_with_llm(secret_name, user_query)
-        # Convert multiline llm_response to single line
-        # st.write(f"LLM Response: {llm_response}")
-        print("-------execute_sql:secret_name:", secret_name)
-        print("-------execute_sql:llm_response:", llm_response)
         # Extract SQL command from LLM response
         sql_command_match = re.search(
             r"<begin sql>(.*?)<\s?/end sql>", llm_response, re.DOTALL | re.IGNORECASE
         )
-        # sql_command_match = re.sub("\n", "", sql_command_match)
-        print("------execute_sql:sql_commands_match:", sql_command_match)
-
+        
         if sql_command_match:
             sql_command = sql_command_match.group(1).strip()
 
@@ -686,7 +673,7 @@ def interact_with_llm_for_comparison(query):
 
 
 def compare_database_info(keyword):
-    bucket_name = s3_bucket_name # "using-genai-for-private-files-workshopoutputbucket-xi57to3uszjx"
+    bucket_name = s3_bucket_name 
     file_contents = []
 
     secret_lists = get_secrets_by_keyword(keyword)
@@ -751,7 +738,6 @@ def get_cw_monitoring(cluster_id, instance_id, start_time, end_time):
         StartTime=start_time,
         EndTime=end_time,
     )
-    #print(response["MetricDataResults"])
     return response["MetricDataResults"]
     
 def get_cw_monitoring2(cluster_id, start_time, end_time):
@@ -938,7 +924,6 @@ def upload_to_s3_pi( cluster_id, instance_id, data, bucket_name, bucket_path, ob
         values = [dp.get("Value") for dp in result["DataPoints"] if "Value" in dp]
 
         for timestamp, value in zip(timestamps, values):
-            # row = [metric_name, timestamp.isoformat(), value]
             row = [
                 cluster_id,
                 instance_id,
@@ -946,7 +931,6 @@ def upload_to_s3_pi( cluster_id, instance_id, data, bucket_name, bucket_path, ob
                 timestamp.strftime("%Y-%m-%d %H:%M"),
                 value,
             ]
-            # print(timestamp.strftime('%Y-%m-%d %H:%M'))
             writer.writerow(row)
 
     csv_data.seek(0)
@@ -999,7 +983,6 @@ def retrieve_perf_metric_multiDatabase(keyword, start_time, end_time, user_query
         )
         print(f"{database_name}.{cw_table_name} dropped!")
 
-    # print('pi table created')
     QueryString_input = f"""
         CREATE EXTERNAL TABLE {database_name}.{cw_table_name} (
             cluster_id string,
@@ -1057,16 +1040,10 @@ def query_athena_table(database_name, user_query):
     if user_query:
         print("query_athena_table")
         llm_response = interact_with_llm_athena(database_name, user_query)
-        print("llm_response : ", llm_response)
-        # Convert multiline llm_response to single line
-        # st.write(f"LLM Response: {llm_response}")
-        # print(llm_response)
-        # Extract SQL command from LLM response
+
         sql_command_match = re.search(
             r"<begin sql>(.*?)<\s?/end sql>", llm_response, re.DOTALL | re.IGNORECASE
         )
-        # sql_command_match = re.sub("\n", "", sql_command_match)
-        # print(sql_command_match)
         print("sql_command_match : ", sql_command_match)
         if sql_command_match:
             sql_command = sql_command_match.group(1).strip()
@@ -1188,9 +1165,7 @@ def analyze_performance(db_identifier, start_time, end_time):
         stats = combined_df.groupby(['Instance', 'MetricName'])['Value'].agg(['mean', 'max', 'min']).reset_index()
         stats.columns = ['Instance', 'Metric', 'Average', 'Maximum', 'Minimum']
         st.dataframe(stats)
-        
-        #st.subheader('Raw Data')
-        #st.dataframe(combined_df)
+
     else:
         st.warning("No data available for the selected instances.")
     
@@ -1335,19 +1310,7 @@ def analyze_innodb_status(keyword):
             cursor.execute(sql_command)
             result = cursor.fetchall()
             columns = cursor.column_names
-            #df = pd.DataFrame(result, columns=columns)
-
-            # 너비를 최대 200자리로 설정
-            #pd.set_option("display.max_rows", 200)
-            # 최대 열 수를 20으로 설정
-            #pd.set_option("display.max_columns", 20)
-            # 전체 너비를 200자리로 설정
-            #pd.set_option("display.width", 400)
-
-            #st.write(df)
             results += secret_name + str(result)
-
-            #st.write(llm_response2)
 
         except Exception as e:
              print(f"Error executing SQL command: {e}")
