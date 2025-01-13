@@ -74,10 +74,10 @@ ex : s3_bucket_name = "test-s3bucket-fugwilwec8mx"
 
 -    그런 다음 채팅 창에서 다음 질문들을 테스트 해보세요 :<br>
    ```
-    a.gamedb1-cluster의 sales테이블을 조회해주세요
-    b.gamedb2-cluster의에서 order테이블과 customer테이블을 조인하고 주문내역 5건을  주문아이디, 주문자, 일자, 금액을 주문일자의 내림차순으로 보여주세요.
-    c.gamedb로 시작하는 모든 클러스터의 스키마정보를 비교해주세요.
-    d.gamedb1-cluster의 order 테이블에 컬럼 tag4 varchar(10)을 추가해주세요
+    a. gamedb1-cluster의 sales테이블을 조회해주세요
+    b. gamedb2-cluster의에서 order테이블과 customer테이블을 조인하고 주문내역 5건을  주문아이디, 주문자, 일자, 금액을 주문일자의 내림차순으로 보여주세요.
+    c. gamedb로 시작하는 모든 클러스터의 스키마정보를 비교해주세요.
+    d. gamedb1-cluster의 order 테이블에 컬럼 tag4 varchar(10)을 추가해주세요
     e. 어제 하루동안 gamedb로 시작하는 모든 디비의 cpu,memory의 평균,커넥션과 HLL의 max값과 각종 레이턴시(dml,select..)들의 평균값을 보여줘.
     f. 모든디비의 디비로드 등 성능을 보여주고 분석까지 부탁해 (참고: 왼쪽의 리전과 클러스터들을 선택하고 날짜와 시간을 확인하세요) 
     g. top쿼리도 보여주세요. 
