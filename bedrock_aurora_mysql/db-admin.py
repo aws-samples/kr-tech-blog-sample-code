@@ -24,7 +24,6 @@ from datetime import datetime, timedelta
 import pytz
 import io
 
-#region_val = "us-east-1"
 
 # Initialize logging
 logger = logging.getLogger(__name__)
@@ -91,12 +90,6 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Debug information
-#if st.sidebar.checkbox("Show Debug Info"):
-#    st.sidebar.write("Current Mode:", st.session_state.mode)
-#    st.sidebar.write("Context Window Size:", st.session_state.context_window)
-#    st.sidebar.write("Total Messages:", len(st.session_state.messages))
-
 # AWS 리전 목록
 regions = ['us-east-1', 'us-west-2', 'ap-northeast-2']
 
@@ -121,9 +114,6 @@ def get_aurora_clusters():
 # 데이터베이스 선택
 clusters = get_aurora_clusters()
 selected_clusters = st.sidebar.multiselect('Select DB Clusters', clusters)
-
-#st.session_state.selected_clusters=selected_clusters
-#print('first selected_clusters : ',selected_clusters)
 
 # 선택된 클러스터의 인스턴스 목록 가져오기
 instances = []
@@ -166,24 +156,7 @@ def interact_with_llm(secret_name, query):
     {schema_context}
     </context>
     <example>
-    --별칭쿼리 : 서로 다른 테이블을 조인할때, select절에 동일한 이름이 있는 경우, 테이블의 별칭을 앞에 붙여, c.CustomerID,o.CustomerID형태로 사용 
-    SELECT p.ProductID, p.ProductName, p.Price, p.StockQuantity, p.CategoryID, p.tag, p.new_column, p.tag2, p.tag3,
-       c.CustomerID, c.FirstName, c.LastName, c.Email, c.Address, c.Phone,
-       o.OrderID, o.CustomerID as o_CustomerID, o.ProductID as o_ProductID, o.Quantity, o.OrderDate, o.TotalPrice
-    FROM products p
-    JOIN orders o ON p.ProductID = o.ProductID
-    JOIN customers c ON o.CustomerID = c.CustomerID;
-    
-    --여러개의 컬럼들을 한개로 합치는 쿼리 및 sum 함수를 이용한 컬럼값을 정렬하는 쿼리 
-    SELECT CONCAT(c.FirstName, ' ', c.LastName) AS customer_name,
-       o.OrderDate,
-       p.ProductName,
-       SUM(o.Quantity * p.Price) AS total_order_amt
-    FROM orders o
-    JOIN customers c ON o.CustomerID = c.CustomerID
-    JOIN products p ON o.ProductID = p.ProductID
-    GROUP BY customer_name, o.OrderDate, p.ProductName
-    ORDER BY total_order_amt DESC; 
+   
     
     --상위 top 쿼리 (부하가 가장 많은 쿼리)
     SELECT digest_text, count_star, sum_rows_examined, sum_created_tmp_disk_tables, sum_no_index_used  
@@ -470,7 +443,7 @@ def get_secret(secret_name):
 # get_database_info 에서 호출
 def save_to_s3(secret_name, metadata_info):
     s3 = boto3.client("s3")
-    bucket_name = "using-genai-for-private-files-workshopoutputbucket-xi57to3uszjx"  # 버킷 이름 설정
+    bucket_name = s3_bucket_name  # 버킷 이름 설정
 
     # 현재 날짜와 시간을 포함한 폴더 이름 생성
     # now = datetime.now()
@@ -557,53 +530,10 @@ def get_database_info(secret_name):
             current_table = table_name
         index_info_str += f"  {index_name} ({column_name}) {'' if non_unique else 'UNIQUE'} {index_comment}\n"
 
-    # 프라이머리 키 정보 가져오기
-    cursor.execute(
-        f'''SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME 
-            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-            WHERE TABLE_SCHEMA = '{database_name[0]}' 
-            AND CONSTRAINT_NAME LIKE 'PRIMARY%' 
-            ORDER BY TABLE_NAME'''
-    )
-    primary_key_info = cursor.fetchall()
-
-    primary_key_info_str = "\nPrimary Keys:\n"
-    current_table = None
-    for row in primary_key_info:
-        table_name, column_name, constraint_name = row
-        if table_name != current_table:
-            if current_table:
-                primary_key_info_str += "\n"
-            primary_key_info_str += f"{table_name}:\n"
-            current_table = table_name
-        primary_key_info_str += f"  {constraint_name} ({column_name})\n"
-
-    # 시스템 뷰 정보 가져오기
-    cursor.execute(
-        f"SELECT TABLE_NAME, VIEW_DEFINITION, CHECK_OPTION, IS_UPDATABLE, DEFINER, SECURITY_TYPE FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = '{database_name[0]}' ORDER BY TABLE_NAME"
-    )
-    system_view_info_str = cursor.fetchall()
-
-    # 퍼포먼스 스키마 뷰 정보 가져오기
-    cursor.execute(
-        "SELECT TABLE_NAME, TABLE_TYPE, ENGINE, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'performance_schema' ORDER BY TABLE_NAME"
-    )
-    performance_schema_info = cursor.fetchall()
-
-    performance_schema_info_str = "\nPerformance Schema Views:\n"
-    for table_name, table_comment in performance_schema_info:
-        performance_schema_info_str += f"{table_name}: {table_comment}\n"
-
-    # print("performance_schema_info_str \n")
-    # print(performance_schema_info_str)
-
     # 모든 메타데이터 정보 결합
     metadata_info = (
         table_info_str
         + index_info_str
-        + primary_key_info_str
-        + system_view_info_str
-        + performance_schema_info_str
     )   
     results = metadata_info.split("'")
 
@@ -701,6 +631,86 @@ def read_file_from_s3(bucket_name, folder_name, file_name):
         print(f"Error reading file from S3: {e}")
         st.error(f"Error reading file from S3: {e}")
         return None
+
+
+# compare_database_info 에서 호출
+def interact_with_llm_for_comparison(query):
+    client = boto3.client("bedrock-runtime")
+    model_Id = "anthropic.claude-3-sonnet-20240229-v1:0"
+    accept = "application/json"
+    contentType = "application/json"
+
+    prompt_data = f"""Human: 주어진 컨텍스트 정보(스키마 정보:테이블,컬럼,인덱스정보)가 없으면 모른다고 대답해주세요.  
+                  당신은 데이터베이스 스키마정보를 비교하는 전문가입니다.  각 데이터베이스의 스키마정보를 비교하여 일목요연하게 정리해주세요. 
+                  비교한 파일이 들어있는 파일명인  s3://gamedb1-cluster.txt  대신에  "gamedb1-cluster" 라고 말해주세요. 
+                  대답에서  "s3://" and ".txt" 와 같은 용어는 사용하지 말고, 데이터베이스 키워드 용어와 스키마정보들 (테이블명,컬럼명,인덱스명등)을 제외하고는 
+                  전체 응답은 한글로 대답해주시고, 마지막에 각 비교한 것에 대한 정리를 깔끔히해서 결론을 내주세요.
+                  전체답변은 example에 있는 형식으로 정리해서 답해주세요.  
+        <example>
+              1.테이블: 데이터베이스 gamedb1-cluster 는 다른 클러스터에 없는 테이블 'customer_product_orders'과  'products_backup' 이 존재합니다. 
+              2.컬럼: 테이블 products는 gamedb2-cluster에는 없는 Description 컬럼이 gamedb1-cluster, gamedb3-cluster에 있습니다.
+              3.인덱스: 데이터베이스  'gamedb1-cluster' 에는 다른 클러스터에 없는 인덱스 'ix_order_date'가 'orders'테이블의 'OrderDate' 컬럼에 있습니다.
+        </example>
+        <question>
+            {query}
+        </question>
+            Assistant:"""
+
+    claude_input = json.dumps(
+        {
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": [{"type": "text", "text": prompt_data}]}
+            ],
+            "temperature": 0.5,
+            "top_k": 250,
+            "top_p": 1,
+            "stop_sequences": [],
+        }
+    )
+
+    response = client.invoke_model(modelId=model_Id, body=claude_input)
+    response_body = json.loads(response.get("body").read())
+
+    # print(response_body)
+
+    try:
+        message = response_body.get("content", [])
+        result = message[0]["text"]
+    except (KeyError, IndexError):
+        result = "에러로 인해, 스키마 정보를 비교할수 없습니다."
+
+    # print("result:",result)
+    return result
+
+
+def compare_database_info(keyword):
+    bucket_name = s3_bucket_name # "using-genai-for-private-files-workshopoutputbucket-xi57to3uszjx"
+    file_contents = []
+
+    secret_lists = get_secrets_by_keyword(keyword)
+    print("secret_lists :", secret_lists)
+    for secret_name in secret_lists:
+        metainfo = get_database_info(secret_name)
+        print("metainfo:", metainfo)
+        folder_name = secret_name
+        file_name = f"{folder_name}.txt"
+        file_content = read_file_from_s3(bucket_name, folder_name, file_name)
+        if file_content:
+            file_contents.append(f"{file_name}: {file_content}")
+        else:
+            print(f"Error reading file for {secret_name}")
+
+    if len(file_contents) >= 2:
+        llm_input = "\n".join(file_contents)
+        print("file_content: \n", file_content)
+        llm_response = interact_with_llm_for_comparison(llm_input)
+        print(llm_response)
+        st.write(llm_response)
+    else:
+        print("Not enough files to compare.")
+        st.error("Not enough files to compare.")
 
 
 # CloudWatch cw Monitoring 데이터 가져오기. 2개를 분리해야한다. 
@@ -872,7 +882,6 @@ def get_cw_monitoring2(cluster_id, start_time, end_time):
         StartTime=start_time,
         EndTime=end_time,
     )
-    #print(response["MetricDataResults"])
     return response["MetricDataResults"]
 
 
@@ -908,6 +917,45 @@ def upload_to_s3_cw(cluster_id, instance_id, data, bucket_name, bucket_path, obj
     object_path = f"{bucket_path}/{object_key}"
     s3_client.put_object(Bucket=bucket_name, Key=object_path, Body=csv_data.getvalue())
     print(f"Data {object_key} uploaded to {bucket_name}/{bucket_path}/{object_key}")
+
+
+def upload_to_s3_pi( cluster_id, instance_id, data, bucket_name, bucket_path, object_key ):
+    s3_client = boto3.client("s3")
+
+    # 데이터를 CSV 형식으로 변환
+    csv_data = StringIO()
+    writer = csv.writer(csv_data)
+
+    # 헤더 작성
+    header = ["metric", "timestamp", "value"]
+    writer.writerow(header)
+
+    for result in data:
+        metric_name = result["Key"]["Metric"]
+        # print(result['DataPoints'])
+        timestamps = [dp["Timestamp"] for dp in result["DataPoints"]]
+
+        values = [dp.get("Value") for dp in result["DataPoints"] if "Value" in dp]
+
+        for timestamp, value in zip(timestamps, values):
+            # row = [metric_name, timestamp.isoformat(), value]
+            row = [
+                cluster_id,
+                instance_id,
+                metric_name,
+                timestamp.strftime("%Y-%m-%d %H:%M"),
+                value,
+            ]
+            # print(timestamp.strftime('%Y-%m-%d %H:%M'))
+            writer.writerow(row)
+
+    csv_data.seek(0)
+
+    # S3에 업로드
+    object_path = f"{bucket_path}/{object_key}"
+    s3_client.put_object(Bucket=bucket_name, Key=object_path, Body=csv_data.getvalue())
+    print(f"Data {object_key} uploaded to {bucket_name}/{bucket_path}/{object_key}")
+
 
 def check_table_exists(database_name, table_name):
     try:
@@ -1080,7 +1128,7 @@ def analyze_performance(db_identifier, start_time, end_time):
     metrics = [
         {'name': 'Database Load', 'metric': 'db.load.max', 'group_by': {'Group': 'db.wait_event'}},
         {'name': 'CPU Utilization', 'metric': 'os.cpuUtilization.total.max'},
-        {'name': 'Freeable Memory', 'metric': 'os.memory.free.min'}
+        {'name': 'Memory Available', 'metric': 'os.memory.free.min'}
     ]
     
     rds_client = boto3.client('rds')
@@ -1288,12 +1336,14 @@ def analyze_innodb_status(keyword):
             result = cursor.fetchall()
             columns = cursor.column_names
             #df = pd.DataFrame(result, columns=columns)
+
             # 너비를 최대 200자리로 설정
             #pd.set_option("display.max_rows", 200)
             # 최대 열 수를 20으로 설정
             #pd.set_option("display.max_columns", 20)
             # 전체 너비를 200자리로 설정
             #pd.set_option("display.width", 400)
+
             #st.write(df)
             results += secret_name + str(result)
 
@@ -1687,7 +1737,10 @@ def analyze_aurora_mysql_error_logs(keyword, start_datetime_str, end_datetime_st
                 특히 "Fatal error", "Out of memory", "Disk full"과 같은 심각한 에러는 즉각적인 조치가 필요할 수 있습니다. 
                 정기적으로 로그를 검토하고 이러한 키워드가 발견되면 신속하게 대응하는 것이 중요합니다
                 </context>
-                ''' + '\n'.join(results)
+                
+                
+
+''' + '\n'.join(results)
     
     llm_response = interact_with_general_llm(prompt)
     
@@ -1698,20 +1751,6 @@ def chat_with_claude(user_message, tool_config):
     client = boto3.client("bedrock-runtime")
     model_Id = "anthropic.claude-3-sonnet-20240229-v1:0"
 
-    #Query Knowledge Base
-    kb_id = "VHVECVPDFE"  # Replace with your actual Knowledge Base ID
-    kb_results = query_knowledge_base(kb_id, user_message)
-
-    # Prepare context from Knowledge Base results
-    kb_context = ""
-    for result in kb_results:
-        if "content" in result and isinstance(result["content"], dict):
-            if "text" in result["content"]:
-                kb_context += result["content"]["text"] + "\n\n"
-        elif isinstance(result, dict) and "text" in result:
-            kb_context += result["text"] + "\n\n"
-
-    user_message += kb_context
     messages = [{"role": "user", "content": [{"text": user_message}]}]
 
     tool_functions = {
@@ -1728,6 +1767,7 @@ def chat_with_claude(user_message, tool_config):
         "get_buffer_hit_ratio": get_buffer_hit_ratio,
         "download_and_upload_slow_query_logs": download_and_upload_slow_query_logs,
         "analyze_aurora_mysql_error_logs": analyze_aurora_mysql_error_logs,
+        "compare_database_info": compare_database_info
     }
 
     def call_tool(tool, messages):
@@ -1763,10 +1803,14 @@ def chat_with_claude(user_message, tool_config):
         
         messages.append(tool_result_message)
         
+        print(messages)
+        
         response = client.converse(
             modelId=model_Id, messages=messages, toolConfig=tool_config
         )
         return response["output"]["message"]
+        
+        
 
     response = client.converse(
         modelId=model_Id, messages=messages, toolConfig=tool_config
@@ -1775,7 +1819,7 @@ def chat_with_claude(user_message, tool_config):
     output_message = response["output"]["message"]
     messages.append(output_message)
     stop_reason = response["stopReason"]
-
+    
     if stop_reason == "tool_use":
         tool_requests = output_message["content"]
         for tool_request in tool_requests:
@@ -1901,17 +1945,17 @@ tool_config = {
                 },
             }
         },
-        {
+       {
             "toolSpec": {
                 "name": "compare_database_info",
-                "description": "Compare database information for the databases identified by the keyword",
+                "description": "특정키워드로 시작하는 클러스터들의 스키마정보(테이블,컬럼,인덱스 정보)를 비교하여 정리합니다.예) gamedb로 시작하는 모든 데이터베이스의 스키마정보를 비교해줘",
                 "inputSchema": {
                     "json": {
                         "type": "object",
                         "properties": {
                             "keyword": {
                                 "type": "string",
-                                "description": "Keyword to identify multiple databases",
+                                "description": "여러개의 클러스터를 찾을수 있는 키워드 (예:gamedb,game 같은 prefix정보)",
                             }
                         },
                         "required": ["keyword"],
