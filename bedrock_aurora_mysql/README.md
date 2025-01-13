@@ -72,7 +72,7 @@ ex : s3_bucket_name = "test-s3bucket-fugwilwec8mx"
 
 - ec2 인스턴스내의 db-admin 폴더밑에서 "streamlit run db-admin.py"를 실행하여 애플리케이션을 시작합니다. <br>
 
--    그런 다음 채팅 창에서 다음 질문들을 진행해스 테스트 해보세요 :<br>
+-    그런 다음 채팅 창에서 다음 질문들을 테스트 해보세요 :<br>
    ```
     a.gamedb1-cluster의 sales테이블을 조회해주세요
     b.gamedb1-cluster의에서 order테이블과 customer테이블을 조인하고 최근 구매한 내역 5건을  주문아이디, 주문자, 일자, 금액순으로 보여주세요.
