@@ -88,3 +88,6 @@ ex : s3_bucket_name = "test-s3bucket-fugwilwec8mx"
     l. 어제 하루동안 game으로 시작하는 모든 디비의 에러로그를 분석해줘.
    
    ```
+### 6. Demo:
+- 위와 같이 테스트할때 구현되는 데모를 아래링크에서 확인해보세요.
+[Demolink](https://www.youtube.com/playlist?list=PLtrKveME8VY41_VFxKJrjPGmRkcDInlix)
