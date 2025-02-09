@@ -84,7 +84,7 @@ export class Ec2Stack extends Stack {
 
     // EC2 instance
     const chatbotAppInstance = new ec2.Instance(this, 'chatbotAppInstance', {
-      instanceType: new ec2.InstanceType('t2.small'),
+      instanceType: new ec2.InstanceType('t2.medium'),
       machineImage: machineImage,
       vpc: defaultVpc,
       securityGroup: chatbotAppSecurityGroup,
