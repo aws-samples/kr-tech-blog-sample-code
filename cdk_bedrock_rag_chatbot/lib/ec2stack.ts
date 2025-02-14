@@ -52,9 +52,9 @@ export class Ec2Stack extends Stack {
     // IAM Role to access EC2
     const instanceRole = new iam.Role(this, 'InstanceRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-      inlinePolicies: {
-        'CustomEC2Policy': policy
-      },
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
+      ],
     });
 
     // Network setting for EC2
@@ -64,7 +64,6 @@ export class Ec2Stack extends Stack {
 
     const chatbotAppSecurityGroup = new ec2.SecurityGroup(this, 'chatbotAppSecurityGroup', {
       vpc: defaultVpc,
-      allowAllOutbound: true,
     });
     chatbotAppSecurityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
@@ -90,13 +89,13 @@ export class Ec2Stack extends Stack {
       securityGroup: chatbotAppSecurityGroup,
       role: instanceRole,
       userData: userData,
-      blockDevices: [{
-        deviceName: '/dev/xvda',
-        volume: ec2.BlockDeviceVolume.ebs(8, {
-          deleteOnTermination: false,
-          encrypted: true,
-        }),
-      }],
+      // blockDevices: [{
+      //   deviceName: '/dev/xvda',
+      //   volume: ec2.BlockDeviceVolume.ebs(8, {
+      //     deleteOnTermination: false,
+      //     encrypted: true,
+      //   }),
+      // }],
       detailedMonitoring: true,
       instanceInitiatedShutdownBehavior: ec2.InstanceInitiatedShutdownBehavior.STOP,
     });
