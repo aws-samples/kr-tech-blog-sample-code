@@ -89,13 +89,6 @@ export class Ec2Stack extends Stack {
       securityGroup: chatbotAppSecurityGroup,
       role: instanceRole,
       userData: userData,
-      // blockDevices: [{
-      //   deviceName: '/dev/xvda',
-      //   volume: ec2.BlockDeviceVolume.ebs(8, {
-      //     deleteOnTermination: false,
-      //     encrypted: true,
-      //   }),
-      // }],
       detailedMonitoring: true,
       instanceInitiatedShutdownBehavior: ec2.InstanceInitiatedShutdownBehavior.STOP,
     });
