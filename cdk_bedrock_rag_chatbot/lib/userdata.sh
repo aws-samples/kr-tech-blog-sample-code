@@ -11,7 +11,7 @@ sudo apt-get install -y python3-venv
 
 # Clone repository
 cd /home/ubuntu
-sudo git clone https://github.com/ottlseo/kr-tech-blog-sample-code.git
+sudo git clone https://github.com/aws-samples/kr-tech-blog-sample-code.git
 
 # Create virtual environment
 sudo python3 -m venv --copies /home/ubuntu/my_env
