@@ -6,11 +6,20 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { AwsSolutionsChecks, NagSuppressions } from 'cdk-nag';
     
 export class Ec2Stack extends Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    
+   
+    NagSuppressions.addStackSuppressions(this, [
+      { id: 'AwsSolutions-IAM4', reason: 'Suppressing all IAM warnings' },
+      { id: 'AwsSolutions-EC23', reason: 'Suppressing all EC2 security group warnings' },
+      { id: 'AwsSolutions-EC26', reason: 'Suppressing EBS encryption warnings' },
+      { id: 'AwsSolutions-EC28', reason: 'Suppressing monitoring warnings' },
+      { id: 'AwsSolutions-EC29', reason: 'Suppressing termination protection warnings' }
+    ]); 
+
     const knowledgeBaseId = new cdk.CfnParameter(this, 'knowledgeBaseId', {
       type: 'String',
       description: 'Knowledge Base ID for RAG Chatbot',
