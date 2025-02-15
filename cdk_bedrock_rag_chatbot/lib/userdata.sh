@@ -7,7 +7,7 @@ sudo apt-get update -y
 sudo apt-get install -y ec2-instance-connect
 sudo apt-get install -y git
 sudo apt-get install -y python3-pip
-sudo apt-get install -y python3.8-venv
+sudo apt-get install -y python3-venv
 
 # Clone repository
 cd /home/ubuntu
@@ -20,6 +20,7 @@ source /home/ubuntu/my_env/bin/activate
 
 # Install dependencies
 cd kr-tech-blog-sample-code/cdk_bedrock_rag_chatbot/application
+sudo apt install -y cargo
 pip3 install -r requirements.txt
 
 # Create systemd service
