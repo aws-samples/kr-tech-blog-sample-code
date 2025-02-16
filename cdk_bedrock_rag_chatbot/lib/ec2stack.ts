@@ -31,6 +31,14 @@ export class Ec2Stack extends Stack {
           ],
           resources: ['arn:aws:ec2:*:*:instance/*'],
         }),
+        // EC2 Instance Connect 권한 추가
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'ec2-instance-connect:*'
+          ],
+          resources: ['*'],
+        }),
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: [
@@ -71,6 +79,11 @@ export class Ec2Stack extends Stack {
       ec2.Port.tcp(80),
       'httpIpv4',
     );
+    chatbotAppSecurityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(22),
+      'SSH access'
+    );
 
     // set AMI
     const machineImage = ec2.MachineImage.fromSsmParameter(
@@ -84,7 +97,7 @@ export class Ec2Stack extends Stack {
 
     // EC2 instance
     const chatbotAppInstance = new ec2.Instance(this, 'chatbotAppInstance', {
-      instanceType: new ec2.InstanceType('t2.small'),
+      instanceType: new ec2.InstanceType('t2.medium'),
       machineImage: machineImage,
       vpc: defaultVpc,
       securityGroup: chatbotAppSecurityGroup,
@@ -123,12 +136,17 @@ export class Ec2Stack extends Stack {
         reason: 'EC2 actions require wildcard for instance resources as specific instance IDs are not known at deployment time',
         appliesTo: ['Action::ec2:*', 'Resource::arn:aws:ec2:*:*:instance/*'],
       },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'EC2 Instance Connect requires wildcard resource as instance IDs are not known at deployment time',
+        appliesTo: ['Action::ec2-instance-connect:*', 'Resource::*'],
+      },
     ]);
 
     NagSuppressions.addResourceSuppressions(chatbotAppSecurityGroup, [
       {
         id: 'AwsSolutions-EC23',
-        reason: 'HTTP ports are required to be open for the chatbot application',
+        reason: 'HTTP and SSH ports are required to be open for the chatbot application',
       },
     ]);
 
