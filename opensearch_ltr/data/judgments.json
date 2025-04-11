@@ -1,0 +1,7117 @@
+[
+  {
+    "query_id": "q1",
+    "doc_id": "doc1",
+    "relevance": 4
+  },
+  {
+    "query_id": "q1",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q1",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q1",
+    "doc_id": "doc14",
+    "relevance": 2
+  },
+  {
+    "query_id": "q1",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q1",
+    "doc_id": "doc12",
+    "relevance": 3
+  },
+  {
+    "query_id": "q2",
+    "doc_id": "doc13",
+    "relevance": 4
+  },
+  {
+    "query_id": "q2",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q2",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q2",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q2",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q2",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc19",
+    "relevance": 4
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc6",
+    "relevance": 3
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc18",
+    "relevance": 2
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc5",
+    "relevance": 2
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q3",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q4",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc9",
+    "relevance": 4
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc18",
+    "relevance": 3
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q5",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc15",
+    "relevance": 4
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc6",
+    "relevance": 4
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q6",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q7",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q8",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc17",
+    "relevance": 2
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc7",
+    "relevance": 2
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q9",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc19",
+    "relevance": 3
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc6",
+    "relevance": 3
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc15",
+    "relevance": 3
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q10",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc1",
+    "relevance": 4
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q11",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc3",
+    "relevance": 4
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc13",
+    "relevance": 3
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc18",
+    "relevance": 2
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q12",
+    "doc_id": "doc9",
+    "relevance": 2
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q13",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q14",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q15",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc14",
+    "relevance": 2
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q16",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc6",
+    "relevance": 4
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc15",
+    "relevance": 4
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q17",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc7",
+    "relevance": 3
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc19",
+    "relevance": 2
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q18",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q19",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc17",
+    "relevance": 3
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc7",
+    "relevance": 3
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q20",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q21",
+    "doc_id": "doc1",
+    "relevance": 4
+  },
+  {
+    "query_id": "q21",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q21",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q21",
+    "doc_id": "doc14",
+    "relevance": 2
+  },
+  {
+    "query_id": "q21",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q21",
+    "doc_id": "doc12",
+    "relevance": 3
+  },
+  {
+    "query_id": "q22",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q22",
+    "doc_id": "doc13",
+    "relevance": 4
+  },
+  {
+    "query_id": "q22",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q22",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q22",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q22",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q23",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q24",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q25",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q26",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc9",
+    "relevance": 4
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc18",
+    "relevance": 3
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q27",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc17",
+    "relevance": 2
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc7",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q28",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q29",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q29",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q29",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc7",
+    "relevance": 3
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc19",
+    "relevance": 2
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q30",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc13",
+    "relevance": 3
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q31",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc6",
+    "relevance": 4
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc15",
+    "relevance": 4
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q32",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q33",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q34",
+    "doc_id": "doc3",
+    "relevance": 4
+  },
+  {
+    "query_id": "q34",
+    "doc_id": "doc9",
+    "relevance": 3
+  },
+  {
+    "query_id": "q34",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q34",
+    "doc_id": "doc18",
+    "relevance": 2
+  },
+  {
+    "query_id": "q34",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q34",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q35",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q36",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc19",
+    "relevance": 4
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc7",
+    "relevance": 3
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc17",
+    "relevance": 3
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc10",
+    "relevance": 3
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc9",
+    "relevance": 2
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q37",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q38",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc18",
+    "relevance": 4
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc9",
+    "relevance": 4
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc7",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q39",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc1",
+    "relevance": 4
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q40",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc1",
+    "relevance": 4
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q41",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc3",
+    "relevance": 4
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc18",
+    "relevance": 2
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q42",
+    "doc_id": "doc9",
+    "relevance": 3
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc7",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q43",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q44",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q45",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q46",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc18",
+    "relevance": 4
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc9",
+    "relevance": 4
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc2",
+    "relevance": 3
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q47",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc17",
+    "relevance": 2
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc7",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q48",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc16",
+    "relevance": 3
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q49",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc10",
+    "relevance": 3
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc19",
+    "relevance": 2
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q50",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc12",
+    "relevance": 3
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q51",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q52",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc9",
+    "relevance": 4
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc18",
+    "relevance": 4
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc19",
+    "relevance": 3
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q53",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q54",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc3",
+    "relevance": 4
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc18",
+    "relevance": 2
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q55",
+    "doc_id": "doc9",
+    "relevance": 3
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc15",
+    "relevance": 4
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc6",
+    "relevance": 4
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q56",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q57",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc12",
+    "relevance": 3
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q58",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc18",
+    "relevance": 4
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc9",
+    "relevance": 2
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q59",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q60",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q61",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q62",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc13",
+    "relevance": 4
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc6",
+    "relevance": 2
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc15",
+    "relevance": 2
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q63",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc7",
+    "relevance": 2
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc17",
+    "relevance": 3
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc19",
+    "relevance": 2
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q64",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q65",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc19",
+    "relevance": 4
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc6",
+    "relevance": 3
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc15",
+    "relevance": 3
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q66",
+    "doc_id": "doc5",
+    "relevance": 2
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc1",
+    "relevance": 4
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q67",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc20",
+    "relevance": 2
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q68",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc18",
+    "relevance": 4
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc9",
+    "relevance": 2
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q69",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc17",
+    "relevance": 3
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc7",
+    "relevance": 3
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc12",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q70",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q71",
+    "doc_id": "doc3",
+    "relevance": 4
+  },
+  {
+    "query_id": "q71",
+    "doc_id": "doc13",
+    "relevance": 4
+  },
+  {
+    "query_id": "q71",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q71",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q71",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q72",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q73",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q74",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc19",
+    "relevance": 4
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc6",
+    "relevance": 3
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc15",
+    "relevance": 3
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc8",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q75",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc13",
+    "relevance": 4
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc6",
+    "relevance": 2
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q76",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc18",
+    "relevance": 4
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc9",
+    "relevance": 2
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q77",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q78",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc16",
+    "relevance": 1
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q79",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc15",
+    "relevance": 3
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc6",
+    "relevance": 3
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc19",
+    "relevance": 3
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc7",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q80",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc12",
+    "relevance": 3
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc13",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q81",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q82",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q83",
+    "doc_id": "doc3",
+    "relevance": 4
+  },
+  {
+    "query_id": "q83",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q83",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q83",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q83",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc5",
+    "relevance": 3
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q84",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc14",
+    "relevance": 2
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc19",
+    "relevance": 4
+  },
+  {
+    "query_id": "q85",
+    "doc_id": "doc6",
+    "relevance": 3
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc15",
+    "relevance": 4
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc6",
+    "relevance": 4
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc13",
+    "relevance": 3
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q86",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc9",
+    "relevance": 4
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc18",
+    "relevance": 3
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc11",
+    "relevance": 2
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc4",
+    "relevance": 2
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q87",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc1",
+    "relevance": 2
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q88",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc2",
+    "relevance": 4
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc12",
+    "relevance": 4
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc16",
+    "relevance": 2
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc8",
+    "relevance": 2
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q89",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc13",
+    "relevance": 3
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc2",
+    "relevance": 3
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q90",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc1",
+    "relevance": 3
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc11",
+    "relevance": 4
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc4",
+    "relevance": 4
+  },
+  {
+    "query_id": "q91",
+    "doc_id": "doc2",
+    "relevance": 2
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc5",
+    "relevance": 4
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc14",
+    "relevance": 4
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc15",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc10",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc20",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q92",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc7",
+    "relevance": 4
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc17",
+    "relevance": 4
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc19",
+    "relevance": 1
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc10",
+    "relevance": 2
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc3",
+    "relevance": 0
+  },
+  {
+    "query_id": "q93",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc19",
+    "relevance": 4
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc16",
+    "relevance": 3
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc8",
+    "relevance": 3
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc6",
+    "relevance": 2
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc5",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc15",
+    "relevance": 2
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc14",
+    "relevance": 1
+  },
+  {
+    "query_id": "q94",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc3",
+    "relevance": 3
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc13",
+    "relevance": 4
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc6",
+    "relevance": 2
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc4",
+    "relevance": 1
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc15",
+    "relevance": 2
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc14",
+    "relevance": 2
+  },
+  {
+    "query_id": "q95",
+    "doc_id": "doc5",
+    "relevance": 2
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc6",
+    "relevance": 4
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc15",
+    "relevance": 4
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc19",
+    "relevance": 3
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc3",
+    "relevance": 2
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc12",
+    "relevance": 1
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc11",
+    "relevance": 1
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc13",
+    "relevance": 2
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc10",
+    "relevance": 1
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q96",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc10",
+    "relevance": 4
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc20",
+    "relevance": 3
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc17",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc7",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc6",
+    "relevance": 0
+  },
+  {
+    "query_id": "q97",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc8",
+    "relevance": 4
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc16",
+    "relevance": 4
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc12",
+    "relevance": 2
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc2",
+    "relevance": 1
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc9",
+    "relevance": 0
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc13",
+    "relevance": 1
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc18",
+    "relevance": 0
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q98",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc20",
+    "relevance": 4
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc6",
+    "relevance": 1
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc4",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc15",
+    "relevance": 1
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc3",
+    "relevance": 1
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc18",
+    "relevance": 1
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc7",
+    "relevance": 2
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc2",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc8",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc17",
+    "relevance": 1
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc10",
+    "relevance": 3
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc9",
+    "relevance": 1
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc19",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc16",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc5",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc1",
+    "relevance": 0
+  },
+  {
+    "query_id": "q99",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc17",
+    "relevance": 3
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc1",
+    "relevance": 1
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc7",
+    "relevance": 2
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc14",
+    "relevance": 0
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc11",
+    "relevance": 0
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc20",
+    "relevance": 1
+  },
+  {
+    "query_id": "q100",
+    "doc_id": "doc12",
+    "relevance": 0
+  }
+]
