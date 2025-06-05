@@ -1,0 +1,60 @@
+digraph INFRA {
+  node [ color = "black", fillcolor = "#E6E6E6", height =1, style = "filled,bold,rounded", fontname = "Arial" ];
+  "VPC" [ label = "VPC
+(AWS::EC2::VPC)", shape =rectangle ];
+  "PublicSubnet1" [ label = "PublicSubnet1
+(AWS::EC2::Subnet)", shape =rectangle ];
+  "PublicSubnet2" [ label = "PublicSubnet2
+(AWS::EC2::Subnet)", shape =rectangle ];
+  "PrivateSubnet1" [ label = "PrivateSubnet1
+(AWS::EC2::Subnet)", shape =rectangle ];
+  "PrivateSubnet2" [ label = "PrivateSubnet2
+(AWS::EC2::Subnet)", shape =rectangle ];
+  "InternetGateway" [ label = "InternetGateway
+(AWS::EC2::InternetGateway)", shape =rectangle, fillcolor = "#E78F81" ];
+  "AttachGateway" [ label = "AttachGateway
+(AWS::EC2::VPCGatewayAttachment)", shape =rectangle ];
+  "PublicRouteTable" [ label = "PublicRouteTable
+(AWS::EC2::RouteTable)", shape =rectangle ];
+  "PublicRoute" [ label = "PublicRoute
+(AWS::EC2::Route)", shape =rectangle ];
+  "EIP" [ label = "EIP
+(AWS::EC2::EIP)", shape =rectangle ];
+  "NATGateway" [ label = "NATGateway
+(AWS::EC2::NatGateway)", shape =rectangle, fillcolor = "#E78F81" ];
+  "PrivateRouteTable1" [ label = "PrivateRouteTable1
+(AWS::EC2::RouteTable)", shape =rectangle ];
+  "PrivateRouteTable2" [ label = "PrivateRouteTable2
+(AWS::EC2::RouteTable)", shape =rectangle ];
+  "S3VPCEndpoint" [ label = "S3VPCEndpoint
+(AWS::EC2::VPCEndpoint)", shape =rectangle, fillcolor = "#E78F81" ];
+  "LambdaSecurityGroup" [ label = "LambdaSecurityGroup
+(AWS::EC2::SecurityGroup)", shape =rectangle ];
+  "McpHandler" [ label = "McpHandler
+(AWS::Lambda::Function)", shape =rectangle, fillcolor = "#B7E0FF" ];
+  "BedrockAgentRole" [ label = "BedrockAgentRole
+(AWS::IAM::Role)", shape =rectangle ];
+  "BedrockAgent" [ label = "BedrockAgent
+(AWS::Bedrock::Agent)", shape =rectangle, fillcolor = "#B7E0FF" ];
+  "PublicSubnet1" -> "VPC";
+  "PublicSubnet2" -> "VPC";
+  "PrivateSubnet1" -> "VPC";
+  "PrivateSubnet2" -> "VPC";
+  "AttachGateway" -> "VPC";
+  "AttachGateway" -> "InternetGateway";
+  "PublicRouteTable" -> "VPC";
+  "PublicRoute" -> "PublicRouteTable";
+  "PublicRoute" -> "InternetGateway";
+  "NATGateway" -> "EIP";
+  "NATGateway" -> "PublicSubnet1";
+  "PrivateRouteTable1" -> "VPC";
+  "PrivateRouteTable2" -> "VPC";
+  "S3VPCEndpoint" -> "VPC";
+  "S3VPCEndpoint" -> "PrivateRouteTable1";
+  "S3VPCEndpoint" -> "PrivateRouteTable2";
+  "LambdaSecurityGroup" -> "VPC";
+  "McpHandler" -> "VPC";
+  "McpHandler" -> "LambdaSecurityGroup";
+  "BedrockAgent" -> "BedrockAgentRole";
+  "BedrockAgent" -> "McpHandler";
+}
