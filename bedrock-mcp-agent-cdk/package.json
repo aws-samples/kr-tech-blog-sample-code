@@ -31,6 +31,7 @@
     "@modelcontextprotocol/sdk": "^1.8.0",
     "@smithery/cli": "^1.1.66",
     "aws-cdk-lib": "^2.187.0",
+    "cdk-nag": "^2.35.101",
     "constructs": "^10.0.0",
     "dotenv": "^16.4.7",
     "npm": "^10.9.2"

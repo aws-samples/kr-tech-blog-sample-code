@@ -3,6 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { BedrockAgentStack } from '../lib/bedrock-agent-stack';
 import * as path from 'path';
 import * as fs from 'fs';
+import { AwsSolutionsChecks } from 'cdk-nag';
 
 class ValidationError extends Error {
   constructor(message: string) {
@@ -78,6 +79,8 @@ class Application {
       vpcId: this.vpcId as string,
       subnetIds: this.subnetIdList  as string[]
     });
+
+    cdk.Aspects.of(this.app).add(new AwsSolutionsChecks());
   }
 
   cleanup(): void {

@@ -4,6 +4,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { NagSuppressions } from 'cdk-nag';
 
 interface McpServerConfig {
   command: string;
@@ -40,6 +41,21 @@ export class BedrockAgentStack extends cdk.Stack {
     const subnets = props.subnetIds.map(subnetId => 
       ec2.Subnet.fromSubnetId(this, subnetId, subnetId)
     )
+
+    const lambdaRole = new iam.Role(this, 'RoleForMcpHandlerLambda', {
+      roleName: 'lambdaRole',
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+          iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaVPCAccessExecutionRole"),
+          iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      ]
+    })
+    NagSuppressions.addResourceSuppressions(lambdaRole, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'This role is attached to lambda function with the managed policies AWSLambdaVPCAccessExecutionRole and AWSLambdaBasicExecutionRole. These are required permissions to create Lambda functions on arbitrary VPCs and to create a log group in CloudWatch Logs.',
+      }
+    ]);
 
     // Create a Lambda function for each MCP server
     let lambdaFunctions = [];
@@ -78,10 +94,10 @@ export class BedrockAgentStack extends cdk.Stack {
           subnets: subnets
         },
         securityGroups: [lambdaSg],
-        bundling: bundling
+        bundling: bundling,
+        role: lambdaRole
       });
       lambdaFunctions.push(lambdaFunction);
-
 
       actionGroups.push({
         // '-' is not allowed for action group name
@@ -143,6 +159,13 @@ export class BedrockAgentStack extends cdk.Stack {
         }),
       },
     });
+    NagSuppressions.addResourceSuppressions(bedrockAgentRole, [
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'To use Amazon Nova Pro models with cross-region inference, you must have access to Nova Pro models for multiple regions.',
+        appliesTo: ['Resource::arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0'],
+      }
+    ]);
 
     const bedrockAgent = new cdk.CfnResource(this, 'BedrockAgent', {
       type: 'AWS::Bedrock::Agent',
