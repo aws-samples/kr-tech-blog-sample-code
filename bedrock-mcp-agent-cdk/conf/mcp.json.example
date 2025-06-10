@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "time-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@yokingma/time-mcp",
+        "--key",
+        "<your-smithery-key>"
+      ],
+      "bundling": {
+        "nodeModules": ["npm", "@smithery/cli"]
+      }
+    },
+    "duckduckgo-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@nickclyde/duckduckgo-mcp-server",
+        "--key",
+        "<your-smithery-key>"
+      ],
+      "bundling": {
+        "nodeModules": ["npm", "@smithery/cli"]
+      }
+    }
+  }
+}
