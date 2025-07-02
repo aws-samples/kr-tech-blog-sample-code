@@ -9,6 +9,7 @@ AWS 기술 블로그(<https://aws.amazon.com/ko/blogs/tech/>)에서 제공하는
 | [Amazon Bedrock을 활용한 Aurora Mysql 운영하기](https://aws.amazon.com/ko/blogs/tech/auroramysql-monitoring-with-amazonbedrock/) | [bedrock_aurora_mysql](bedrock_aurora_mysql)|
 | [Amazon OpenSearch Service 의 LTR플러그인을 활용한 검색 품질 개선]() | [opensearch_ltr](opensearch_ltr)|
 | [Amazon Bedrock Agents와 MCP(Model Context Protocol) 통합하기](https://aws-blogs-prod.amazon.com/tech/amazon-bedrock-agents-mcp-model-context-protocol/) | [bedrock-mcp-agent-cdk](bedrock-mcp-agent-cdk)|
+| [알아두면 쓸모 있는 Aurora MySQL Bluegreen 배포  스크립트](https://aws.amazon.com/ko/blogs/tech/auroramysql-task-automation-tip/) | [auroramysql-task-automation-tip](auroramysql-task-automation-tip)|
 
 ## Security
 
