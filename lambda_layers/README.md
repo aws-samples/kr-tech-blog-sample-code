@@ -4,6 +4,7 @@
 ## 📦 포함된 파일
 
 1. `pyiceberg_layer.zip`: Python 3.13+, ARM64 기반으로 [PyIceberg](https://py.iceberg.apache.org/)를 사용할 수 있는 레이어입니다. (`pip install "pyiceberg[pyarrow]"`으로 설치됨)
+2. `pymysql-layer.zip`: Python 3.13+, x86_64 기반으로 [PyMySQL](https://github.com/PyMySQL/PyMySQL)를 사용할 수 있는 레이어입니다.
 
 ## 🔧 사용 방법
 
