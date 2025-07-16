@@ -21,11 +21,6 @@
 사용자 요청 → Valkey (캐시) → DynamoDB (저장) → Redshift (분석) → 최적화된 프로세스 제안
 ```
 
-### 스코어 계산 공식
-```
-스코어 = 총실행건수 × exp{-0.1 ×(오늘일시-최근실행일시)} × (성공건수/실행건수)²
-```
-
 ### 데이터 플로우
 1. **Valkey**: 사용자 세션 및 에이전트 실행이력 1차 처리
 2. **DynamoDB**: Valkey에서 처리한 내역을 비동기로 저장
@@ -38,7 +33,7 @@
 - **Redshift**: 실행 이력 분석 및 스코어 계산 (Zero ETL로 준실시간 분석)
 - **Valkey**: 자주 사용되는 프로세스 캐싱 (고성능 메모리 기반 처리)
 
-## 📁 파일 구성
+## 파일 설명
 
 ### 1. `create_agent_table.py`
 - DynamoDB 테이블 생성 (단일 테이블 설계)
@@ -84,12 +79,6 @@ python create_agent_table.py
 #### 2단계: 쿼리 예시 실행
 ```bash
 python query_examples.py
-```
-
-#### 3단계: AWS CLI 쿼리 실행
-```bash
-chmod +x aws_cli_examples.sh
-./aws_cli_examples.sh
 ```
 
 ## 코드 예시
@@ -408,132 +397,8 @@ aws dynamodb query \
     --expression-attribute-values file://query-params2.json
 ```
 
-위 내용들을 표로 정리하면 아래와 같습니다.  DynamoDB 키디자인은 이러한 형식으로 만들고 액세스 패턴들을 계속해서 리뷰를 반복해야합니다. 가능하면 관련된 모든 사람들과 놓친 액세스 패턴은 없는지, 설계한 파티션키와 소트키에는 문제가 없는지를 충분히 검토해야 합니다. 그래야 서비스가 런칭된 이후 키디자인 변경이나 추가 GSI를 만드는 비용을 최소화할수 있습니다.  
 
-| 액세스패턴 | Table/GSI | Key Condition |
-|--------|------|---------|
-| 사용자의 요청에 따른 적절한 도메인을 찾을수 있습니다. | GSI | GSI1_PK = 'Domain' (optional) GSI1_SK begins_with(SK, '지역기반') |
-| 하나의 도메인에 속한 여러 에이전트 중에서 스코어가 높은 에이전트를 불러올수 있습니다. | GSI | GSI1_PK = 'DMN001', GSI1_SK begins_with(SK, 'AGTSCORE')인덱스 스캔방식 : no-scan-index-forward |
-| 하나의 도메인에 속한 여러 에이전트 중에서 사용자의 요청에 가장 적합한 툴을 가진 에이전트를 불러올수 있습니다. | GSI | GSI1_PK = 'DMN001', GSI1_SK begins_with(SK, 'TL') |
-| 하나의 에이전트의 툴 정보를 전부 불러옵니다. | Table | PK = 'AGT001'
-SK begins_with(SK, 'TL') |
-| 사용자의 세션을 최신일자로 가져옵니다 | Table | PK = 'USR001', SK begins_with(SK, "SESS") 인덱스 스캔방식 : no-scan-index-forward |
-| 특정 사용자의 특정 세션의 모든 상세 정보를 조회하면서 가장 최근에 처리한 프로세스 및 툴정보를 가져옵니다. | TABLE | PK = 'USR001#SESS20250614001'
-SK begins_with(SK, 'PRC')인덱스 스캔방식 : no-scan-index-forward |
-| 특정 사용자 자신의 유사한 요청에 최적화된 툴 매핑정보를 가져옵니다. | TABLE | PK = 'User001'
-(optional) SK begins_with(SK, 'UserPrcToolMapp#매장검색') |
-| 전체 사용자 중에서 비슷하거나 동일한 요청에 최적화된 툴 매핑정보를 가져옵니다. | GSI | GSI1_PK = 'UserPrcToolMapp'
-(optional) GSI1_SK begins_with(SK, '매장검색') |
-
-## Redshift 스키마
-
-### 테이블 생성 스크립트
-
-```sql
--- 도메인 테이블
-CREATE TABLE Domain (
-    DomainID varchar(30),
-    DomainNM varchar(100),
-    Description varchar(500),
-    load_timestamp TIMESTAMP DEFAULT GETDATE()
-);
-
--- 에이전트 테이블
-CREATE TABLE Agent (
-    DomainID varchar(30),
-    AgentID varchar(30),
-    AgentNM varchar(100),
-    Score DECIMAL(10,2),
-    Description varchar(500),
-    load_timestamp TIMESTAMP DEFAULT GETDATE()
-);
-
--- 툴 테이블
-CREATE TABLE Tool (
-    DomainID VARCHAR(30),
-    AgentID VARCHAR(30), 
-    ToolID VARCHAR(30),
-    ToolNM VARCHAR(100),
-    ToolSpec TEXT,
-    Description VARCHAR(500),
-    load_timestamp TIMESTAMP DEFAULT GETDATE()
-)
-DISTKEY(DomainID)
-SORTKEY(AgentID);
-
--- 사용자 정보 테이블
-CREATE TABLE UserInfo(
-    UserID VARCHAR(30),
-    UserNM VARCHAR(100),
-    UserProfile VARCHAR(500),
-    LastLoginDT VARCHAR(14),
-    CreationDT VARCHAR(14),
-    load_timestamp TIMESTAMP DEFAULT GETDATE()
-)
-DISTKEY (UserID)
-SORTKEY (LastLoginDT);
-
--- 사용자 툴 매핑 이력 테이블
-CREATE TABLE user_tool_mapping_hist (
-    UserID VARCHAR(30),
-    SessionID VARCHAR(30),
-    ProcessID VARCHAR(30),
-    AgentID VARCHAR(30),
-    ToolID VARCHAR(30),
-    ToolNM VARCHAR(100),
-    ToolValues TEXT,
-    TransactDT VARCHAR(20),
-    SuccYN VARCHAR(1),
-    ResultMsg TEXT,
-    load_timestamp TIMESTAMP DEFAULT GETDATE()
-)
-DISTKEY (UserID)
-SORTKEY (SessionID, ProcessID, AgentID, ToolID);
-```
-
-### ETL 프로세스 예시
-
-```sql
--- DynamoDB에서 Redshift로 데이터 로드
-INSERT INTO user_tool_mapping_hist
-SELECT  SPLIT_PART("value"."PK"."S"::VARCHAR,'#',1) as UserID,
-        SPLIT_PART("value"."PK"."S"::VARCHAR,'#',2) as SessionID,
-        SPLIT_PART("value"."SK"."S"::VARCHAR,'#',1) as ProcessID,
-        SPLIT_PART("value"."SK"."S"::VARCHAR,'#',2) as AgentID,
-        SPLIT_PART("value"."SK"."S"::VARCHAR,'#',3) as ToolID,
-        "value"."ToolNM"."S"::VARCHAR as ToolNM,
-        "value"."ToolValues"."S"::VARCHAR as ToolValues,
-        "value"."TransactDT"."S"::VARCHAR as TransactDT,
-        "value"."SuccYN"."S"::VARCHAR as SuccYN,
-        "value"."ResultMsg"."S"::VARCHAR as ResultMsg,
-        GETDATE() as load_timestamp 
-FROM dbagent.public."AgentTable"
-WHERE "value"."EntityType"."S" = 'UserSessPrcToolMappHist';
-
--- 원본 데이터를 스테이징 테이블로 변환
-INSERT INTO agent_tool_analysis_staging (
-    UserID, SessionID, ProcessID, DomainID, AgentID, ToolID, ToolNM,
-    execution_date, execution_datetime, success_flag, tool_values, result_message
-)
-SELECT 
-    h.UserID,
-    h.SessionID,
-    h.ProcessID, 
-    a.DomainID,
-    h.AgentID,
-    h.ToolID,
-    h.ToolNM,
-    TO_DATE(LEFT(TransactDT, 8), 'YYYYMMDD') as execution_date,
-    TO_TIMESTAMP(TransactDT, 'YYYYMMDDHH24MISS') as execution_datetime,
-    CASE WHEN SuccYN = 'Y' THEN TRUE ELSE FALSE END as success_flag,
-    h.ToolValues,
-    h.ResultMsg as result_message
-FROM user_tool_mapping_hist h,
-     agent a 
-WHERE h.AgentID = a.AgentID;
-```
-
-## Redshift 스키마 설계
+## Redshift 스키마 설계 및 쿼리
 
 에이전트와 사용자 세션등 데이터 저장 스키마 설계를  DynamoDB로 했다면, 유저세션 상세의 툴 매핑 이력정보를 Redshift에서 분석합니다.  DynamoDB의 데이터는 ZeroETL기능을 연동해서 Redshift로  준 실시간으로 보낼수 있습니다. 툴 매핑이력 엔터티를 통해서 유저의 어떤 요청에 에이전트가 어떤 프로세스와 툴을 몇번 실행했고 몇번 성공했는지 정보등이 필요합니다. 또한 가장 최근 실행한 일시는 언제인지도 확인이 필요합니다. 이것은 앙서 Redshift를 에이전트에 대한 스코어를 매길때  어떤 값들을 통계로 처리하고 스코어에 반영할지 이미 언급했던 내용입니다. 
 
