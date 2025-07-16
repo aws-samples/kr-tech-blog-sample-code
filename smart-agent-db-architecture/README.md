@@ -418,7 +418,7 @@ WHERE "value"."EntityType"."S" = 'UserSessPrcToolMappHist'
 | USR001#SESS20250614001 | PRC002#AGT001#TL002 | {"PK":{"S":"USR001#SESS20250614001"},"SK":{"S":"PRC002#AGT001#TL002"},"TransactDT":{"S":"20250614140606"},"ResultMsg":{"S":"카페리스트"},"ToolNM":{"S":"USE_SEARCH_ENGINE_API"},"ToolValues":{"S":"위 밸류값, 잠실종합운동장 위치, 네이버, 구글검색API"},"EntityType":{"S":"UserSessPrcToolMappHist"},"SuccYN":{"S":"Y"}} |
 | USR001#SESS20250614001 | PRC003#AGT001#TL003 | {"PK":{"S":"USR001#SESS20250614001"},"SK":{"S":"PRC003#AGT001#TL003"},"TransactDT":{"S":"20250614140607"},"ResultMsg":{"S":"포맷된 카페리스트"},"ToolNM":{"S":"FORMAT_RESULTS"},"ToolValues":{"S":"맛집명단리스트, 포맷팅 템플릿 스크립트"},"EntityType":{"S":"UserSessPrcToolMappHist"},"SuccYN":{"S":"Y"}} |
 
-ZeroETL을 통해 가져온 Value 어트리뷰트에 Super Type 데이터타입으로 들어가 있기때문에,  아래와 같은 쿼리로 컴럼을 분리하는 과정이 필요합니다.  아래와 같이 분석하기 편하도록 새로운 테이블에 각각의 컴럼에 맞게 데이터를 분리해서 입력합니다.  
+ZeroETL을 통해 가져온 Value 어트리뷰트에 Super Type 데이터타입으로 들어가 있기때문에,  아래와 같은 쿼리로 컬럼을 분리하는 과정이 필요합니다.  아래와 같이 분석하기 편하도록 새로운 테이블에 각각의 컬럼에 맞게 데이터를 분리해서 입력합니다.  
 
 ```sql
 INSERT INTO user_tool_mapping_hist
