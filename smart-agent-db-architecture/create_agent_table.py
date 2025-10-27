@@ -234,7 +234,7 @@ def insert_sample_data():
             "UserSessionNM": "잠실종합운동장 맛집 검색 세션",
             "SessionSummary": "잠실종합 운동장 주변 맛집 검색 및 추천",
             "SessionStartDT": "20250614140530",
-            "DtlFileLoc": "S3://usersess/2025...",
+            "DtlFileLoc": "S3://.../2025...",
         },
         {
             "PK": "USR002",
@@ -245,7 +245,7 @@ def insert_sample_data():
             "UserSessionNM": "강남역 맛집 검색 세션",
             "SessionSummary": "강남역 주변 맛집 검색 및 추천",
             "SessionStartDT": "20250614150530",
-            "DtlFileLoc": "S3://usersess/2025...",
+            "DtlFileLoc": "S3://.../2025...",
         },
         {
             "PK": "USR003",
@@ -256,7 +256,7 @@ def insert_sample_data():
             "UserSessionNM": "홍대 카페 검색 세션",
             "SessionSummary": "홍대 주변 카페 검색 및 추천",
             "SessionStartDT": "20250614160530",
-            "DtlFileLoc": "S3://usersess/2025...",
+            "DtlFileLoc": "S3://.../2025...",
         },
         # 사용자 세션 프로세스 데이터
         {
