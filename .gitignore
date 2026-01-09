@@ -86,7 +86,6 @@ env/
 # === Java / Gradle ===
 .gradle/
 build/
-bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 *.class

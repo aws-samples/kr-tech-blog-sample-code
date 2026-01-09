@@ -1,2 +1,0 @@
-# This directory is for the Lambda layer dependencies
-# Install with: pip install -r ../requirements.txt -t .

@@ -10,10 +10,33 @@ node_modules/
 *.d.ts
 !jest.config.js
 
-# Lambda layer build
-lambda/layers/dependencies/python/*
+# Lambda layer dependencies (installed during deploy)
+lambda/layers/dependencies/python/
 !lambda/layers/dependencies/python/.gitkeep
-lambda/webapp-backend/
+
+# Lambda webapp-backend dependencies (installed during deploy)
+# Exclude all except source files
+lambda/webapp-backend/*
+!lambda/webapp-backend/main.py
+!lambda/webapp-backend/requirements.txt
+!lambda/webapp-backend/.gitkeep
+
+# Lambda function dependencies (if any)
+lambda/functions/**/package/
+lambda/functions/**/__pycache__/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+.dist-info/
+
+# Archives
 *.zip
 
 # IDE
@@ -33,3 +56,7 @@ npm-debug.log*
 # Test coverage
 coverage/
 .nyc_output/
+
+# Environment
+.env
+.env.local

@@ -95,6 +95,22 @@ check_prerequisites() {
         print_success "npm: $(npm --version)"
     fi
 
+    # Check Python (for Lambda dependencies)
+    if ! command -v python3 &> /dev/null; then
+        missing+=("python3")
+    else
+        PYTHON_VERSION=$(python3 --version 2>&1 | sed 's/Python //')
+        print_success "Python: $PYTHON_VERSION"
+    fi
+
+    # Check pip
+    if ! command -v pip3 &> /dev/null && ! python3 -m pip --version &> /dev/null; then
+        missing+=("pip3")
+    else
+        PIP_VERSION=$(python3 -m pip --version 2>&1 | head -n1)
+        print_success "pip: $PIP_VERSION"
+    fi
+
     # Check AWS credentials
     if ! aws sts get-caller-identity &> /dev/null; then
         print_error "AWS credentials not configured or invalid"
@@ -110,6 +126,7 @@ check_prerequisites() {
         echo "Please install missing dependencies:"
         echo "  - AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
         echo "  - Node.js: https://nodejs.org/ (v18 or higher)"
+        echo "  - Python 3: https://www.python.org/downloads/ (v3.9 or higher)"
         echo "  - AWS credentials: aws configure"
         exit 1
     fi
@@ -128,6 +145,59 @@ install_dependencies() {
     fi
 
     cd "$SCRIPT_DIR"
+}
+
+install_python_dependencies() {
+    print_step "Installing Python dependencies for Lambda..."
+
+    # Install webapp-backend dependencies
+    local WEBAPP_DIR="$SCRIPT_DIR/lambda/webapp-backend"
+    if [ -f "$WEBAPP_DIR/requirements.txt" ]; then
+        echo "Installing webapp-backend dependencies..."
+
+        # Clean up old packages (keep only main.py and requirements.txt)
+        find "$WEBAPP_DIR" -mindepth 1 -maxdepth 1 \
+            ! -name "main.py" \
+            ! -name "requirements.txt" \
+            ! -name ".gitkeep" \
+            -exec rm -rf {} + 2>/dev/null || true
+
+        # Install dependencies to the directory
+        python3 -m pip install \
+            --quiet \
+            --target "$WEBAPP_DIR" \
+            -r "$WEBAPP_DIR/requirements.txt"
+
+        # Count installed packages
+        PKG_COUNT=$(find "$WEBAPP_DIR" -maxdepth 1 -type d | wc -l | tr -d ' ')
+        print_success "webapp-backend dependencies installed ($PKG_COUNT packages)"
+    else
+        print_warning "webapp-backend/requirements.txt not found, skipping"
+    fi
+
+    # Install layer dependencies
+    local LAYER_DIR="$SCRIPT_DIR/lambda/layers/dependencies"
+    if [ -f "$LAYER_DIR/requirements.txt" ]; then
+        echo "Installing Lambda layer dependencies..."
+
+        # Create python directory for layer
+        mkdir -p "$LAYER_DIR/python"
+
+        # Clean up old packages
+        rm -rf "$LAYER_DIR/python/"* 2>/dev/null || true
+
+        # Install dependencies to python/ directory (Lambda layer structure)
+        python3 -m pip install \
+            --quiet \
+            --target "$LAYER_DIR/python" \
+            -r "$LAYER_DIR/requirements.txt"
+
+        # Count installed packages
+        PKG_COUNT=$(find "$LAYER_DIR/python" -maxdepth 1 -type d | wc -l | tr -d ' ')
+        print_success "Lambda layer dependencies installed ($PKG_COUNT packages)"
+    else
+        print_warning "lambda/layers/dependencies/requirements.txt not found, skipping"
+    fi
 }
 
 build_frontend() {
@@ -322,6 +392,7 @@ fi
 # Execute deployment steps
 check_prerequisites
 install_dependencies
+install_python_dependencies
 build_frontend
 bootstrap_cdk
 deploy_stacks
