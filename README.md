@@ -84,7 +84,7 @@ Amazon OpenSearch Service 검색 최적화 및 플러그인 개발 샘플입니�
 | Project | Description | Tech Stack | Blog |
 |---------|-------------|------------|------|
 | [opensearch_custom_plugin](./opensearch/opensearch_custom_plugin) | OpenSearch 커스텀 플러그인 개발 가이드 | Java, Gradle | [Link](https://aws.amazon.com/ko/blogs/tech/applying-amazon-opensearch-service-custom-plugin/) |
-| [opensearch_ltr](./opensearch/opensearch_ltr) | Learning to Rank 플러그인을 활용한 검색 품질 개선 | Python, Jupyter | Link |
+| [opensearch_ltr](./opensearch/opensearch_ltr) | Learning to Rank 플러그인을 활용한 검색 품질 개선 | Python, Jupyter | [Link](https://aws.amazon.com/ko/blogs/tech/enhancing-search-with-ltr-plugin-for-amazon-opensearch-service/) |
 
 ### database - Amazon Aurora
 
