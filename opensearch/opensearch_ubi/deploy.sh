@@ -150,10 +150,14 @@ install_dependencies() {
 install_python_dependencies() {
     print_step "Installing Python dependencies for Lambda..."
 
+    # Lambda runtime platform options (Amazon Linux 2, x86_64, Python 3.12)
+    # This ensures we get Linux-compatible binaries even when running on macOS
+    local PIP_PLATFORM_OPTS="--platform manylinux2014_x86_64 --implementation cp --python-version 3.12 --only-binary=:all:"
+
     # Install webapp-backend dependencies
     local WEBAPP_DIR="$SCRIPT_DIR/lambda/webapp-backend"
     if [ -f "$WEBAPP_DIR/requirements.txt" ]; then
-        echo "Installing webapp-backend dependencies..."
+        echo "Installing webapp-backend dependencies for Lambda (Linux x86_64)..."
 
         # Clean up old packages (keep only main.py and requirements.txt)
         find "$WEBAPP_DIR" -mindepth 1 -maxdepth 1 \
@@ -162,11 +166,23 @@ install_python_dependencies() {
             ! -name ".gitkeep" \
             -exec rm -rf {} + 2>/dev/null || true
 
-        # Install dependencies to the directory
+        # Install dependencies with Lambda-compatible platform
         python3 -m pip install \
             --quiet \
             --target "$WEBAPP_DIR" \
-            -r "$WEBAPP_DIR/requirements.txt"
+            $PIP_PLATFORM_OPTS \
+            -r "$WEBAPP_DIR/requirements.txt" 2>/dev/null || {
+            # Fallback: some packages don't have pre-built wheels
+            # Try without --only-binary for pure Python packages
+            print_warning "Some packages need source build, retrying..."
+            python3 -m pip install \
+                --quiet \
+                --target "$WEBAPP_DIR" \
+                --platform manylinux2014_x86_64 \
+                --implementation cp \
+                --python-version 3.12 \
+                -r "$WEBAPP_DIR/requirements.txt"
+        }
 
         # Count installed packages
         PKG_COUNT=$(find "$WEBAPP_DIR" -maxdepth 1 -type d | wc -l | tr -d ' ')
@@ -178,7 +194,7 @@ install_python_dependencies() {
     # Install layer dependencies
     local LAYER_DIR="$SCRIPT_DIR/lambda/layers/dependencies"
     if [ -f "$LAYER_DIR/requirements.txt" ]; then
-        echo "Installing Lambda layer dependencies..."
+        echo "Installing Lambda layer dependencies for Lambda (Linux x86_64)..."
 
         # Create python directory for layer
         mkdir -p "$LAYER_DIR/python"
@@ -186,11 +202,22 @@ install_python_dependencies() {
         # Clean up old packages
         rm -rf "$LAYER_DIR/python/"* 2>/dev/null || true
 
-        # Install dependencies to python/ directory (Lambda layer structure)
+        # Install dependencies with Lambda-compatible platform
         python3 -m pip install \
             --quiet \
             --target "$LAYER_DIR/python" \
-            -r "$LAYER_DIR/requirements.txt"
+            $PIP_PLATFORM_OPTS \
+            -r "$LAYER_DIR/requirements.txt" 2>/dev/null || {
+            # Fallback for pure Python packages
+            print_warning "Some packages need source build, retrying..."
+            python3 -m pip install \
+                --quiet \
+                --target "$LAYER_DIR/python" \
+                --platform manylinux2014_x86_64 \
+                --implementation cp \
+                --python-version 3.12 \
+                -r "$LAYER_DIR/requirements.txt"
+        }
 
         # Count installed packages
         PKG_COUNT=$(find "$LAYER_DIR/python" -maxdepth 1 -type d | wc -l | tr -d ' ')
