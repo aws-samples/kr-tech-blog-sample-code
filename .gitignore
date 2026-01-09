@@ -1,19 +1,131 @@
-/node_modules
+# ============================================
+# AWS Tech Blog Korea Sample Code
+# ============================================
 
+# === OS Generated Files ===
+.DS_Store
+.DS_Store?
+**/.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# === IDE and Editors ===
+# JetBrains (IntelliJ, PyCharm, WebStorm)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Vim/Neovim
+*.swp
+*.swo
+*.swn
+*~
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# === Node.js / TypeScript ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/cache
+.pnpm-store/
+
+# TypeScript build output
 *.js
 !jest.config.js
+!*.config.js
 *.d.ts
+*.js.map
+dist/
+out/
 
-# DS_store
-.DS_Store
-**/.DS_Store
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-.ipynb_checkpoints
+# Virtual environments
+venv/
+ENV/
+env/
+.env/
+.venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
 */.ipynb_checkpoints/*
 
-# Byte-compiled / optimized / DLL files
-__pycache__/
+# === Java / Gradle ===
+.gradle/
+build/
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+*.class
+*.jar
+!lib/*.jar
+*.war
+*.nar
+*.ear
 
-# CDK asset staging directory
-.cdk.staging
-cdk.out
+# === AWS CDK ===
+.cdk.staging/
+cdk.out/
+cdk.context.json
+
+# === Environment & Secrets ===
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# === Logs ===
+logs/
+*.log
+
+# === Testing ===
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+
+# === Temporary Files ===
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+
+# === Claude Code ===
+.claude/
