@@ -11,6 +11,7 @@ AWS 기술 블로그(<https://aws.amazon.com/ko/blogs/tech/>)에서 제공하는
 | [Amazon Bedrock Agents와 MCP(Model Context Protocol) 통합하기](https://aws-blogs-prod.amazon.com/tech/amazon-bedrock-agents-mcp-model-context-protocol/) | [bedrock-mcp-agent-cdk](bedrock-mcp-agent-cdk)|
 | [알아두면 쓸모 있는 Aurora MySQL Bluegreen 배포  스크립트](https://aws.amazon.com/ko/blogs/tech/auroramysql-task-automation-tip/) | [auroramysql-task-automation-tip](auroramysql-task-automation-tip)|
 | [Smart Agentic AI 구축을 위한 데이터베이스 설계](https://aws.amazon.com/ko/blogs/tech/smart-agent-db-architecture/) | [smart-agent-db-architecture](smart-agent-db-architecture)|
+| [Amazon Bedrock Agent로 30분 만에 여행 예약 에이전트 구축하기 실전 가이드](https://aws.amazon.com/ko/blogs/tech/amazon-bedrock-agent-30mins-travel-reservation/) | [amazon-bedrock-travel-agent](amazon-bedrock-travel-agent)|
 
 ## Security
 

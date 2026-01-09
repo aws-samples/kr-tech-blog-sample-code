@@ -1,0 +1,559 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AnyTravel - Amazon Bedrock Agent with DynamoDB and Lambda'
+
+Resources:
+  # DynamoDB Tables
+  AnyTravelUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'AnyTravel-Users'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: AnyTravel
+
+  AnyTravelProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'AnyTravel-Products'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: AnyTravel
+
+  AnyTravelOrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'AnyTravel-Orders'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: AnyTravel
+
+  # IAM Role for Lambda Functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'AnyTravel-Lambda-Role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                Resource:
+                  - !GetAtt AnyTravelUsersTable.Arn
+                  - !GetAtt AnyTravelProductsTable.Arn
+                  - !GetAtt AnyTravelOrdersTable.Arn
+
+  # Main Lambda Function for Bedrock Agent
+  BedrockAgentFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: 'anytravel-api'
+      Runtime: python3.13
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref AnyTravelUsersTable
+          PRODUCTS_TABLE: !Ref AnyTravelProductsTable
+          ORDERS_TABLE: !Ref AnyTravelOrdersTable
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import uuid
+          from datetime import datetime
+          from decimal import Decimal
+          import time
+          import random
+
+          import os
+          
+          dynamodb = boto3.resource('dynamodb')
+          users_table = dynamodb.Table(os.environ['USERS_TABLE'])
+          orders_table = dynamodb.Table(os.environ['ORDERS_TABLE'])
+          products_table = dynamodb.Table(os.environ['PRODUCTS_TABLE'])
+
+          def generate_order_id():
+              timestamp = int(time.time())
+              random_num = random.randint(1000, 9999)
+              return int(f"{timestamp}{random_num}")
+
+          def decimal_to_int(obj):
+              if isinstance(obj, dict):
+                  return {k: decimal_to_int(v) for k, v in obj.items()}
+              elif isinstance(obj, list):
+                  return [decimal_to_int(v) for v in obj]
+              elif isinstance(obj, Decimal):
+                  return int(obj)
+              return obj
+
+          def get_named_parameter(event, name):
+              for param in event['parameters']:
+                  if param['name'] == name:
+                      return param['value']
+              return None
+
+          def login(email):
+              response = users_table.scan(
+                  FilterExpression='begins_with(SK, :email)',
+                  ExpressionAttributeValues={':email': f"{email}#"}
+              )
+              if response['Items']:
+                  item = response['Items'][0]
+                  sk_parts = item['SK'].split('#')
+                  email = sk_parts[0]
+                  name = sk_parts[1]
+                  return {
+                      'userid': item['PK'],
+                      'email': email,
+                      'name': name
+                  }
+              return None
+
+          def get_reservation(userId):
+              try:
+                  response = orders_table.scan(
+                      FilterExpression='begins_with(SK, :userId)',
+                      ExpressionAttributeValues={':userId': f"{userId}#"}
+                  )
+                  reservations = []
+                  for item in response['Items']:
+                      try:
+                          sk_parts = item['SK'].split('#')
+                          userId = sk_parts[0]
+                          productId = sk_parts[1]
+                          product_detail = products_table.query(
+                              KeyConditionExpression='PK = :pk',
+                              ExpressionAttributeValues={':pk': productId}
+                          )
+                          if product_detail['Items']:
+                              reservations.append({
+                                  'orderId': decimal_to_int(item['PK']),
+                                  'userId': userId,
+                                  'productId': productId,
+                                  'productName': product_detail['Items'][0]['SK'],
+                                  'productDetail': decimal_to_int(product_detail['Items'][0])
+                              })
+                      except Exception as e:
+                          print(f"Error processing reservation item: {e}")
+                          continue
+                  return reservations
+              except Exception as e:
+                  print(f"Error getting reservations: {e}")
+                  return []
+
+          def get_travel_detail(productId):
+              try:
+                  product_detail = products_table.query(
+                      KeyConditionExpression='PK = :pk',
+                      ExpressionAttributeValues={':pk': productId}
+                  )
+                  if product_detail['Items']:
+                      return decimal_to_int(product_detail['Items'][0])
+                  return None
+              except Exception as e:
+                  print(f"Error getting travel details for productId {productId}: {e}")
+                  return None
+
+          def reserve(userId, productId):
+              try:
+                  if not userId or not productId:
+                      raise ValueError("Invalid userId or productId")
+                  order_id = generate_order_id()
+                  item = {
+                      'PK': f"{order_id}",
+                      'SK': f"{userId}#{productId}"
+                  }
+                  response = orders_table.put_item(Item=item)
+                  return {
+                      'status': 'success',
+                      'message': 'Reservation created successfully',
+                      'reservation': decimal_to_int(item)
+                  }
+              except Exception as e:
+                  print(f"Error creating reservation: {e}")
+                  return {
+                      'status': 'error',
+                      'message': f'Failed to create reservation: {str(e)}'
+                  }
+
+          def cancel_reservation(userId, productId):
+              try:
+                  if not userId or not productId:
+                      raise ValueError("Invalid userId or productId")
+                  response = orders_table.scan(
+                      FilterExpression='SK = :sk',
+                      ExpressionAttributeValues={':sk': f"{userId}#{productId}"}
+                  )
+                  if not response['Items']:
+                      print(f"No reservation found for userId: {userId}, productId: {productId}")
+                      return {
+                          'status': 'error',
+                          'message': 'Reservation not found'
+                      }
+                  order = response['Items'][0]
+                  orders_table.delete_item(
+                      Key={
+                          'PK': order['PK'],
+                          'SK': order['SK']
+                      }
+                  )
+                  return {
+                      'status': 'success',
+                      'message': 'Reservation cancelled successfully',
+                      'deletedItem': decimal_to_int(order)
+                  }
+              except Exception as e:
+                  print(f"Error cancelling reservation: {e}")
+                  return {
+                      'status': 'error',
+                      'message': f'Failed to cancel reservation: {str(e)}'
+                  }
+
+          def lambda_handler(event, context):
+              action_group = event.get('actionGroup', '')
+              message_version = event.get('messageVersion', '')
+              function = event.get('function', '')
+              
+              if function == 'login':
+                  email = get_named_parameter(event, "email")
+                  output = login(email)
+              elif function == 'get_reservation':
+                  userId = get_named_parameter(event, "userId")
+                  output = get_reservation(userId)
+              elif function == 'get_travel_detail':
+                  productId = get_named_parameter(event, "productId")
+                  output = get_travel_detail(productId)
+              elif function == 'reserve':
+                  userId = get_named_parameter(event, "userId")
+                  productId = get_named_parameter(event, "productId")
+                  output = reserve(userId, productId)
+              elif function == 'cancel_reservation':
+                  userId = get_named_parameter(event, "userId")
+                  productId = get_named_parameter(event, "productId")
+                  output = cancel_reservation(userId, productId)
+              else:
+                  output = 'Invalid function'
+              
+              action_response = {
+                  'actionGroup': action_group,
+                  'function': function,
+                  'functionResponse': {
+                      'responseBody': {
+                          'TEXT': {
+                              'body': json.dumps(output, ensure_ascii=False)
+                          }
+                      }
+                  }
+              }
+              
+              function_response = {
+                  'response': action_response,
+                  'messageVersion': message_version
+              }
+              
+              return function_response
+
+  # Data Initialization Lambda Function
+  DataInitFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: 'anytravel-data-init'
+      Runtime: python3.13
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref AnyTravelUsersTable
+          PRODUCTS_TABLE: !Ref AnyTravelProductsTable
+          ORDERS_TABLE: !Ref AnyTravelOrdersTable
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+
+          def lambda_handler(event, context):
+              dynamodb = boto3.resource('dynamodb')
+              users_table = dynamodb.Table(os.environ['USERS_TABLE'])
+              products_table = dynamodb.Table(os.environ['PRODUCTS_TABLE'])
+              orders_table = dynamodb.Table(os.environ['ORDERS_TABLE'])
+              
+              try:
+                  # Initialize Users
+                  users = [
+                      {
+                          'PK': 'jay123',
+                          'SK': 'jay@gmail.com#김철수'
+                      },
+                      {
+                          'PK': 'ottlseo',
+                          'SK': 'ottlseo@amazon.com#김윤서'
+                      },
+                      {
+                          'PK': 'gildong2',
+                          'SK': 'gildong@amazon.com#홍길동'
+                      },
+                      {
+                          'PK': 'asdfasdf',
+                          'SK': 'sample@naver.com#김아무'
+                      }
+                  ]
+                  
+                  for user in users:
+                      users_table.put_item(Item=user)
+                  
+                  # Initialize Products
+                  products = [
+                      {
+                          'PK': 'ASIA-Vietnam01',
+                          'SK': '[하노이하롱베이] 베트남 특가 패키지',
+                          'agency': '가나다투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 6,
+                          'price': 780000
+                      },
+                      {
+                          'PK': 'EUROPE-PromotionPackage01',
+                          'SK': '가나다 유럽 스페셜 할인 패키지',
+                          'agency': '가나다투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 출발 3일 전 20% 환불, 당일 환불 불가',
+                          'duration': 9,
+                          'price': 990000
+                      },
+                      {
+                          'PK': 'JEJU-BigPromotion01',
+                          'SK': '[단독프로모션] 제주유채꽃투어',
+                          'agency': '가나다투어',
+                          'cancellation_policy': '환불 불가',
+                          'duration': 7,
+                          'price': 500000
+                      },
+                      {
+                          'PK': 'JEJU-LuxuryStay01',
+                          'SK': '[럭셔리] 제주 5성급 호텔패키지',
+                          'agency': '믿음투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 이후 환불 불가',
+                          'duration': 3,
+                          'price': 700000
+                      },
+                      {
+                          'PK': 'ASIA-Taiwan2025',
+                          'SK': '[타이페이] 대만 맛집 투어 4일',
+                          'agency': '정글투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 4,
+                          'price': 550000
+                      },
+                      {
+                          'PK': 'JEJU-2025SummerPackage',
+                          'SK': '[믿음투어단독] 제주애월성산15일투어',
+                          'agency': '믿음투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 출발 3일 전 20% 환불, 이후 환불 불가',
+                          'duration': 15,
+                          'price': 900000
+                      },
+                      {
+                          'PK': 'EUROPE-SpainToSwiss2025',
+                          'SK': '유럽 효도여행 패키지 [효자투어][50%할인]',
+                          'agency': '효자투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 10,
+                          'price': 2800000
+                      },
+                      {
+                          'PK': 'ASIA-Japan01',
+                          'SK': '[벚꽃특선] 일본 큐슈 온천여행',
+                          'agency': '싸다투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 5,
+                          'price': 890000
+                      },
+                      {
+                          'PK': 'EUROPE-Italy2025',
+                          'SK': '[로마피렌체] 이탈리아 일주 10일',
+                          'agency': '효자투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 출발 3일 전 20% 환불, 이후 환불 불가',
+                          'duration': 10,
+                          'price': 2500000
+                      },
+                      {
+                          'PK': 'EUROPE-EasternEurope01',
+                          'SK': '[동유럽특가] 4개국 일주 8일',
+                          'agency': '싸다투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 이후 환불 불가',
+                          'duration': 8,
+                          'price': 1500000
+                      },
+                      {
+                          'PK': 'EUROPE-NorthEurope01',
+                          'SK': '[오로라투어] 북유럽 4개국 일주',
+                          'agency': '가나다투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 출발 3일 전 20% 환불, 이후 환불 불가',
+                          'duration': 12,
+                          'price': 3500000
+                      },
+                      {
+                          'PK': 'EUROPE-SpainToParis2025',
+                          'SK': '파리스페인 자유여행 패키지_정글투어',
+                          'agency': '정글투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 7,
+                          'price': 1390000
+                      },
+                      {
+                          'PK': 'JEJU-Family01',
+                          'SK': '[가족특가] 제주 가족여행 패키지',
+                          'agency': '효자투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 5,
+                          'price': 600000
+                      },
+                      {
+                          'PK': 'JEJU-SpringSpecial01',
+                          'SK': '[봄맞이특가] 제주도 벚꽃 투어',
+                          'agency': '정글투어',
+                          'cancellation_policy': '환불 불가',
+                          'duration': 4,
+                          'price': 450000
+                      },
+                      {
+                          'PK': 'EUROPE-CheapTour01',
+                          'SK': '유럽100만원투어_7일_3개국',
+                          'agency': '싸다투어',
+                          'cancellation_policy': '출발 7일 전 80% 환불, 이후 환불 불가',
+                          'duration': 7,
+                          'price': 1000000
+                      },
+                      {
+                          'PK': 'ASIA-Thailand2025',
+                          'SK': '[방콕파타야] 태국 완전일주 5일',
+                          'agency': '믿음투어',
+                          'cancellation_policy': '출발 14일 전 100% 환불, 출발 7일 전 50% 환불, 당일 환불 불가',
+                          'duration': 5,
+                          'price': 650000
+                      }
+                  ]
+                  
+                  for product in products:
+                      products_table.put_item(Item=product)
+                  
+                  # Initialize Sample Orders
+                  orders = [
+                      {
+                          'PK': '17397590321817',
+                          'SK': 'ottlseo#EUROPE-PromotionPackage01'
+                      },
+                      {
+                          'PK': '17397383721916',
+                          'SK': 'gildong2#EUROPE-SpainToParis2025'
+                      },
+                      {
+                          'PK': '17397581471517',
+                          'SK': 'gildong2#JEJU-Family01'
+                      }
+                  ]
+                  
+                  for order in orders:
+                      orders_table.put_item(Item=order)
+                  
+                  return {
+                      'statusCode': 200,
+                      'body': json.dumps({
+                          'message': 'Data initialization completed successfully',
+                          'users_created': len(users),
+                          'products_created': len(products),
+                          'orders_created': len(orders)
+                      })
+                  }
+                  
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  return {
+                      'statusCode': 500,
+                      'body': json.dumps({'error': str(e)})
+                  }
+
+Outputs:
+  UsersTableName:
+    Description: 'Name of the Users DynamoDB table'
+    Value: !Ref AnyTravelUsersTable
+    Export:
+      Name: !Sub '${AWS::StackName}-UsersTable'
+
+  ProductsTableName:
+    Description: 'Name of the Products DynamoDB table'
+    Value: !Ref AnyTravelProductsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-ProductsTable'
+
+  OrdersTableName:
+    Description: 'Name of the Orders DynamoDB table'
+    Value: !Ref AnyTravelOrdersTable
+    Export:
+      Name: !Sub '${AWS::StackName}-OrdersTable'
+
+  BedrockAgentFunctionArn:
+    Description: 'ARN of the Bedrock Agent Lambda function'
+    Value: !GetAtt BedrockAgentFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BedrockAgentFunction'
+
+  DataInitFunctionName:
+    Description: 'Name of the Data Initialization Lambda function'
+    Value: !Ref DataInitFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-DataInitFunction'
