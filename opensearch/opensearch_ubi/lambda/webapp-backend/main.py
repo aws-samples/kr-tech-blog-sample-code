@@ -123,15 +123,47 @@ class UBIQuery(BaseModel):
     query_response_hit_ids: list[str] = []
 
 
+class UBIEventPosition(BaseModel):
+    ordinal: Optional[int] = None
+    x: Optional[int] = None
+    y: Optional[int] = None
+    page_depth: Optional[int] = None
+    scroll_depth: Optional[int] = None
+    trail: Optional[str] = None
+
+
+class UBIEventObjectDetail(BaseModel):
+    price: Optional[float] = None
+    margin: Optional[float] = None
+    cost: Optional[float] = None
+    supplier: Optional[str] = None
+    isTrusted: Optional[bool] = None
+
+
+class UBIEventObject(BaseModel):
+    object_id: Optional[str] = None
+    object_id_field: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    object_detail: Optional[UBIEventObjectDetail] = None
+
+
+class UBIEventAttributes(BaseModel):
+    session_id: Optional[str] = None
+    browser: Optional[str] = None
+    dwell_time: Optional[float] = None
+    result_count: Optional[int] = None
+    position: Optional[UBIEventPosition] = None
+    object: Optional[UBIEventObject] = None
+
+
 class UBIEvent(BaseModel):
     action_name: str
     query_id: str
     timestamp: int
     client_id: Optional[str] = None
-    object_id: Optional[str] = None
-    position: Optional[int] = None
     message: Optional[str] = None
-    event_attributes: Optional[dict[str, Any]] = None
+    event_attributes: Optional[UBIEventAttributes] = None
 
 
 @app.get("/health")
