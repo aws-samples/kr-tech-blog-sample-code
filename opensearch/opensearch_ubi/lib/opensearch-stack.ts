@@ -32,13 +32,13 @@ export interface OpenSearchStackProps extends cdk.StackProps {
 
   /**
    * Instance type for data nodes.
-   * @default 't3.small.search' (cost-effective for demo)
+   * @default 't3.medium.search'
    */
   readonly instanceType?: string;
 
   /**
    * Number of data nodes.
-   * @default 1 (single node for demo)
+   * @default 3
    */
   readonly instanceCount?: number;
 
@@ -109,8 +109,8 @@ export class OpenSearchStack extends cdk.Stack {
 
     const envPrefix = props.envPrefix ?? 'dev';
     const openSearchVersion = props.openSearchVersion ?? '3.3';
-    const instanceType = props.instanceType ?? 't3.small.search';
-    const instanceCount = props.instanceCount ?? 1;
+    const instanceType = props.instanceType ?? 't3.medium.search';
+    const instanceCount = props.instanceCount ?? 3;
     const ebsVolumeSize = props.ebsVolumeSize ?? 20;
     const masterUserName = props.masterUserName ?? 'admin';
     const dedicatedMasterEnabled = props.dedicatedMasterEnabled ?? false;
