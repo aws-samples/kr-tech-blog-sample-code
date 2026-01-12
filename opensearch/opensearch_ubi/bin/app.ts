@@ -41,8 +41,8 @@ const account = process.env.CDK_DEFAULT_ACCOUNT ?? process.env.AWS_ACCOUNT_ID;
 // OpenSearch configuration
 const openSearchConfig = {
   version: app.node.tryGetContext('opensearchVersion') ?? '3.3',
-  instanceType: app.node.tryGetContext('instanceType') ?? 't3.small.search',
-  instanceCount: parseInt(app.node.tryGetContext('instanceCount') ?? '1'),
+  instanceType: app.node.tryGetContext('instanceType') ?? 't3.medium.search',
+  instanceCount: parseInt(app.node.tryGetContext('instanceCount') ?? '3'),
   ebsVolumeSize: parseInt(app.node.tryGetContext('ebsVolumeSize') ?? '20'),
   dedicatedMasterEnabled: app.node.tryGetContext('dedicatedMaster') === 'true',
   multiAzEnabled: app.node.tryGetContext('multiAz') === 'true',
