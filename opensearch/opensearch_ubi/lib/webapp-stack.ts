@@ -144,6 +144,12 @@ export class WebappStack extends cdk.Stack {
     // ===========================================================================
     // Note: Dependencies are pre-bundled at lambda/webapp-backend
     // Run this to update: cd webapp/backend && pip install --platform manylinux2014_x86_64 --only-binary=:all: -r requirements.txt -t ../../cdk/lambda/webapp-backend && cp main.py ../../cdk/lambda/webapp-backend/
+    const backendLogGroup = new logs.LogGroup(this, 'BackendLogGroup', {
+      logGroupName: `/aws/lambda/${envPrefix}-ubi-webapp-backend`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     this.backendFunction = new lambda.Function(this, 'BackendFunction', {
       functionName: `${envPrefix}-ubi-webapp-backend`,
       description: 'FastAPI backend for UBI webapp with SSM/Secrets Manager integration',
@@ -157,7 +163,7 @@ export class WebappStack extends cdk.Stack {
         ENV_PREFIX: envPrefix,
         AWS_REGION_NAME: region,
       },
-      logRetention: logs.RetentionDays.TWO_WEEKS,
+      logGroup: backendLogGroup,
     });
 
     // ===========================================================================

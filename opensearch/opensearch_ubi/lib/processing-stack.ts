@@ -145,6 +145,12 @@ export class ProcessingStack extends cdk.Stack {
     // ===========================================================================
     // Extract UBI Data Lambda
     // ===========================================================================
+    const extractUbiDataLogGroup = new logs.LogGroup(this, 'ExtractUbiDataLogGroup', {
+      logGroupName: `/aws/lambda/${envPrefix}-ubi-extract-data`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     this.extractUbiDataFunction = new lambda.Function(this, 'ExtractUbiDataFunction', {
       functionName: `${envPrefix}-ubi-extract-data`,
       description: 'Extract UBI queries and events from OpenSearch',
@@ -160,12 +166,18 @@ export class ProcessingStack extends cdk.Stack {
         UBI_EVENTS_INDEX: 'ubi_events',
       },
       layers: [dependenciesLayer],
-      logRetention: logs.RetentionDays.TWO_WEEKS,
+      logGroup: extractUbiDataLogGroup,
     });
 
     // ===========================================================================
     // Generate Judgments Lambda
     // ===========================================================================
+    const generateJudgmentsLogGroup = new logs.LogGroup(this, 'GenerateJudgmentsLogGroup', {
+      logGroupName: `/aws/lambda/${envPrefix}-ubi-generate-judgments`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     this.generateJudgmentsFunction = new lambda.Function(this, 'GenerateJudgmentsFunction', {
       functionName: `${envPrefix}-ubi-generate-judgments`,
       description: 'Generate relevance judgments using Claude Sonnet 4.5',
@@ -183,12 +195,18 @@ export class ProcessingStack extends cdk.Stack {
         RATE_LIMIT_DELAY: '0.5',
       },
       layers: [dependenciesLayer],
-      logRetention: logs.RetentionDays.TWO_WEEKS,
+      logGroup: generateJudgmentsLogGroup,
     });
 
     // ===========================================================================
     // Prepare LTR Data Lambda
     // ===========================================================================
+    const prepareLtrDataLogGroup = new logs.LogGroup(this, 'PrepareLtrDataLogGroup', {
+      logGroupName: `/aws/lambda/${envPrefix}-ubi-prepare-ltr-data`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     this.prepareLtrDataFunction = new lambda.Function(this, 'PrepareLtrDataFunction', {
       functionName: `${envPrefix}-ubi-prepare-ltr-data`,
       description: 'Prepare training data for LTR model',
@@ -204,12 +222,18 @@ export class ProcessingStack extends cdk.Stack {
         FEATURE_STORE_INDEX: 'ltr_features',
       },
       layers: [dependenciesLayer],
-      logRetention: logs.RetentionDays.TWO_WEEKS,
+      logGroup: prepareLtrDataLogGroup,
     });
 
     // ===========================================================================
     // Train LTR Model Lambda
     // ===========================================================================
+    const trainLtrModelLogGroup = new logs.LogGroup(this, 'TrainLtrModelLogGroup', {
+      logGroupName: `/aws/lambda/${envPrefix}-ubi-train-ltr-model`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     this.trainLtrModelFunction = new lambda.Function(this, 'TrainLtrModelFunction', {
       functionName: `${envPrefix}-ubi-train-ltr-model`,
       description: 'Train and upload LTR model to OpenSearch',
@@ -226,7 +250,7 @@ export class ProcessingStack extends cdk.Stack {
         LTR_MODEL_NAME: 'ubi_ltr_model',
       },
       layers: [dependenciesLayer],
-      logRetention: logs.RetentionDays.TWO_WEEKS,
+      logGroup: trainLtrModelLogGroup,
     });
 
     // ===========================================================================
@@ -328,7 +352,7 @@ export class ProcessingStack extends cdk.Stack {
     // Create the state machine
     this.stateMachine = new stepfunctions.StateMachine(this, 'UbiLtrPipeline', {
       stateMachineName: `${envPrefix}-ubi-ltr-pipeline`,
-      definition,
+      definitionBody: stepfunctions.DefinitionBody.fromChainable(definition),
       role: stepFunctionsRole,
       timeout: cdk.Duration.hours(2),
       tracingEnabled: true,
