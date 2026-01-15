@@ -1,6 +1,6 @@
 # UBI-LTR Pipeline - AWS CDK Infrastructure
 
-This CDK project provisions the complete AWS infrastructure for the User Behavior Insights (UBI) to Learning to Rank (LTR) pipeline.
+This CDK project provisions the complete AWS infrastructure for the User Behavior Insights (UBI) to Learning to Rank (LTR) pipeline. (This is a demo sample for reference purposes.)
 
 ## Architecture Overview
 

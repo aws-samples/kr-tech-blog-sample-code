@@ -45,9 +45,7 @@ yarn-error.log*
 .pnpm-store/
 
 # TypeScript build output
-*.js
 !jest.config.js
-!*.config.js
 *.d.ts
 *.js.map
 dist/
@@ -128,3 +126,4 @@ temp/
 
 # === Claude Code ===
 .claude/
+.mcp.json
