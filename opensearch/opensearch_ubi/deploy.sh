@@ -355,7 +355,7 @@ display_outputs() {
 
     if [ -n "$SECRET_ARN" ] && [ "$SECRET_ARN" != "N/A" ]; then
         echo -e "${YELLOW}To get OpenSearch credentials:${NC}"
-        echo "aws secretsmanager get-secret-value --secret-id $SECRET_ARN --query SecretString --output text | jq ."
+        echo "aws secretsmanager get-secret-value --secret-id $SECRET_ARN --query SecretString --output text --region "$REGION" | jq ."
         echo ""
     fi
 
