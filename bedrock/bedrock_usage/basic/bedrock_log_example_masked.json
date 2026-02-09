@@ -1,0 +1,344 @@
+{
+  "events": [
+    {
+      "timestamp": 1764759284000,
+      "message": {
+        "timestamp": "2025-12-03T10:54:44Z",
+        "accountId": "<YOUR_ACCOUNT_ID>",
+        "identity": {
+          "arn": "arn:aws:iam::<YOUR_ACCOUNT_ID>:user/<YOUR_USERNAME>"
+        },
+        "region": "us-east-1",
+        "requestId": "<REQUEST_ID_1>",
+        "operation": "Converse",
+        "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+        "input": {
+          "inputContentType": "application/json",
+          "inputBodyJson": {
+            "messages": [
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "text": "Generate a SQL query to find all users created in the last 30 days"
+                  }
+                ]
+              }
+            ]
+          },
+          "inputTokenCount": 23
+        },
+        "output": {
+          "outputContentType": "application/json",
+          "outputBodyJson": {
+            "output": {
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "text": "Here's a SQL query that can find all users created in the last 30 days:\n\n```sql\nSELECT *\nFROM users\nWHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY);\n```\n\n..."
+                  }
+                ]
+              },
+              "stopReason": "end_turn",
+              "metrics": {
+                "latencyMs": 2866
+              },
+              "usage": {
+                "inputTokens": 23,
+                "outputTokens": 319,
+                "totalTokens": 342
+              }
+            }
+          },
+          "outputTokenCount": 319
+        },
+        "requestMetadata": {
+          "environment": "development",
+          "application_name": "DeveloperToolsApp",
+          "cost_center": "ENG-789",
+          "user_id": "dev-501",
+          "team": "engineering",
+          "application_id": "app-003",
+          "timestamp": "2025-12-03T19:54:43.924902"
+        },
+        "schemaType": "ModelInvocationLog",
+        "schemaVersion": "1.0"
+      },
+      "ingestionTime": 1764759295865
+    },
+    {
+      "timestamp": 1764759288000,
+      "message": {
+        "timestamp": "2025-12-03T10:54:48Z",
+        "accountId": "<YOUR_ACCOUNT_ID>",
+        "identity": {
+          "arn": "arn:aws:iam::<YOUR_ACCOUNT_ID>:user/<YOUR_USERNAME>"
+        },
+        "region": "us-east-1",
+        "requestId": "<REQUEST_ID_2>",
+        "operation": "Converse",
+        "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+        "input": {
+          "inputContentType": "application/json",
+          "inputBodyJson": {
+            "messages": [
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "text": "Write a Python function to validate email addresses"
+                  }
+                ]
+              }
+            ]
+          },
+          "inputTokenCount": 15
+        },
+        "output": {
+          "outputContentType": "application/json",
+          "outputBodyJson": {
+            "output": {
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "text": "Here's a Python function to validate email addresses:\n\n```python\nimport re\n\ndef validate_email(email):\n    ...\n```"
+                  }
+                ]
+              },
+              "stopReason": "end_turn",
+              "metrics": {
+                "latencyMs": 4087
+              },
+              "usage": {
+                "inputTokens": 15,
+                "outputTokens": 507,
+                "totalTokens": 522
+              }
+            }
+          },
+          "outputTokenCount": 507
+        },
+        "requestMetadata": {
+          "environment": "development",
+          "application_name": "DeveloperToolsApp",
+          "cost_center": "ENG-789",
+          "user_id": "dev-502",
+          "team": "engineering",
+          "application_id": "app-003",
+          "timestamp": "2025-12-03T19:54:48.101094"
+        },
+        "schemaType": "ModelInvocationLog",
+        "schemaVersion": "1.0"
+      },
+      "ingestionTime": 1764759295865
+    },
+    {
+      "timestamp": 1764759293000,
+      "message": {
+        "timestamp": "2025-12-03T10:54:53Z",
+        "accountId": "<YOUR_ACCOUNT_ID>",
+        "identity": {
+          "arn": "arn:aws:iam::<YOUR_ACCOUNT_ID>:user/<YOUR_USERNAME>"
+        },
+        "region": "us-east-1",
+        "requestId": "<REQUEST_ID_3>",
+        "operation": "Converse",
+        "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+        "input": {
+          "inputContentType": "application/json",
+          "inputBodyJson": {
+            "messages": [
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "text": "Summarize the key points from our meeting notes"
+                  }
+                ]
+              }
+            ]
+          },
+          "inputTokenCount": 17
+        },
+        "output": {
+          "outputContentType": "application/json",
+          "outputBodyJson": {
+            "output": {
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "text": "Unfortunately, I don't have access to any meeting notes..."
+                  }
+                ]
+              },
+              "stopReason": "end_turn",
+              "metrics": {
+                "latencyMs": 1220
+              },
+              "usage": {
+                "inputTokens": 17,
+                "outputTokens": 90,
+                "totalTokens": 107
+              }
+            }
+          },
+          "outputTokenCount": 90
+        },
+        "requestMetadata": {
+          "tenant_id": "acme-corp",
+          "environment": "production",
+          "application_name": "DocumentAnalysisApp",
+          "cost_center": "PROD-999",
+          "user_id": "user-acme-corp-001",
+          "team": "product",
+          "application_id": "app-004",
+          "timestamp": "2025-12-03T19:54:53.425435"
+        },
+        "schemaType": "ModelInvocationLog",
+        "schemaVersion": "1.0"
+      },
+      "ingestionTime": 1764759305859
+    },
+    {
+      "timestamp": 1764759295000,
+      "message": {
+        "timestamp": "2025-12-03T10:54:55Z",
+        "accountId": "<YOUR_ACCOUNT_ID>",
+        "identity": {
+          "arn": "arn:aws:iam::<YOUR_ACCOUNT_ID>:user/<YOUR_USERNAME>"
+        },
+        "region": "us-east-1",
+        "requestId": "<REQUEST_ID_4>",
+        "operation": "Converse",
+        "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+        "input": {
+          "inputContentType": "application/json",
+          "inputBodyJson": {
+            "messages": [
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "text": "Summarize the key points from our meeting notes"
+                  }
+                ]
+              }
+            ]
+          },
+          "inputTokenCount": 17
+        },
+        "output": {
+          "outputContentType": "application/json",
+          "outputBodyJson": {
+            "output": {
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "text": "Unfortunately, I don't have access to any meeting notes..."
+                  }
+                ]
+              },
+              "stopReason": "end_turn",
+              "metrics": {
+                "latencyMs": 1723
+              },
+              "usage": {
+                "inputTokens": 17,
+                "outputTokens": 129,
+                "totalTokens": 146
+              }
+            }
+          },
+          "outputTokenCount": 129
+        },
+        "requestMetadata": {
+          "tenant_id": "globex-inc",
+          "environment": "production",
+          "application_name": "DocumentAnalysisApp",
+          "cost_center": "PROD-999",
+          "user_id": "user-globex-inc-001",
+          "team": "product",
+          "application_id": "app-004",
+          "timestamp": "2025-12-03T19:54:55.840916"
+        },
+        "schemaType": "ModelInvocationLog",
+        "schemaVersion": "1.0"
+      },
+      "ingestionTime": 1764759305859
+    },
+    {
+      "timestamp": 1764759298000,
+      "message": {
+        "timestamp": "2025-12-03T10:54:58Z",
+        "accountId": "<YOUR_ACCOUNT_ID>",
+        "identity": {
+          "arn": "arn:aws:iam::<YOUR_ACCOUNT_ID>:user/<YOUR_USERNAME>"
+        },
+        "region": "us-east-1",
+        "requestId": "<REQUEST_ID_5>",
+        "operation": "Converse",
+        "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+        "input": {
+          "inputContentType": "application/json",
+          "inputBodyJson": {
+            "messages": [
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "text": "Summarize the key points from our meeting notes"
+                  }
+                ]
+              }
+            ]
+          },
+          "inputTokenCount": 17
+        },
+        "output": {
+          "outputContentType": "application/json",
+          "outputBodyJson": {
+            "output": {
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "text": "Unfortunately, I don't have access to any meeting notes..."
+                  }
+                ]
+              },
+              "stopReason": "end_turn",
+              "metrics": {
+                "latencyMs": 1165
+              },
+              "usage": {
+                "inputTokens": 17,
+                "outputTokens": 78,
+                "totalTokens": 95
+              }
+            }
+          },
+          "outputTokenCount": 78
+        },
+        "requestMetadata": {
+          "tenant_id": "initech-llc",
+          "environment": "production",
+          "application_name": "DocumentAnalysisApp",
+          "cost_center": "PROD-999",
+          "user_id": "user-initech-llc-001",
+          "team": "product",
+          "application_id": "app-004",
+          "timestamp": "2025-12-03T19:54:58.763997"
+        },
+        "schemaType": "ModelInvocationLog",
+        "schemaVersion": "1.0"
+      },
+      "ingestionTime": 1764759305859
+    }
+  ],
+  "nextForwardToken": "<FORWARD_TOKEN>",
+  "nextBackwardToken": "<BACKWARD_TOKEN>"
+}
