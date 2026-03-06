@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devops-agent-operator-config
+  namespace: devops-agent-operator-system
+  labels:
+    app.kubernetes.io/name: devops-agent-operator
+    app.kubernetes.io/component: operator
+data:
+  # Comma-separated list of namespaces to watch (empty = all namespaces)
+  WATCH_NAMESPACES: ""
+  # Comma-separated list of namespaces to exclude
+  EXCLUDE_NAMESPACES: "kube-system,kube-public,kube-node-lease"
+  # Enable AWS SSM node log collection (requires IAM permissions)
+  ENABLE_SSM_COLLECTION: "false"
+  # AWS region for SSM and S3
+  AWS_REGION: "us-east-1"
+  # Webhook timeout duration
+  WEBHOOK_TIMEOUT: "30s"
+  # Duration to prevent reprocessing the same failure
+  PROCESSED_TTL: "1h"
