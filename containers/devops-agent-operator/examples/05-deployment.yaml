@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-agent-operator
+  namespace: devops-agent-operator-system
+  labels:
+    app.kubernetes.io/name: devops-agent-operator
+    app.kubernetes.io/component: operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: devops-agent-operator
+      app.kubernetes.io/component: operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: devops-agent-operator
+        app.kubernetes.io/component: operator
+    spec:
+      serviceAccountName: devops-agent-operator
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: manager
+          image: YOUR_DEVOPS_AGENT_OPERATOR_IMAGE:latest
+          imagePullPolicy: Always
+          command:
+            - /manager
+          args:
+            - --leader-elect
+            - --health-probe-bind-address=:8081
+          ports:
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: devops-agent-operator-config
+          env:
+            # AWS DevOps Agent Webhook Configuration
+            - name: DEVOPS_AGENT_WEBHOOK_URL
+              value: "DEVOPS_AGENT_WEBHOOK_URL"
+            - name: DEVOPS_AGENT_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: devops-agent-operator-webhook-secret
+                  key: webhook-secret
+            # Required: EKS cluster metadata for DevOps Agent investigation
+            - name: EKS_CLUSTER_NAME
+              value: "EKS_CLUSTER_NAME"
+            - name: AWS_REGION
+              value: "AWS_REGION"
+            - name: AWS_ACCOUNT_ID
+              value: "AWS_ACCOUNT_ID"
+            # Optional: Enable SSM node log collection (kubelet, containerd, ipamd, dmesg)
+            # Requires IAM permissions: ssm:SendCommand, ssm:GetCommandInvocation
+            - name: ENABLE_SSM_COLLECTION
+              value: "true"
+            # Optional: CloudWatch Log Group for incident data storage
+            # Stores: summary, pod manifest, describe, container logs, node logs as structured JSON events
+            # Each incident creates a separate log stream: incidents/<timestamp>/<namespace>/<pod-name>
+            # Requires IAM permissions: logs:CreateLogStream, logs:PutLogEvents
+            - name: CLOUDWATCH_LOG_GROUP
+              value: "CLOUDWATCH_LOG_GROUP"
+            # Optional: S3 bucket for data persistence
+            # Stores: pod manifest, describe, logs, previous logs, node logs
+            # Requires IAM permissions: s3:PutObject
+            - name: S3_BUCKET
+              value: "S3_BUCKET"
+            - name: S3_PREFIX
+              value: "incidents"
+            # Optional: Time range for log collection in minutes (default: 15)
+            # Applies to both container logs (via Kubernetes API) and node logs (via SSM)
+            # - name: LOG_SINCE_MINUTES
+            #   value: "30"
+            # Optional: Timeout for pods stuck in ContainerCreating state (default: 3m)
+            # After this duration, the pod is treated as a failure
+            # - name: CONTAINER_CREATING_TIMEOUT
+            #   value: "3m"
+            # Optional: Recheck interval for pods in ContainerCreating state (default: 1m)
+            # - name: CONTAINER_CREATING_RECHECK_INTERVAL
+            #   value: "1m"
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
