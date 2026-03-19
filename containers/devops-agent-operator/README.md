@@ -83,7 +83,7 @@ ContainerCreating, Unschedulable 같은 일시적 상태는 설정된 대기 시
 | 변수명 | 설명 | 기본값 |
 |--------|------|--------|
 | `EKS_CLUSTER_NAME` | EKS 클러스터 이름 | - |
-| `AWS_REGION` | AWS 리전 | `us-east-1` |
+| `AWS_REGION` | AWS 리전. SSM, S3, CloudWatch Logs 등 AWS SDK 클라이언트의 대상 리전으로 사용됩니다. 클러스터와 다른 리전의 S3 버킷이나 CloudWatch Logs 그룹을 사용하려면 해당 리전으로 지정하세요. Webhook 트리거시에는 페이로드 메타데이터에 정보성으로만 포함됩니다. | `us-east-1` |
 | `AWS_ACCOUNT_ID` | AWS 계정 ID | - |
 
 ### 출력 설정

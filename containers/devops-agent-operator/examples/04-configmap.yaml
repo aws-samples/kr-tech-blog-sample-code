@@ -14,7 +14,7 @@ data:
   # Enable AWS SSM node log collection (requires IAM permissions)
   ENABLE_SSM_COLLECTION: "false"
   # AWS region for SSM and S3
-  AWS_REGION: "us-east-1"
+  AWS_REGION: "AWS_REGION"
   # Webhook timeout duration
   WEBHOOK_TIMEOUT: "30s"
   # Duration to prevent reprocessing the same failure
