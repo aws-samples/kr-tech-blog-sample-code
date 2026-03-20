@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devops-agent-operator
+  labels:
+    app.kubernetes.io/name: devops-agent-operator
+    app.kubernetes.io/component: operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: devops-agent-operator
+subjects:
+  - kind: ServiceAccount
+    name: devops-agent-operator
+    namespace: devops-agent-operator-system
