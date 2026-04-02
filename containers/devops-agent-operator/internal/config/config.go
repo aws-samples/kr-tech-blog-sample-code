@@ -80,6 +80,16 @@ type Config struct {
 	// During the grace period, the operator requeues the pod at this interval to check
 	// whether the transient state has resolved or the grace period has elapsed.
 	FailureRecheckInterval time.Duration
+
+	// WebhookSkipCategories is a list of failure categories that should not trigger webhook calls.
+	// Valid values: ContainerWaiting, ContainerTerminated, PodPhase, PodStatus, PodCondition
+	// Empty means all categories trigger webhooks.
+	WebhookSkipCategories []string
+
+	// WebhookMinSeverity is the minimum severity level required to trigger a webhook call.
+	// Valid values: LOW, MEDIUM, HIGH, CRITICAL
+	// Empty means all severities trigger webhooks.
+	WebhookMinSeverity string
 }
 
 // DefaultConfig returns a Config with default values
@@ -183,6 +193,14 @@ func LoadFromEnv() *Config {
 		}
 	}
 
+	if v := os.Getenv("WEBHOOK_SKIP_CATEGORIES"); v != "" {
+		cfg.WebhookSkipCategories = splitAndTrim(v, ",")
+	}
+
+	if v := os.Getenv("WEBHOOK_MIN_SEVERITY"); v != "" {
+		cfg.WebhookMinSeverity = strings.ToUpper(strings.TrimSpace(v))
+	}
+
 	return cfg
 }
 
@@ -219,6 +237,42 @@ func (c *Config) IsNamespaceWatched(namespace string) bool {
 	}
 
 	return false
+}
+
+// severityLevel defines the numeric level of each severity for threshold comparison.
+// Lower number = higher severity, consistent with P-level conventions (P0/P1/...).
+var severityLevel = map[string]int{
+	"CRITICAL": 0,
+	"HIGH":     1,
+	"MEDIUM":   2,
+	"LOW":      3,
+}
+
+// ShouldSendWebhook returns true if the failure should trigger a webhook call.
+// Both conditions must pass (AND logic):
+//   - The failure category must not be in WebhookSkipCategories
+//   - The failure severity must meet or exceed WebhookMinSeverity
+//
+// If neither filter is configured, always returns true (default behavior preserved).
+func (c *Config) ShouldSendWebhook(category, severity string) bool {
+	// Category filter: skip if category is in the skip list
+	for _, cat := range c.WebhookSkipCategories {
+		if cat == category {
+			return false
+		}
+	}
+
+	// Severity filter: skip if severity is below the minimum threshold
+	// e.g. WebhookMinSeverity=HIGH → only CRITICAL and HIGH pass
+	if c.WebhookMinSeverity != "" {
+		minLevel, minKnown := severityLevel[c.WebhookMinSeverity]
+		curLevel, curKnown := severityLevel[severity]
+		if minKnown && curKnown && curLevel > minLevel {
+			return false
+		}
+	}
+
+	return true
 }
 
 // splitAndTrim splits a string by separator and trims whitespace
