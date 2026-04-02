@@ -144,8 +144,20 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	// Build collected data
 	data := r.buildCollectedData(ctx, &pod, failure)
 
+	// Evaluate filter once for all outputs
+	severity := collector.DetermineSeverity(failure)
+	shouldSend := r.Config.ShouldSendWebhook(failure.Category, severity)
+
+	if !shouldSend {
+		logger.Info("Outputs skipped by filter",
+			"pod", req.NamespacedName,
+			"category", failure.Category,
+			"severity", severity,
+		)
+	}
+
 	// Upload to CloudWatch Logs if configured (optional)
-	if r.CloudWatchClient != nil {
+	if r.CloudWatchClient != nil && shouldSend {
 		cwResult, err := r.CloudWatchClient.Upload(ctx, data)
 		if err != nil {
 			logger.Error(err, "Failed to upload data to CloudWatch Logs",
@@ -162,7 +174,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	// Upload to S3 if configured (optional)
 	var s3URL string
-	if r.S3Client != nil {
+	if r.S3Client != nil && shouldSend {
 		uploadResult, err := r.S3Client.Upload(ctx, data)
 		if err != nil {
 			logger.Error(err, "Failed to upload data to S3",
@@ -178,12 +190,14 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		)
 	}
 
-	// Send to webhook (required)
-	if err := r.Webhook.Send(ctx, data, s3URL); err != nil {
-		logger.Error(err, "Failed to send webhook",
-			"pod", req.NamespacedName,
-		)
-		// Continue to mark as processed even if webhook fails
+	// Send to webhook if not filtered by category or severity
+	if shouldSend {
+		if err := r.Webhook.Send(ctx, data, s3URL); err != nil {
+			logger.Error(err, "Failed to send webhook",
+				"pod", req.NamespacedName,
+			)
+			// Continue to mark as processed even if webhook fails
+		}
 	}
 
 	// Mark as processed

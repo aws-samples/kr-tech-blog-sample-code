@@ -19,3 +19,13 @@ data:
   WEBHOOK_TIMEOUT: "30s"
   # Duration to prevent reprocessing the same failure
   PROCESSED_TTL: "1h"
+  # Comma-separated list of failure categories that should NOT trigger webhook calls.
+  # Valid values: ContainerWaiting, ContainerTerminated, PodPhase, PodStatus, PodCondition
+  # Empty means all categories trigger webhooks (default behavior).
+  # Example: "PodPhase,PodCondition"
+  WEBHOOK_SKIP_CATEGORIES: ""
+  # Minimum severity level required to trigger a webhook call.
+  # Valid values: LOW, MEDIUM, HIGH, CRITICAL
+  # Empty means all severities trigger webhooks (default behavior).
+  # Example: "HIGH" → only HIGH and CRITICAL failures trigger webhooks
+  WEBHOOK_MIN_SEVERITY: ""
