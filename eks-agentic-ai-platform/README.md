@@ -109,7 +109,7 @@ kubectl apply -f manifests/demo-app-deployment.yaml
 
 ## 로컬 데모
 
-클러스터 배포 없이 vLLM + Langfuse만 port-forward해서 로컬에서 테스트할 수 있습니다:
+vLLM + Langfuse를 port-forward하여 로컬에서 멀티 에이전트 워크플로우를 테스트할 수 있습니다:
 
 ```bash
 # port-forward
