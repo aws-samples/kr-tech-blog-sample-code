@@ -108,7 +108,13 @@ def classify_query(state: SupportState) -> SupportState:
         f"Query: {state['user_query']}"
     )
     result = _llm().invoke(prompt)
-    query_type = result.content.strip().lower().split()[0]
+
+    # Remove <think> tags from Qwen3 responses
+    import re
+    raw = result.content.strip().lower()
+    raw = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL).strip()
+    query_type = raw.split()[0] if raw.split() else "simple"
+
     if query_type not in ("simple", "complex", "document"):
         query_type = "simple"
 

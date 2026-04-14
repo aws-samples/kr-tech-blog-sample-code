@@ -4,7 +4,8 @@ from app.state import SupportState
 from app.tracing import observe
 
 
-CLASSIFICATION_PROMPT = """You are a query classifier for an AWS service support system.
+CLASSIFICATION_PROMPT = """/no_think
+You are a query classifier for an AWS service support system.
 Classify the following user query into exactly one category:
 - "simple": Basic AWS service questions (e.g., how to create a resource)
 - "complex": Troubleshooting, debugging, or multi-step AWS problems
@@ -28,6 +29,13 @@ def classify_query(state: SupportState) -> SupportState:
         CLASSIFICATION_PROMPT.format(query=state["user_query"])
     )
     query_type = result.content.strip().lower()
+
+    # Remove <think> tags from Qwen3 responses
+    import re
+    query_type = re.sub(r'<think>.*?</think>', '', query_type, flags=re.DOTALL).strip()
+
+    # Extract first word only
+    query_type = query_type.split()[0] if query_type.split() else "complex"
 
     # Ensure valid classification
     if query_type not in CLASSIFICATION_MODEL_MAP:

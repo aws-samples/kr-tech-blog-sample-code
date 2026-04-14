@@ -4,7 +4,8 @@ from app.state import SupportState
 from app.tracing import observe
 
 
-RAG_PROMPT = """You are an AWS service support assistant.
+RAG_PROMPT = """/no_think
+You are an AWS service support assistant.
 Use the following context to answer the user's question accurately and helpfully.
 
 Context: {context}

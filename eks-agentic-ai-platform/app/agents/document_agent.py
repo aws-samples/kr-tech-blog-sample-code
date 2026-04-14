@@ -4,7 +4,8 @@ from app.state import SupportState
 from app.tracing import observe
 
 
-DOCUMENT_PROMPT = """You are an AWS document analysis assistant.
+DOCUMENT_PROMPT = """/no_think
+You are an AWS document analysis assistant.
 Analyze the following document-related request and provide a detailed response.
 Focus on AWS billing, cost analysis, and document processing.
 

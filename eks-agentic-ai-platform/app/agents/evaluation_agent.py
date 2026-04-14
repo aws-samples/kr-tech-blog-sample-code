@@ -5,7 +5,8 @@ from app.state import SupportState
 from app.tracing import observe
 
 
-EVALUATION_PROMPT = """You are a response quality evaluator for an AWS support system.
+EVALUATION_PROMPT = """/no_think
+You are a response quality evaluator for an AWS support system.
 Evaluate the following response to the user's query.
 
 User query: {query}
