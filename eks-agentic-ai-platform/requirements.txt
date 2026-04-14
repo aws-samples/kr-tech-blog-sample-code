@@ -1,0 +1,9 @@
+langgraph
+langchain_openai
+langfuse
+fastapi
+uvicorn
+hypothesis
+pytest
+requests
+pyyaml

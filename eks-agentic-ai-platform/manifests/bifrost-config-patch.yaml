@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bifrost-config
+  namespace: ai-inference
+  labels:
+    app.kubernetes.io/instance: bifrost
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: bifrost
+data:
+  config.json: |
+    {
+      "$schema": "https://www.getbifrost.ai/schema",
+      "audit_logs": {"disabled": false},
+      "client": {
+        "allow_direct_keys": false,
+        "allowed_origins": ["*"],
+        "disable_content_logging": false,
+        "disable_db_pings_in_health": false,
+        "drop_excess_requests": false,
+        "enable_litellm_fallbacks": false,
+        "enable_logging": true,
+        "enforce_governance_header": false,
+        "initial_pool_size": 300,
+        "log_retention_days": 365,
+        "max_request_body_size_mb": 100
+      },
+      "config_store": {
+        "config": {"path": "/app/data/config.db"},
+        "enabled": true,
+        "type": "sqlite"
+      },
+      "encryption_key": "<BIFROST_ENCRYPTION_KEY>",
+      "framework": {
+        "pricing": {"pricing_sync_interval": 86400}
+      },
+      "logs_store": {
+        "config": {"path": "/app/data/logs.db"},
+        "enabled": true,
+        "type": "sqlite"
+      },
+      "plugins": [
+        {"config": {"custom_labels": []}, "enabled": true, "name": "telemetry"},
+        {"config": {"disable_content_logging": false, "logging_headers": []}, "enabled": true, "name": "logging"}
+      ],
+      "providers": {
+        "self-hosted-vllm": {
+          "keys": [
+            {"name": "vllm-key-1", "value": "dummy", "models": ["qwen3-8b"], "weight": 1.0}
+          ],
+          "network_config": {
+            "base_url": "http://vllm.ai-inference.svc.cluster.local:8000",
+            "default_request_timeout_in_seconds": 120,
+            "max_retries": 1
+          },
+          "custom_provider_config": {
+            "base_provider_type": "openai",
+            "allowed_requests": {
+              "chat_completion": true,
+              "chat_completion_stream": true
+            },
+            "request_path_overrides": {
+              "chat_completion": "/v1/chat/completions",
+              "chat_completion_stream": "/v1/chat/completions"
+            }
+          }
+        },
+        "bedrock": {
+          "keys": [
+            {
+              "name": "bedrock-key-1",
+              "models": [
+                "global.anthropic.claude-haiku-4-5-20251001-v1:0"
+              ],
+              "weight": 1.0,
+              "bedrock_key_config": {
+                "access_key": "env.BEDROCK_API_KEY",
+                "secret_key": "env.AWS_SECRET_ACCESS_KEY",
+                "region": "ap-northeast-2"
+              }
+            }
+          ],
+          "concurrency_and_buffer_size": {
+            "concurrency": 3,
+            "buffer_size": 10
+          }
+        }
+      }
+    }

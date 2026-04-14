@@ -1,0 +1,52 @@
+langfuse:
+  nextauth:
+    url: "http://langfuse.observability.svc.cluster.local:3000"
+    secret:
+      value: "<NEXTAUTH_SECRET>"
+  salt:
+    value: "<LANGFUSE_SALT>"
+  encryptionKey:
+    value: "<LANGFUSE_ENCRYPTION_KEY>"
+  features:
+    telemetryEnabled: false
+  ingress:
+    enabled: true
+    hosts:
+      - host: langfuse.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+postgresql:
+  deploy: true
+  auth:
+    password: "<POSTGRES_PASSWORD>"
+  primary:
+    persistence:
+      storageClass: ebs-auto
+
+clickhouse:
+  deploy: true
+  auth:
+    password: "<CLICKHOUSE_PASSWORD>"
+  persistence:
+    storageClass: ebs-auto
+
+redis:
+  deploy: true
+  auth:
+    password: "<REDIS_PASSWORD>"
+  master:
+    persistence:
+      storageClass: ebs-auto
+
+s3:
+  auth:
+    rootUser: minio
+    rootPassword: "<MINIO_ROOT_PASSWORD>"
+  persistence:
+    storageClass: ebs-auto
+
+zookeeper:
+  persistence:
+    storageClass: ebs-auto

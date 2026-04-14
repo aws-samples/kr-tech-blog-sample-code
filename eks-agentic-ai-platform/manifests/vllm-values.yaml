@@ -1,0 +1,20 @@
+servingEngineSpec:
+  modelSpec:
+    - name: "qwen3-8b"
+      repository: "vllm/vllm-openai"
+      tag: "v0.17.1"
+      modelURL: "Qwen/Qwen3-8B"
+
+      replicaCount: 1
+
+      requestCPU: 4
+      requestMemory: "16Gi"
+      requestGPU: 1
+
+      pvcStorage: "50Gi"
+
+      extraArgs:
+        - "--served-model-name=qwen3-8b"
+
+      nodeSelector:
+        node-type: gpu-inference
