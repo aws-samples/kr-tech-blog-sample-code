@@ -16,14 +16,15 @@
 
 ```
 manifests/
-├── ebs-storageclass.yaml      # EBS StorageClass (EKS Auto Mode용)
-├── gpu-nodepool.yaml           # Karpenter GPU NodePool
-├── bifrost-values.yaml         # Bifrost Helm values
-├── bifrost-install.sh          # Bifrost 설치 스크립트
-├── vllm-deployment.yaml        # vLLM Deployment + Service
-├── langfuse-values.yaml        # Langfuse Helm values
-├── langfuse-install.sh         # Langfuse 설치 스크립트
-├── demo-app-deployment.yaml    # 데모 앱 Deployment + Service + ConfigMap
+├── 01-ebs-storageclass.yaml       # EBS StorageClass (EKS Auto Mode용)
+├── 02-gpu-nodepool.yaml           # Karpenter GPU NodePool
+├── 03-bifrost-install.sh          # Bifrost 설치 스크립트
+├── 03-bifrost-values.yaml         # Bifrost Helm values
+├── 04-bifrost-config-patch        # Bifrost Config
+├── 05-vllm-deployment.yaml        # vLLM Deployment + Service
+├── 06-langfuse-install.sh         # Langfuse 설치 스크립트
+├── 06-langfuse-values.yaml        # Langfuse Helm values
+├── 07-demo-app-deployment.yaml    # 데모 앱 Deployment + Service + ConfigMap
 app/
 ├── Dockerfile                  # 데모 앱 Docker 이미지
 ├── config.py                   # Bifrost/Langfuse 설정
@@ -128,7 +129,18 @@ helm repo add bifrost https://maximhq.github.io/bifrost/helm-charts
 helm repo update
 ```
 
-### 4.2 Bifrost 배포
+### 4.2 Bifrost 설정값 수정
+
+`manifests/03-bifrost-values.yaml` 에서 아래의 플레이스홀더(`<...>`)가 포함된 값을 실제 값으로 교체해야 합니다.
+
+| 플레이스홀더 | 설명 |
+|-------------|------|
+| `<BIFROST_ENCRYPTION_KEY>` | Bifrost 암호화 키 |
+
+#### 참고문서
+- [설정값 관련 문서](https://docs.getbifrost.ai/deployment-guides/config-json/schema-reference)
+
+### 4.3 Bifrost 배포
 
 ```bash
 kubectl create namespace ai-inference
@@ -142,7 +154,7 @@ kubectl get po -n ai-inference
 # bifrost 팟 3개가 Running 상태여야 합니다
 ```
 
-### 4.3 vLLM Custom Provider 등록
+### 4.4 vLLM Custom Provider 등록
 
 Bifrost는 `provider/model` 형식으로 모델을 지정합니다. vLLM을 custom provider로 등록하려면
 ConfigMap(`bifrost-config`)의 `providers`에 다음을 추가합니다:
@@ -193,7 +205,7 @@ curl -s http://localhost:8080/v1/chat/completions \
 > `self-hosted-vllm/qwen3-8b`로 지정해야 합니다.
 > 앱 코드의 ConfigMap에서도 이 형식을 사용합니다.
 
-### 4.4 Bedrock Provider 추가
+### 4.5 Bedrock Provider 추가
 
 Amazon Bedrock을 통해 Claude 등 고성능 모델을 사용하려면 Bifrost에 Bedrock provider를 추가합니다.
 
@@ -361,7 +373,24 @@ helm repo add langfuse https://langfuse.github.io/langfuse-k8s
 helm repo update
 ```
 
-### 6.2 Langfuse 배포
+### 6.2 Langfuse 설정값 수정
+
+`manifests/06-langfuse-values.yaml` 에서 아래의 플레이스홀더(`<...>`)가 포함된 값을 실제 값으로 교체해야 합니다:
+
+| 플레이스홀더 | 설명 |
+|-------------|------|
+| `<POSTGRES_PASSWORD>` | PostgreSQL 비밀번호 |
+| `<CLICKHOUSE_PASSWORD>` | ClickHouse 비밀번호 |
+| `<REDIS_PASSWORD>` | Redis 비밀번호 |
+| `<MINIO_ROOT_PASSWORD>` | MinIO root 비밀번호 |
+| `<NEXTAUTH_SECRET>` | NextAuth 시크릿 |
+| `<LANGFUSE_SALT>` | Langfuse salt |
+| `<LANGFUSE_ENCRYPTION_KEY>` | Langfuse 암호화 키 |
+
+#### 참고문서
+- [설정값 관련 문서](https://langfuse.com/self-hosting/configuration)
+
+### 6.3 Langfuse 배포
 
 ```bash
 bash manifests/06-langfuse-install.sh
@@ -439,6 +468,38 @@ langfuse-zookeeper-2               1/1     Running
 > Error: INSTALLATION FAILED: execution error at (langfuse/templates/worker/deployment.yaml):
 > Configuring an existing secret or postgresql.auth.password is required
 > ```
+
+> ⚠️ **트러블슈팅 — Clickhouse Migration Fail:**
+> 
+> ```bash
+> kubectl logs -n observability langfuse-web-5ccb8dfc9d-n9hkn
+> Script executed successfully.
+> Prisma schema loaded from packages/shared/prisma/schema.prisma
+> Datasource "db": PostgreSQL database "postgres_langfuse", schema "public" at "langfuse-postgresql"
+> 
+> 390 migrations found in prisma/migrations
+> 
+> No pending migrations to apply.
+> error: Dirty database version 16. Fix and force version.
+> Applying clickhouse migrations failed. This is mostly caused by the database being unavailable.
+> Exiting...
+> ```
+> 
+> Clickhouse Migration이 실패할 경우 위와 같이 Web Pod가 정상적으로 동작하지 않을 수 있습니다.
+> 
+> 이 경우 Clickhouse Pod에서 실패한 Migration을 제거한 뒤 Web Pod가 다시 동작하면 Migration 작업을 다시 진행하며 문제가 해결됩니다.
+> 
+> ```bash
+> kubectl exec -n observability  -it langfuse-clickhouse-shard0-0 -- clickhouse-client
+> 
+> SELECT * FROM schema_migrations ORDER BY version DESC;
+> 
+> DELETE FROM schema_migrations WHERE version = 16;
+> ```
+> 
+> 참고문서
+> - https://github.com/langfuse/langfuse/issues/9989
+
 
 ---
 
@@ -794,4 +855,7 @@ kubectl delete -f manifests/ebs-storageclass.yaml
 
 # EKS 클러스터 삭제
 eksctl delete cluster --name $CLUSTER_NAME --region ap-northeast-2
+
+# PVC 삭제
+kubectl delete pvc -n observability -l app.kubernetes.io/instance=langfuse
 ```
