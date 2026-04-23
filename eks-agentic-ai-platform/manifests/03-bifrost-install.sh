@@ -9,6 +9,6 @@ helm repo update
 helm install bifrost bifrost/bifrost \
   --namespace ai-inference \
   --create-namespace \
-  --values "$(dirname "$0")/bifrost-values.yaml"
+  --values "$(dirname "$0")/03-bifrost-values.yaml"
 
 echo "Bifrost AI Gateway installed in namespace ai-inference"
