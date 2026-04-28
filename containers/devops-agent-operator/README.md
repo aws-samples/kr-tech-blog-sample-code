@@ -108,6 +108,38 @@ ContainerCreating, Unschedulable 같은 일시적 상태는 설정된 대기 시
 | `PROCESSED_TTL` | 중복 처리 방지 기간 | `1h` |
 | `FAILURE_GRACE_PERIOD` | 타임아웃 대기 기간 | `3m` |
 | `FAILURE_RECHECK_INTERVAL` | 타임아웃 재확인 간격 | `1m` |
+| `WEBHOOK_SKIP_CATEGORIES` | 웹훅/S3/CloudWatch 출력을 건너뛸 감지 레이어 (쉼표 구분) | - |
+| `WEBHOOK_MIN_SEVERITY` | 출력을 트리거할 최소 심각도 | - |
+
+#### 출력 필터링
+
+`WEBHOOK_SKIP_CATEGORIES`와 `WEBHOOK_MIN_SEVERITY`는 AND 조건으로 동작합니다. 두 조건을 모두 통과해야 CloudWatch Logs, S3, Webhook 출력이 실행됩니다. 미설정 시 모든 장애에 대해 출력이 실행됩니다.
+
+**WEBHOOK_SKIP_CATEGORIES** — 특정 감지 레이어의 장애를 출력에서 제외합니다.
+
+유효한 값: `ContainerWaiting`, `ContainerTerminated`, `PodPhase`, `PodStatus`, `PodCondition` ([감지 레이어 상세](docs/ARCHITECTURE.md#3단계-장애-감지---detectpodfailure))
+
+```
+# Layer 4, 5 장애는 출력하지 않음
+WEBHOOK_SKIP_CATEGORIES=PodPhase,PodCondition
+```
+
+**WEBHOOK_MIN_SEVERITY** — 설정한 심각도 이상의 장애만 출력합니다.
+
+유효한 값 (낮을수록 심각): `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` ([심각도별 장애 유형](docs/ARCHITECTURE.md#6단계-심각도-결정---determineseverity))
+
+```
+# HIGH 이상(CRITICAL, HIGH)만 출력
+WEBHOOK_MIN_SEVERITY=HIGH
+```
+
+두 옵션을 조합하면 더 세밀하게 제어할 수 있습니다.
+
+```
+# PodPhase는 무조건 제외 + 나머지는 HIGH 이상만 출력
+WEBHOOK_SKIP_CATEGORIES=PodPhase,PodCondition
+WEBHOOK_MIN_SEVERITY=HIGH
+```
 
 ## IAM 권한
 
