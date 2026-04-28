@@ -644,14 +644,18 @@ source .venv/bin/activate
 
 ### 8.2 환경변수 설정
 
-`.env` 파일을 생성하여 환경변수를 관리합니다 (`.gitignore`에 추가 권장):
+`.env.example` 파일을 복사하여 실제 값으로 수정합니다 (`.env`는 `.gitignore`에 포함되어 있습니다):
 
 ```bash
-# .env
+cp .env.example .env
+```
+
+`.env` 파일을 열어 Langfuse API 키 등을 실제 값으로 수정합니다:
+
+```bash
+# .env (수정 필요한 항목)
 LANGFUSE_SECRET_KEY=sk-lf-your-secret-key
 LANGFUSE_PUBLIC_KEY=pk-lf-your-public-key
-LANGFUSE_BASE_URL=http://localhost:3000
-VLLM_URL=http://localhost:8000/v1
 ```
 
 Langfuse API 키는 Langfuse Web UI에서 발급받습니다:

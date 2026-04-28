@@ -120,13 +120,10 @@ kubectl port-forward svc/langfuse-web 3000:3000 -n observability &
 python3 -m venv .venv && source .venv/bin/activate
 .venv/bin/pip install langchain_openai langgraph langfuse python-dotenv
 
-# .env 파일 생성
-cat > .env << 'EOF'
-LANGFUSE_SECRET_KEY=sk-lf-your-secret-key
-LANGFUSE_PUBLIC_KEY=pk-lf-your-public-key
-LANGFUSE_BASE_URL=http://localhost:3000
-VLLM_URL=http://localhost:8000/v1
-EOF
+# .env 파일 생성 (.env.example을 복사하여 실제 값으로 수정)
+cp .env.example .env
+# .env 파일을 열어 Langfuse API 키 등 실제 값으로 수정
+# vi .env
 
 # 실행
 .venv/bin/python demo.py
