@@ -1,0 +1,9 @@
+.env
+.env.production
+.venv/
+.kiro/
+__pycache__/
+source.zip
+draft.md
+draft.txt
+diagrams/

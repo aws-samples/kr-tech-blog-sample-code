@@ -1,0 +1,29 @@
+image:
+  tag: "v1.4.14"
+
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+storage:
+  mode: sqlite
+  persistence:
+    enabled: false
+
+postgresql:
+  enabled: false
+
+bifrost:
+  encryptionKey: "<BIFROST_ENCRYPTION_KEY>"
+
+  client:
+    enableLogging: true
+
+  plugins:
+    telemetry:
+      enabled: true
+    logging:
+      enabled: true
