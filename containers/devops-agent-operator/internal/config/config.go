@@ -90,6 +90,12 @@ type Config struct {
 	// Valid values: LOW, MEDIUM, HIGH, CRITICAL
 	// Empty means all severities trigger webhooks.
 	WebhookMinSeverity string
+
+	// WebhookExcludeTypes is a list of failure types that should not trigger webhook calls,
+	// regardless of category or severity.
+	// e.g., "ErrImagePull" - transient state that kubelet retries automatically.
+	// Empty means no failure types are excluded.
+	WebhookExcludeTypes []string
 }
 
 // DefaultConfig returns a Config with default values
@@ -201,6 +207,10 @@ func LoadFromEnv() *Config {
 		cfg.WebhookMinSeverity = strings.ToUpper(strings.TrimSpace(v))
 	}
 
+	if v := os.Getenv("WEBHOOK_EXCLUDE_TYPES"); v != "" {
+		cfg.WebhookExcludeTypes = splitAndTrim(v, ",")
+	}
+
 	return cfg
 }
 
@@ -249,11 +259,11 @@ var severityLevel = map[string]int{
 }
 
 // ShouldSendWebhook returns true if the failure should trigger a webhook call.
-// Both conditions must pass (AND logic):
+// All conditions must pass (AND logic):
 //   - The failure category must not be in WebhookSkipCategories
 //   - The failure severity must meet or exceed WebhookMinSeverity
 //
-// If neither filter is configured, always returns true (default behavior preserved).
+// If no filters are configured, always returns true (default behavior preserved).
 func (c *Config) ShouldSendWebhook(category, severity string) bool {
 	// Category filter: skip if category is in the skip list
 	for _, cat := range c.WebhookSkipCategories {
@@ -268,6 +278,13 @@ func (c *Config) ShouldSendWebhook(category, severity string) bool {
 		minLevel, minKnown := severityLevel[c.WebhookMinSeverity]
 		curLevel, curKnown := severityLevel[severity]
 		if minKnown && curKnown && curLevel > minLevel {
+			return false
+		}
+	}
+
+	// Type filter: skip if failure type is in the exclude list
+	for _, t := range c.WebhookExcludeTypes {
+		if t == failureType {
 			return false
 		}
 	}

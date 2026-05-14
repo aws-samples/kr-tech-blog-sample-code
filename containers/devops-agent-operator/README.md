@@ -110,10 +110,11 @@ ContainerCreating, Unschedulable 같은 일시적 상태는 설정된 대기 시
 | `FAILURE_RECHECK_INTERVAL` | 타임아웃 재확인 간격 | `1m` |
 | `WEBHOOK_SKIP_CATEGORIES` | 웹훅/S3/CloudWatch 출력을 건너뛸 감지 레이어 (쉼표 구분) | - |
 | `WEBHOOK_MIN_SEVERITY` | 출력을 트리거할 최소 심각도 | - |
+| `WEBHOOK_EXCLUDE_TYPES` | 웹훅/S3/CloudWatch 출력을 건너뛸 장애 유형 (쉼표 구분) | - |
 
 #### 출력 필터링
 
-`WEBHOOK_SKIP_CATEGORIES`와 `WEBHOOK_MIN_SEVERITY`는 AND 조건으로 동작합니다. 두 조건을 모두 통과해야 CloudWatch Logs, S3, Webhook 출력이 실행됩니다. 미설정 시 모든 장애에 대해 출력이 실행됩니다.
+`WEBHOOK_SKIP_CATEGORIES`, `WEBHOOK_MIN_SEVERITY`, `WEBHOOK_EXCLUDE_TYPES`는 AND 조건으로 동작합니다. 세 조건을 모두 통과해야 CloudWatch Logs, S3, Webhook 출력이 실행됩니다. 미설정 시 모든 장애에 대해 출력이 실행됩니다.
 
 **WEBHOOK_SKIP_CATEGORIES** — 특정 감지 레이어의 장애를 출력에서 제외합니다.
 
@@ -133,12 +134,23 @@ WEBHOOK_SKIP_CATEGORIES=PodPhase,PodCondition
 WEBHOOK_MIN_SEVERITY=HIGH
 ```
 
-두 옵션을 조합하면 더 세밀하게 제어할 수 있습니다.
+**WEBHOOK_EXCLUDE_TYPES** — 특정 장애 유형을 카테고리나 심각도와 무관하게 출력에서 제외합니다.
+
+유효한 값: 장애 유형 문자열 (예: `ErrImagePull`, `ContainerCreating`, `Unschedulable`)
 
 ```
-# PodPhase는 무조건 제외 + 나머지는 HIGH 이상만 출력
+# ErrImagePull은 일시적 상태로 kubelet이 자동 재시도하므로 제외
+# (지속되면 ImagePullBackOff로 전환되며 이는 제외되지 않음)
+WEBHOOK_EXCLUDE_TYPES=ErrImagePull
+```
+
+세 옵션을 조합하면 더 세밀하게 제어할 수 있습니다.
+
+```
+# PodPhase는 무조건 제외 + 나머지는 HIGH 이상만 출력 + ErrImagePull 제외
 WEBHOOK_SKIP_CATEGORIES=PodPhase,PodCondition
 WEBHOOK_MIN_SEVERITY=HIGH
+WEBHOOK_EXCLUDE_TYPES=ErrImagePull
 ```
 
 ## IAM 권한
