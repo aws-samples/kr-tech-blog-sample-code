@@ -1,0 +1,3 @@
+variant,search_impressions,clicks,orders,ndcg_at_10,p95_latency_ms,error_rate,zero_result_rate,measurement_start,measurement_end,notes
+baseline,100000,12000,960,0.8533,180,0.001,0.042,2026-08-01,2026-08-14,BM25
+candidate,100000,12800,1088,0.8949,195,0.0012,0.038,2026-08-01,2026-08-14,LTR rescore
