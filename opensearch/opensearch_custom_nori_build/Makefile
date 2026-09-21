@@ -1,9 +1,9 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
-.PHONY: help setup fetch doctor prepare mecab lucene plugin verify verify-http test all
+.PHONY: help setup fetch doctor prepare mecab mecab-engine mecab-dictionary verify-mecab lucene plugin verify verify-http test all
 
 help:
-	@printf '%s\n' 'make setup       Download pinned sources and check local tools' 'make all         Download, build MeCab/Nori/plugin, and verify' 'make mecab       Build native MeCab and high/low dictionaries' 'make lucene      Build Lucene and replace Nori dictionary resources' 'make plugin      Package the isolated custom plugin' 'make verify      Run 108 tokenizer cases and validate the ZIP' 'make verify-http Verify an existing loopback OpenSearch node' 'make test        Run offline preparation regression tests'
+	@printf '%s\n' 'bash build-all.sh --install-deps  Prepare macOS tools and build everything, including MeCab' 'make all              Download, build MeCab/Nori/plugin, and verify' 'make mecab            Download, build and verify MeCab-Ko engine and dictionaries only' 'make mecab-engine     Rebuild MeCab-Ko from source (configure/make/install)' 'make mecab-dictionary Compile high/low CSVs with the built mecab-dict-index' 'make verify-mecab     Verify native binaries and eight actual morphology cases' 'make setup            Download pinned sources and check local tools' 'make lucene           Build Lucene and replace Nori dictionary resources' 'make plugin           Package the isolated custom plugin' 'make verify           Run 108 tokenizer cases and validate the ZIP' 'make verify-http      Verify an existing loopback OpenSearch node' 'make test             Run offline regression tests'
 
 fetch:
 	bash scripts/fetch-sources.sh
@@ -15,8 +15,11 @@ setup:
 	$(MAKE) fetch
 	$(MAKE) doctor
 
-prepare mecab lucene plugin verify:
+prepare mecab-engine mecab-dictionary verify-mecab lucene plugin verify:
 	bash scripts/build.sh $@
+
+mecab:
+	bash build-all.sh --mecab-only
 
 verify-http:
 	bash scripts/build.sh verify-http
@@ -25,5 +28,4 @@ test:
 	$${PYTHON_BIN:-python3.12} -m unittest discover -s tests -p 'test_*.py' -v
 
 all:
-	$(MAKE) setup
-	bash scripts/build.sh all
+	bash build-all.sh
