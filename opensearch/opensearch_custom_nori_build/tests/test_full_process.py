@@ -159,10 +159,22 @@ class EntryPointTests(unittest.TestCase):
                 path.chmod(0o755)
             environment = dict(os.environ, PATH=str(binary) + os.pathsep + os.environ["PATH"], JAVA_HOME="/fixture/jdk17", PYTHON_BIN=sys.executable)
             environment.pop("NORI_JAVA_HOME", None)
-            command = f'source "{ROOT}/scripts/bootstrap.sh"; bootstrap false; printf "JAVA=%s\\n" "$JAVA_HOME"'
-            result = subprocess.run(["bash", "-e", "-c", command], env=environment, capture_output=True, text=True, check=True)
-            self.assertIn("JAVA=" + str(jdk), result.stdout)
+            commands = (
+                f'source "{ROOT}/scripts/bootstrap.sh"; bootstrap false; printf "JAVA=%s\\n" "$JAVA_HOME"',
+                f'source "{ROOT}/scripts/env.sh"; printf "JAVA=%s\\nJAVA21=%s\\n" "$JAVA_HOME" "$JAVA21_HOME"',
+            )
+            for command in commands:
+                with self.subTest(command=command):
+                    result = subprocess.run(["bash", "-e", "-c", command], env=environment, capture_output=True, text=True, check=True)
+                    self.assertIn("JAVA=" + str(jdk), result.stdout)
             self.assertEqual(environment["JAVA_HOME"], "/fixture/jdk17")
+
+    def test_explicit_invalid_jdk_is_not_silently_replaced(self):
+        environment = dict(os.environ, NORI_JAVA_HOME="/nonexistent/explicit-jdk21", PYTHON_BIN=sys.executable)
+        command = f'source "{ROOT}/scripts/env.sh"'
+        result = subprocess.run(["bash", "-e", "-c", command], env=environment, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Selected JDK must be version 21", result.stderr)
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ cd kr-tech-blog-sample-code/opensearch/opensearch_custom_nori_build
 bash build-all.sh --install-deps
 ```
 
-이미 도구를 준비했다면 `bash build-all.sh` 또는 `make all`로 실행할 수 있습니다. 통합 스크립트는 기존 `JAVA_HOME`이 JDK 17이어도 설치된 JDK 21을 찾아 **빌드 프로세스 안에서만** 사용합니다. 셸 설정 파일이나 전역 JDK 설정은 바꾸지 않습니다. 특정 JDK를 지정하려면 `NORI_JAVA_HOME`을 사용합니다.
+이미 도구를 준비했다면 `bash build-all.sh` 또는 `make all`로 실행할 수 있습니다. 통합 빌드와 개별 `make` 단계 모두 기존 `JAVA_HOME`이 JDK 17이어도 설치된 JDK 21을 찾아 **빌드 프로세스 안에서만** 사용합니다. 셸 설정 파일이나 전역 JDK 설정은 바꾸지 않습니다. 특정 JDK를 지정하려면 `NORI_JAVA_HOME`을 사용합니다. 이 값이 잘못되면 다른 JDK로 바꾸지 않고 오류로 종료합니다.
 
 ```bash
 NORI_JAVA_HOME="/path/to/jdk-21" bash build-all.sh
@@ -212,18 +212,18 @@ NORI_TEST_ENDPOINT=http://127.0.0.1:19235 make verify-http
 
 ### 확인한 범위
 
-2026-09-21 macOS Apple Silicon에서 소스, 캐시, 빌드 결과가 없는 독립 복사본으로 `bash build-all.sh --install-deps`를 실행했습니다. 셸 기본 JDK는 17이었지만 통합 스크립트가 설치된 JDK 21을 선택했습니다. Homebrew 의존성은 이미 설치되어 있어 추가 설치 없이 진행했습니다.
+공개 저장소를 새로 clone한 환경에서 README의 실행 명령을 실제로 시험했습니다. 기본 JDK 17 환경에서 개별 `make setup`과 `make doctor`가 실패하는 문제를 수정한 뒤, 같은 조건으로 전체 명령을 재검증했습니다. 통합 및 단계별 빌드는 설치된 JDK 21을 선택하고 부모 셸의 JDK 설정은 유지합니다.
 
-MeCab-Ko 소스의 configure/make/install, 네이티브 도구 4개 생성, high/low 바이너리 사전 생성, 실제 MeCab 분석 8건, Nori tokenizer 조합 108건, 같은 JVM의 사전 공존 검사와 최종 ZIP 생성을 확인했습니다. 이어서 `--mecab-only`를 같은 폴더에서 실행해 기존 엔진이 있어도 새 소스 디렉터리에서 다시 빌드되고 네이티브 분석 8건이 재통과하는지 확인했습니다. 오프라인 테스트 18개도 통과했습니다.
+전체 빌드의 다섯 진입 방식, MeCab 단독 빌드, 단계별 명령, 명시적 JDK와 출력 폴더 지정, 로컬 OpenSearch HTTP 검증을 포함한 35개 명령 단계가 예상한 종료 코드로 완료됐습니다. 이 중 27개는 정상 실행이고 8개는 잘못된 입력을 의도대로 거부하는 검사입니다. 오프라인 테스트 19개, 네이티브 분석 8건, Nori tokenizer 조합 108건, 실제 HTTP 분석 88건이 통과했습니다. 자세한 명령과 소요 시간은 [명령어 테스트 결과](COMMAND_TEST_RESULTS.md)에 있습니다.
 
-플러그인 코드의 이전 검증에서는 공식 OpenSearch 3.5.0 minimal Linux ARM64 배포판의 Java 구성을 외부 JDK 21로 실행한 루프백 환경에서 HTTP 분석 88건이 통과했습니다. 이번 빌드 절차 변경에서는 HTTP 테스트를 다시 실행하지 않았습니다. AWS 패키지 검증과 도메인 연결, Linux 네이티브 빌드는 수행하지 않았습니다.
+Homebrew 의존성은 이미 설치되어 있어 신규 설치 분기는 실측하지 않았습니다. HTTP 검증은 공식 OpenSearch 3.5.0 minimal Linux ARM64 배포판의 Java 구성을 외부 JDK 21로 실행한 macOS 루프백 환경에서 수행했습니다. 임시 인덱스와 서버는 정리했으며, AWS 패키지 검증과 도메인 연결, Linux 네이티브 빌드는 수행하지 않았습니다.
 
 ## 환경 변수
 
 | 변수 | 기본값 | 용도 |
 | --- | --- | --- |
-| `NORI_JAVA_HOME` | 미설정 | 통합 빌드에서 사용할 JDK 21 경로를 명시 |
-| `JAVA_HOME` | 통합 빌드는 버전 확인 후 설치된 JDK 21 탐색 | 하위 빌드 프로세스의 JDK 경로 |
+| `NORI_JAVA_HOME` | 미설정 | 통합 및 단계별 빌드에서 사용할 JDK 21 경로를 명시 |
+| `JAVA_HOME` | 버전 확인 후 설치된 JDK 21 탐색 | 하위 빌드 프로세스의 JDK 경로 |
 | `PYTHON_BIN` | `python3.12` | Python 3.12 실행 파일 |
 | `NORI_BUILD_DIR` | 샘플 루트의 `build/` | 절대 출력 경로 |
 | `NORI_BUILD_JOBS` | `4` | 빌드 병렬 수 |

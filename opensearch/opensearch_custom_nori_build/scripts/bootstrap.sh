@@ -1,5 +1,31 @@
 #!/usr/bin/env bash
 
+select_java21() {
+    local host="$(uname -s)"
+    local candidate
+    if [ -n "${NORI_JAVA_HOME:-}" ]; then
+        export JAVA_HOME="$NORI_JAVA_HOME"
+    elif [ -n "${JAVA_HOME:-}" ] && [[ "$("$JAVA_HOME/bin/javac" -version 2>/dev/null || true)" == 'javac 21.'* ]]; then
+        :
+    elif command -v brew >/dev/null 2>&1 && candidate="$(brew --prefix openjdk@21 2>/dev/null)" \
+            && [ -x "$candidate/libexec/openjdk.jdk/Contents/Home/bin/javac" ]; then
+        export JAVA_HOME="$candidate/libexec/openjdk.jdk/Contents/Home"
+    elif [[ "$host" == Darwin ]] && candidate="$(/usr/libexec/java_home -v 21 2>/dev/null)"; then
+        export JAVA_HOME="$candidate"
+    elif [[ "$(javac -version 2>/dev/null || true)" == 'javac 21.'* ]]; then
+        if [[ "$host" == Linux ]] && command -v readlink >/dev/null 2>&1; then
+            export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"
+        fi
+    else
+        echo 'JDK 21 is required. Use --install-deps on macOS or set NORI_JAVA_HOME.' >&2
+        return 1
+    fi
+    if [ -n "${JAVA_HOME:-}" ]; then
+        export PATH="$JAVA_HOME/bin:$PATH"
+    fi
+    [[ "$(javac -version 2>/dev/null || true)" == 'javac 21.'* ]] || { echo 'Selected JDK must be version 21.' >&2; return 1; }
+}
+
 bootstrap() {
     local install_deps="${1:-false}"
     local host="$(uname -s)"
@@ -23,28 +49,7 @@ bootstrap() {
             echo 'Homebrew build dependencies are already installed.'
         fi
     fi
-
-    if [ -n "${NORI_JAVA_HOME:-}" ]; then
-        export JAVA_HOME="$NORI_JAVA_HOME"
-    elif [ -n "${JAVA_HOME:-}" ] && [[ "$("$JAVA_HOME/bin/javac" -version 2>/dev/null || true)" == 'javac 21.'* ]]; then
-        :
-    elif command -v brew >/dev/null 2>&1 && candidate="$(brew --prefix openjdk@21 2>/dev/null)" \
-            && [ -x "$candidate/libexec/openjdk.jdk/Contents/Home/bin/javac" ]; then
-        export JAVA_HOME="$candidate/libexec/openjdk.jdk/Contents/Home"
-    elif [[ "$host" == Darwin ]] && candidate="$(/usr/libexec/java_home -v 21 2>/dev/null)"; then
-        export JAVA_HOME="$candidate"
-    elif [[ "$(javac -version 2>/dev/null || true)" == 'javac 21.'* ]]; then
-        if [[ "$host" == Linux ]] && command -v readlink >/dev/null 2>&1; then
-            export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"
-        fi
-    else
-        echo 'JDK 21 is required. Use --install-deps on macOS or set NORI_JAVA_HOME.' >&2
-        return 1
-    fi
-    if [ -n "${JAVA_HOME:-}" ]; then
-        export PATH="$JAVA_HOME/bin:$PATH"
-    fi
-    [[ "$(javac -version 2>/dev/null || true)" == 'javac 21.'* ]] || { echo 'Selected JDK must be version 21.' >&2; return 1; }
+    select_java21
 
     if [ -n "${PYTHON_BIN:-}" ]; then
         :

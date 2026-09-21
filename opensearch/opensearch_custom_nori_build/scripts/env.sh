@@ -18,11 +18,9 @@ if ! [[ "$NORI_BUILD_JOBS" =~ ^[1-9][0-9]*$ ]]; then
     echo 'NORI_BUILD_JOBS must be a positive integer.' >&2
     return 1
 fi
-if [ -z "${JAVA_HOME:-}" ] && command -v brew >/dev/null 2>&1 && brew --prefix openjdk@21 >/dev/null 2>&1; then
-    export JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
-fi
+source "$NORI_SAMPLE_ROOT/scripts/bootstrap.sh"
+select_java21
 if [ -n "${JAVA_HOME:-}" ]; then
-    export PATH="$JAVA_HOME/bin:$PATH"
     export JAVA21_HOME="$JAVA_HOME"
     export RUNTIME_JAVA_HOME="$JAVA_HOME"
 fi
