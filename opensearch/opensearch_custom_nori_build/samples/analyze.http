@@ -1,0 +1,25 @@
+GET /_cat/plugins?v
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"none"},"text":"노을빛무선청소기","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_custom_tokenizer","decompound_mode":"none"},"text":"노을빛무선청소기","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_custom_tokenizer","decompound_mode":"none"},"text":"구름결캠핑의자","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_custom_tokenizer","decompound_mode":"discard"},"text":"구름결캠핑의자","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_custom_tokenizer","decompound_mode":"mixed"},"text":"구름결캠핑의자","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"mixed","user_dictionary_rules":["초록별접이식선반 초록별 접이식 선반"]},"text":"초록별접이식선반","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_custom_tokenizer","decompound_mode":"mixed","user_dictionary_rules":["초록별접이식선반 초록별 접이식 선반"]},"text":"초록별접이식선반","explain":true}
+
+POST /_analyze
+{"analyzer":"nori_custom","text":"구름결캠핑의자를 구매했다","explain":true}
