@@ -1,0 +1,22 @@
+runtime:
+  name: eks_ack_devops
+  imageUri: "123456789012.dkr.ecr.us-east-1.amazonaws.com/eks-ack-agentcore@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  roleArn: "arn:aws:iam::123456789012:role/AgentCoreRuntimeExecutionRole"
+  region: us-east-1
+  modelId: global.anthropic.claude-sonnet-5
+  release: v8
+  buildRevision: gateway-v8
+gateway:
+  enabled: true
+  name: eks-ack-devops-gateway
+  roleArn: "arn:aws:iam::123456789012:role/AgentCoreGatewayExecutionRole"
+  runtimeArn: "arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/eks_ack_devops-0123456789"
+  targetName: agent
+analysis:
+  enabled: true
+  imageUri: "123456789012.dkr.ecr.us-east-1.amazonaws.com/eks-ack-agentcore@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+endpoint:
+  enabled: false
+  runtimeId: eks_ack_devops-0123456789
+  version: "2"
+  name: live

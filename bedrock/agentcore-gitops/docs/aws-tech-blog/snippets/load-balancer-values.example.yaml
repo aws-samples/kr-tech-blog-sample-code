@@ -1,0 +1,5 @@
+clusterName: eks-ack-agentcore
+region: us-east-1
+vpcId: vpc-0123456789abcdef0
+serviceAccount:
+  name: aws-load-balancer-controller

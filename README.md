@@ -45,6 +45,7 @@ AWS 기술 블로그에서 제공하는 샘플 코드 저장소입니다.
 ```
 kr-tech-blog-sample-code/
 ├── bedrock/                    # Amazon Bedrock 관련 샘플
+│   ├── agentcore-gitops/
 │   ├── amazon-bedrock-travel-agent/
 │   ├── bedrock-mcp-agent-cdk/
 │   ├── bedrock_aurora_mysql/
@@ -72,6 +73,7 @@ Amazon Bedrock을 활용한 생성형 AI 애플리케이션 구축 샘플입니�
 
 | Project | Description | Tech Stack | Blog |
 |---------|-------------|------------|------|
+| [agentcore-gitops](./bedrock/agentcore-gitops) | EKS와 Argo CD, ACK를 통한 AgentCore Runtime 및 Gateway 관리 | CDK, Helm, Python | 준비 중 |
 | [amazon-bedrock-travel-agent](./bedrock/amazon-bedrock-travel-agent) | Bedrock Agent를 활용한 여행 예약 에이전트 | CDK, Python | [Link](https://aws.amazon.com/ko/blogs/tech/amazon-bedrock-agent-30mins-travel-reservation/) |
 | [cdk_bedrock_rag_chatbot](./bedrock/cdk_bedrock_rag_chatbot) | Bedrock Knowledge Base를 활용한 멀티모달 RAG 챗봇 | CDK, Python, Streamlit | [Link](https://aws.amazon.com/ko/blogs/tech/practical-guide-for-bedrock-kb-multimodal-chatbot/) |
 | [bedrock-mcp-agent-cdk](./bedrock/bedrock-mcp-agent-cdk) | Bedrock Agents와 MCP(Model Context Protocol) 통합 | CDK, TypeScript, Lambda | [Link](https://aws-blogs-prod.amazon.com/tech/amazon-bedrock-agents-mcp-model-context-protocol/) |
