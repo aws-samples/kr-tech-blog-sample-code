@@ -1,0 +1,6 @@
+apiVersion: v2
+name: agentcore-agent
+description: Manage a Strands AgentCore Runtime and stable endpoint through ACK
+type: application
+version: 0.1.0
+appVersion: "v1"

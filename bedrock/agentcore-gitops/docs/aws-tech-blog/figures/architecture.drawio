@@ -1,0 +1,319 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="Electron" agent="AWS Tech Blog asset generator" version="29.3.0" type="device">
+  <diagram id="architecture" name="배포 아키텍처">
+    <mxGraphModel dx="1760" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1760" pageHeight="1100" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="architecture-cell-1" value="기존 EKS GitOps로 AgentCore 배포하고 검증하기" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=34;fontColor=#233044;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="27" width="1490" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-2" value="컨트롤러는 EKS에, 에이전트 실행은 AgentCore에 배치합니다." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=20;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="82" width="1210" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-3" value="파랑  관리 및 배포     초록  요청 경로     주황  이미지     보라  관측" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=16;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="119" width="1300" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-4" value="" style="rounded=0;html=1;fillColor=#FBFCFE;strokeColor=#233044;strokeWidth=1.6;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="330" y="160" width="1380" height="860" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-5" value="AWS 서비스 / 검증 리전 us-east-1 / Global 모델은 리전 간 라우팅 가능" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=20;fontColor=#233044;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="348" y="170" width="1344" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-6" value="" style="rounded=0;html=1;fillColor=#F4F8FC;strokeColor=#2774AE;strokeWidth=1.6;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="215" width="950" height="545" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-7" value="VPC" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=20;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="378" y="225" width="914" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-8" value="" style="rounded=0;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.6;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="390" y="275" width="890" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-9" value="Amazon EKS / private subnets / 2 AZ / ARM64 worker nodes × 2" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=20;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="408" y="285" width="854" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-10" value="AWS managed services" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=19;fontColor=#53657A;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1365" y="218" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-git" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="50" y="335" width="225" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-12" value="Git 저장소" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="68" y="348" width="189" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-13" value="Helm 차트 / values&lt;br&gt;main / 읽기 전용 키" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="68" y="392" width="189" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cdk" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#C56B16;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="50" y="515" width="225" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-15" value="AWS CDK" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#C56B16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="68" y="528" width="189" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-16" value="VPC / EKS / ECR / IAM&lt;br&gt;최초 기반 인프라 구축" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="68" y="572" width="189" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-admin" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="50" y="665" width="225" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-18" value="관리자" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="68" y="678" width="189" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-19" value="브라우저 / kubectl / k9s" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="68" y="722" width="189" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-argo" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="420" y="340" width="220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-21" value="Argo CD" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="438" y="353" width="184" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-22" value="Git 변경 Pull&lt;br&gt;Helm 렌더링 / 자동 Sync" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="438" y="397" width="184" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cr" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="705" y="340" width="240" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-24" value="Kubernetes 선언" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="723" y="353" width="204" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-25" value="AgentRuntime&lt;br&gt;Gateway / GatewayTarget" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="723" y="397" width="204" height="61" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-ack" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="340" width="235" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-27" value="ACK Controller*" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1028" y="353" width="199" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-28" value="CR 변경 → AWS API&lt;br&gt;실제 상태를 status에 기록" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1028" y="397" width="199" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-analysis" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#197D63;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="505" y="515" width="305" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-30" value="Argo Rollouts" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#197D63;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="523" y="528" width="269" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-31" value="PostSync AnalysisRun&lt;br&gt;검증 Job → Gateway 실제 호출" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="523" y="572" width="269" height="41" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-lbc" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="985" y="520" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-33" value="ALB Controller" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1003" y="533" width="224" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-34" value="관리용 Ingress / ALB 구성" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1003" y="577" width="224" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-35" value="EKS Pod Identity&lt;br&gt;IAM 실행 역할 분리" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=18;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="420" y="665" width="215" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-alb" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#2774AE;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="985" y="655" width="260" height="98" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-37" value="관리용 ALB" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#2774AE;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1003" y="668" width="224" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-38" value="Public subnets&lt;br&gt;HTTPS / 허용 IP 제한" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1003" y="712" width="224" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-ecr" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#C56B16;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="1365" y="275" width="305" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-40" value="" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.ecr;fillColor=#C56B16;strokeColor=none;gradientColor=none;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1381" y="293" width="42" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-41" value="Amazon ECR" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#C56B16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1437" y="288" width="219" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-42" value="Immutable image digest&lt;br&gt;AgentCore가 이미지 사용" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1383" y="332" width="269" height="61" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-logs" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#7551A6;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="1365" y="535" width="305" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-44" value="" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch;fillColor=#7551A6;strokeColor=none;gradientColor=none;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1381" y="553" width="42" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-45" value="CloudWatch Logs" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#7551A6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1437" y="548" width="219" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-46" value="Runtime 실행 및 오류 로그" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1383" y="592" width="269" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-47" value="실제 에이전트 호출 경로" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=22;fontColor=#197D63;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="807" width="830" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-client" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#197D63;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="50" y="860" width="225" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-49" value="애플리케이션" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#197D63;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="68" y="873" width="189" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-50" value="IAM SigV4로 요청 서명" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="68" y="917" width="189" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-gateway" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#197D63;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="395" y="860" width="310" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-52" value="AgentCore Gateway" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#197D63;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="413" y="873" width="274" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-53" value="HTTP Runtime target&lt;br&gt;/agent/invocations" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="413" y="917" width="274" height="51" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-runtime" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#197D63;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="845" y="860" width="350" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-55" value="AgentCore Runtime" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#197D63;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="863" y="873" width="314" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-56" value="DEFAULT → 새 버전&lt;br&gt;ARM64 / Strands Agent" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="863" y="917" width="314" height="51" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-model" value="" style="rounded=1;arcSize=10;html=1;fillColor=#FFFFFF;strokeColor=#7551A6;strokeWidth=1.8;" vertex="1" parent="1">
+          <mxGeometry x="1365" y="860" width="305" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-58" value="" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.bedrock;fillColor=#7551A6;strokeColor=none;gradientColor=none;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1381" y="878" width="42" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-59" value="Amazon Bedrock" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=21;fontColor=#7551A6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1437" y="873" width="219" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-60" value="Claude Sonnet 5&lt;br&gt;Global inference profile" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=17;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1383" y="917" width="269" height="51" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-git" target="architecture-argo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-62" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-argo" target="architecture-cr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-cr" target="architecture-ack">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#197D63;dashed=1;exitX=0.3;exitY=1;entryX=0.5;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-argo" target="architecture-analysis">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="465" y="492" />
+              <mxPoint x="655" y="492" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-65" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#197D63;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-analysis" target="architecture-gateway">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="657" y="780" />
+              <mxPoint x="550" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-66" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-lbc" target="architecture-alb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-67" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=0;exitX=1;exitY=0.5;entryX=0.5;entryY=1;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-admin" target="architecture-alb">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="303" y="715" />
+              <mxPoint x="303" y="782" />
+              <mxPoint x="1115" y="782" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-68" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=0;exitX=0;exitY=0.5;entryX=0.5;entryY=1;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-alb" target="architecture-argo">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="960" y="700" />
+              <mxPoint x="960" y="484" />
+              <mxPoint x="530" y="484" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.06;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-cdk" target="architecture-cell-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="305" y="570" />
+              <mxPoint x="305" y="248" />
+              <mxPoint x="360" y="248" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#2774AE;dashed=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-ack" target="architecture-runtime">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1270" y="395" />
+              <mxPoint x="1325" y="395" />
+              <mxPoint x="1325" y="816" />
+              <mxPoint x="1020" y="816" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-71" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#C56B16;dashed=1;exitX=1;exitY=0.5;entryX=0.9;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-ecr" target="architecture-runtime">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1688" y="338" />
+              <mxPoint x="1688" y="785" />
+              <mxPoint x="1218" y="785" />
+              <mxPoint x="1218" y="838" />
+              <mxPoint x="1160" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-72" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#7551A6;dashed=1;exitX=1;exitY=0.6;entryX=0.5;entryY=1;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-runtime" target="architecture-logs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1230" y="928" />
+              <mxPoint x="1300" y="928" />
+              <mxPoint x="1300" y="680" />
+              <mxPoint x="1517" y="680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="architecture-edge-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#197D63;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-client" target="architecture-gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-74" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#197D63;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-gateway" target="architecture-runtime">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-edge-75" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2.2;strokeColor=#197D63;dashed=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;entryDx=0;entryDy=0;jettySize=18;" edge="1" parent="1" source="architecture-runtime" target="architecture-model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-76" value="Pull" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#2774AE;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="294" y="353" width="95" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-77" value="PostSync" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#197D63;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="506" y="477" width="108" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-78" value="HTTPS / 관리 전용" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#2774AE;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="715" y="765" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-79" value="CDK 기반 리소스 및 IAM / 컨트롤러 설치는 Helm" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#2774AE;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="630" y="235" width="520" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-80" value="UpdateAgentRuntime" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#2774AE;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="797" width="235" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-81" value="이미지" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#C56B16;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="769" width="80" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-82" value="로그" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#7551A6;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="660" width="65" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-83" value="SigV4" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#197D63;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="292" y="878" width="92" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-84" value="DEFAULT" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#197D63;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="717" y="878" width="115" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-85" value="모델 호출" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;fontFamily=Apple SD Gothic Neo;fontSize=15;fontColor=#197D63;spacing=2;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="878" width="130" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="architecture-cell-86" value="* ACK 1.15.1 확장 패치 사용. Runtime과 Gateway/Target을 관리합니다. NAT, VPC endpoint, 관리용 EKS API 경로는 생략했습니다." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacing=0;fontFamily=Apple SD Gothic Neo;fontSize=16;fontColor=#53657A;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1043" width="1650" height="28" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

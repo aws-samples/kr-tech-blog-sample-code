@@ -1,0 +1,23 @@
+{
+  "verifiedOn": "2026-09-14",
+  "region": "us-east-1",
+  "kubernetes": "1.36",
+  "argoCdChart": "10.9.0",
+  "argoCdApp": "v3.5.2",
+  "loadBalancerControllerChart": "3.5.0",
+  "ackAgentCoreChart": "1.15.1",
+  "ackControllerPatch": "1.15.1-http-runtime.1",
+  "ackControllerSourceRevision": "ba36b95fc5ec9ad1e8fa306fe339d227246bf601",
+  "argoRolloutsChart": "2.43.1",
+  "argoRolloutsApp": "v1.10.0",
+  "ackControlSdk": "1.66.0",
+  "modelId": "global.anthropic.claude-sonnet-5",
+  "foundationModelId": "anthropic.claude-sonnet-5",
+  "addons": {
+    "vpc-cni": "v1.23.1-eksbuild.1",
+    "coredns": "v1.14.3-eksbuild.16",
+    "kube-proxy": "v1.36.0-eksbuild.21",
+    "eks-pod-identity-agent": "v1.4.0-eksbuild.2",
+    "metrics-server": "v0.9.0-eksbuild.10"
+  }
+}

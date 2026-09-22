@@ -1,0 +1,36 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: bedrockagentcorecontrol.services.k8s.aws/v1alpha1
+kind: Gateway
+metadata:
+  name: {{ .Values.gateway.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: {{ .Values.gateway.name }}
+  description: HTTP entry point for the GitOps-managed AgentCore Runtime
+  authorizerType: AWS_IAM
+  roleARN: {{ required "gateway.roleArn is required" .Values.gateway.roleArn | quote }}
+  tags:
+    Project: eks-ack-agentcore
+    ManagedBy: argocd-ack
+---
+apiVersion: bedrockagentcorecontrol.services.k8s.aws/v1alpha1
+kind: GatewayTarget
+metadata:
+  name: {{ .Values.gateway.name }}-{{ .Values.gateway.targetName }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  name: {{ .Values.gateway.targetName }}
+  description: Stable gateway route to the latest deployed Runtime version
+  gatewayIdentifierRef:
+    from:
+      name: {{ .Values.gateway.name }}
+  targetConfiguration:
+    http:
+      agentcoreRuntime:
+        arn: {{ required "gateway.runtimeArn is required" .Values.gateway.runtimeArn | quote }}
+        qualifier: DEFAULT
+  credentialProviderConfigurations:
+    - credentialProviderType: GATEWAY_IAM_ROLE
+{{- end }}

@@ -1,0 +1,23 @@
+aws:
+  region: us-east-1
+installScope: namespace
+watchNamespace: agentcore
+serviceAccount:
+  create: true
+  name: ack-agentcore
+deployment:
+  nodeSelector:
+    kubernetes.io/arch: arm64
+reconcile:
+  defaultResyncPeriod: 60
+  resources:
+    - AgentRuntime
+    - AgentRuntimeEndpoint
+    - Gateway
+    - GatewayTarget
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi

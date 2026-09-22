@@ -1,0 +1,21 @@
+{
+  "name": "eks-ack-bedrock-agentcore-devops",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "tsx --test infra/test/*.test.ts",
+    "synth": "cdk synth --strict",
+    "deploy": "bash scripts/deploy.sh"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.269.0",
+    "constructs": "10.8.1"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1141.0",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "@types/node": "24.13.4"
+  }
+}
