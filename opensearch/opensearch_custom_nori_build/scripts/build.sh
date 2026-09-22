@@ -2,7 +2,7 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
 PHASE="${1:-all}"
-case "$PHASE" in prepare|mecab|mecab-engine|mecab-dictionary|verify-mecab|lucene|plugin|verify|verify-http|all) ;; *) echo 'Unknown phase. Run make help.' >&2; exit 2 ;; esac
+case "$PHASE" in prepare|mecab|mecab-engine|mecab-dictionary|verify-mecab|lucene|plugin|verify|all) ;; *) echo 'Unknown phase. Run make help.' >&2; exit 2 ;; esac
 mkdir -p "$NORI_BUILD_DIR"
 bash "$NORI_SAMPLE_ROOT/scripts/doctor.sh"
 "$PYTHON_BIN" - <<'PY'
@@ -123,10 +123,6 @@ verify() {
     done
     java -cp "$core:$common:$stock" "$NORI_SAMPLE_ROOT/tests/NoriCompare.java" user "$NORI_SAMPLE_ROOT/dictionaries/user_dictionary.txt" > "$NORI_BUILD_DIR/user.jsonl"
     "$PYTHON_BIN" "$NORI_SAMPLE_ROOT/tests/verify_artifacts.py" "$NORI_BUILD_DIR"
-}
-
-verify-http() {
-    "$PYTHON_BIN" "$NORI_SAMPLE_ROOT/tests/verify_http.py" "$NORI_BUILD_DIR" --endpoint "${NORI_TEST_ENDPOINT:-http://127.0.0.1:19235}"
 }
 
 if [ "$PHASE" = all ]; then

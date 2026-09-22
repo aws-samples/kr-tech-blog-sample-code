@@ -1,0 +1,30 @@
+# 도메인 A: AWS 제공 기본 Nori가 준비된 Amazon OpenSearch Service의 Dev Tools에서 실행합니다.
+# 인덱스 요청 전 SERVICE_COMPARISON.md에 따라 commerce-nori-stock-lab-v1을 준비합니다.
+
+GET /
+
+GET /_cat/plugins?v
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"none"},"text":"노을빛무선청소기","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"none"},"text":"구름결캠핑의자","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"discard"},"text":"구름결캠핑의자","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"mixed"},"text":"구름결캠핑의자","explain":true}
+
+POST /_analyze
+{"tokenizer":{"type":"nori_tokenizer","decompound_mode":"mixed","user_dictionary_rules":["초록별접이식선반 초록별 접이식 선반"]},"text":"초록별접이식선반","explain":true}
+
+POST /_analyze
+{"analyzer":"nori","text":"구름결캠핑의자를 구매했다"}
+
+POST /commerce-nori-stock-lab-v1/_analyze
+{"analyzer":"commerce_user_analyzer","text":"초록별접이식선반을 설치했다"}
+
+POST /commerce-nori-stock-lab-v1/_search
+{"query":{"match":{"name":{"query":"캠핑 의자","operator":"and"}}}}

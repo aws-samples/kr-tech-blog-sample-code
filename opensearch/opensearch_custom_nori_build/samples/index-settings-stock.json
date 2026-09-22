@@ -1,28 +1,26 @@
 {
   "settings": {
     "number_of_shards": 1,
-    "number_of_replicas": 0,
+    "number_of_replicas": 1,
     "analysis": {
       "tokenizer": {
-        "stock_none": {"type": "nori_tokenizer", "decompound_mode": "none"},
-        "commerce_none": {"type": "nori_custom_tokenizer", "decompound_mode": "none"},
-        "commerce_discard": {"type": "nori_custom_tokenizer", "decompound_mode": "discard"},
-        "commerce_mixed": {"type": "nori_custom_tokenizer", "decompound_mode": "mixed"},
+        "commerce_none": {"type": "nori_tokenizer", "decompound_mode": "none"},
+        "commerce_discard": {"type": "nori_tokenizer", "decompound_mode": "discard"},
+        "commerce_mixed": {"type": "nori_tokenizer", "decompound_mode": "mixed"},
         "commerce_user_mixed": {
-          "type": "nori_custom_tokenizer",
+          "type": "nori_tokenizer",
           "decompound_mode": "mixed",
           "user_dictionary_rules": ["초록별접이식선반 초록별 접이식 선반"]
         }
       },
       "analyzer": {
-        "stock_none_analyzer": {"type": "custom", "tokenizer": "stock_none"},
         "commerce_none_analyzer": {"type": "custom", "tokenizer": "commerce_none"},
         "commerce_discard_analyzer": {"type": "custom", "tokenizer": "commerce_discard"},
         "commerce_mixed_analyzer": {"type": "custom", "tokenizer": "commerce_mixed"},
         "commerce_user_analyzer": {
           "type": "custom",
           "tokenizer": "commerce_user_mixed",
-          "filter": ["nori_custom_part_of_speech", "nori_custom_readingform", "lowercase"]
+          "filter": ["nori_part_of_speech", "nori_readingform", "lowercase"]
         }
       }
     }

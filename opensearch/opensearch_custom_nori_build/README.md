@@ -1,8 +1,10 @@
 # OpenSearch Custom Nori Build
 
-MeCab-Ko 사전을 수정해 Lucene Nori JAR와 OpenSearch 커스텀 플러그인을 로컬에서 빌드하는 예제입니다. 기본 Nori와 함께 설치할 수 있도록 분석 이름, 한국어 분석 클래스, 사전 리소스를 분리합니다.
+MeCab-Ko 사전을 수정해 Lucene Nori JAR와 OpenSearch 커스텀 플러그인을 로컬에서 빌드하는 예제입니다. 분석 이름, 한국어 분석 클래스와 사전 리소스를 분리한 ZIP을 생성합니다.
 
-`build-all.sh`는 도구 준비부터 **MeCab-Ko 엔진 소스 빌드, 네이티브 사전 컴파일, Nori 변환, 플러그인 ZIP 생성과 검증까지** 순서대로 실행합니다. MeCab이 미리 설치되어 있을 필요는 없습니다. OpenSearch, Lucene, MeCab-Ko 원본은 공개 저장소에서 내려받으며 이 폴더에는 빌드 코드와 샘플만 포함합니다. Docker나 AWS 자격 증명은 필요하지 않고 AWS 리소스도 변경하지 않습니다.
+`build-all.sh`는 도구 준비부터 **MeCab-Ko 엔진 소스 빌드, 네이티브 사전 컴파일, Nori 변환, 플러그인 ZIP 생성과 검증까지** 순서대로 실행합니다. MeCab이 미리 설치되어 있을 필요는 없습니다. OpenSearch, Lucene, MeCab-Ko 원본은 공개 저장소에서 내려받으며 이 폴더에는 빌드 코드와 샘플만 포함합니다. 빌드에는 Docker나 AWS 자격 증명이 필요하지 않고 AWS 리소스도 변경하지 않습니다.
+
+분석 결과 비교는 이미 준비한 **Amazon OpenSearch Service 도메인 두 개**에서 수행합니다. A는 AWS 제공 기본 Nori, B는 이 ZIP의 커스텀 Nori를 사용합니다. 같은 도메인에 두 플러그인을 설치할 필요는 없습니다. 로컬 OpenSearch 서버 설치와 클러스터 생성은 실습에 포함하지 않습니다. 빌드 후에는 [서비스 비교 실습](SERVICE_COMPARISON.md)을 진행하세요.
 
 ## 빠른 시작
 
@@ -186,7 +188,7 @@ Gradle Shadow가 `org.apache.lucene.analysis.ko`를 `example.opensearch.nori.int
 make test
 ```
 
-`make verify`는 9개 입력, 3개 분해 모드, baseline/high/low/user의 4개 조건으로 108건을 검사합니다. `make plugin`의 `verifyCoexistence`는 한 JVM에서 기본 Nori와 커스텀 Nori 사전을 함께 로드하고 다른 분석 결과가 나오는지 확인합니다.
+`make verify`는 9개 입력, 3개 분해 모드, baseline/high/low/user의 4개 조건으로 108건을 검사합니다. `make plugin`의 `verifyCoexistence`는 한 JVM에서 기본 Nori와 커스텀 Nori 사전을 함께 로드해 클래스와 리소스의 격리를 검사합니다. OpenSearch 서버를 실행하는 테스트가 아니며, 서비스 도메인에 두 플러그인을 함께 설치하라는 전제조건도 아닙니다.
 
 샘플 결과:
 
@@ -200,23 +202,26 @@ low 비용, none:  노을빛무선청소기
 구름결캠핑의자, mixed:   구름결캠핑의자 + 구름결 + 캠핑 + 의자
 ```
 
-OpenSearch 프로세스를 별도로 준비해 공식 `analysis-nori`와 생성한 ZIP을 함께 설치했다면 HTTP 검증도 실행할 수 있습니다. 검증기는 인증 없는 요청이 외부로 나가지 않도록 loopback URL만 허용합니다.
+서비스 비교에서는 [SERVICE_COMPARISON.md](SERVICE_COMPARISON.md)에 따라 도메인 B에만 커스텀 패키지를 연결합니다. 도메인별 Dev Tools에서 다음 파일을 사용합니다.
 
-```bash
-NORI_TEST_ENDPOINT=http://127.0.0.1:19235 make verify-http
-```
+| 위치 | 분석 요청 | 인덱스 생성 본문 |
+| --- | --- | --- |
+| A: 기본 Nori | `samples/analyze-stock.http` | `samples/index-settings-stock.json` |
+| B: 커스텀 Nori | `samples/analyze-custom.http` | `samples/index-settings-custom.json` |
 
-기존 서버의 버전과 플러그인 목록을 확인한 뒤 tokenizer/analyzer 요청 88건을 실행합니다. 고유한 이름의 임시 인덱스 하나를 만들고 `finally`에서 삭제합니다. `build/http-verification/`을 덮어쓰지 않으므로 재실행할 때는 이전 결과 폴더를 별도로 보존합니다. 서버 시작이나 플러그인 설치, AWS 도메인 배포는 자동 수행하지 않습니다.
+두 설정은 분석 구성요소 이름을 제외한 조건이 같습니다. 각 도메인은 자기 쪽 플러그인만으로 요청을 처리할 수 있습니다. `make test`는 요청과 설정의 대응 관계도 오프라인으로 검사합니다. 이전 로컬 서버용 `make verify-http`는 실습 진입점에서 제거했습니다. 빌드 명령에는 AWS 배포나 삭제 기능을 넣지 않았습니다.
 
-수동 분석 요청은 `samples/analyze.http`, 인덱스 설정은 `samples/index-settings.json`을 참고하세요. 복제본 0은 로컬 실습용입니다. 토큰화 차이를 확인하는 샘플이며 검색 품질이나 서비스 배포 성공을 보장하지 않습니다.
+두 도메인 실습으로 수정한 뒤 오프라인 테스트 23개와 `make verify`의 tokenizer 108건을 다시 실행해 통과했습니다. 이는 빌드 산출물과 실습 파일 검증이며 두 도메인에 새로 배포한 결과는 아닙니다.
 
 ### 확인한 범위
 
-공개 저장소를 새로 clone한 환경에서 README의 실행 명령을 실제로 시험했습니다. 기본 JDK 17 환경에서 개별 `make setup`과 `make doctor`가 실패하는 문제를 수정한 뒤, 같은 조건으로 전체 명령을 재검증했습니다. 통합 및 단계별 빌드는 설치된 JDK 21을 선택하고 부모 셸의 JDK 설정은 유지합니다.
+공개 저장소를 새로 clone한 환경에서 빌드 명령을 실제로 시험했습니다. 기본 JDK 17 환경에서 개별 `make setup`과 `make doctor`가 실패하는 문제를 수정한 뒤, 같은 조건으로 전체 명령을 재검증했습니다. 통합 및 단계별 빌드는 설치된 JDK 21을 선택하고 부모 셸의 JDK 설정은 유지합니다.
 
-전체 빌드의 다섯 진입 방식, MeCab 단독 빌드, 단계별 명령, 명시적 JDK와 출력 폴더 지정, 로컬 OpenSearch HTTP 검증을 포함한 35개 명령 단계가 예상한 종료 코드로 완료됐습니다. 이 중 27개는 정상 실행이고 8개는 잘못된 입력을 의도대로 거부하는 검사입니다. 오프라인 테스트 19개, 네이티브 분석 8건, Nori tokenizer 조합 108건, 실제 HTTP 분석 88건이 통과했습니다. 자세한 명령과 소요 시간은 [명령어 테스트 결과](COMMAND_TEST_RESULTS.md)에 있습니다.
+이전 리비전에서는 전체 빌드의 다섯 진입 방식, MeCab 단독 빌드, 단계별 명령과 로컬 HTTP 검증을 포함한 35개 명령 단계를 확인했습니다. 당시 오프라인 테스트 19개, 네이티브 분석 8건, Nori tokenizer 조합 108건이 통과했습니다. 당시 로컬 HTTP 검증은 이력으로만 남기며 현재 실습에는 사용하지 않습니다. 자세한 명령과 소요 시간은 [명령어 테스트 결과](COMMAND_TEST_RESULTS.md)에 있습니다.
 
-Homebrew 의존성은 이미 설치되어 있어 신규 설치 분기는 실측하지 않았습니다. HTTP 검증은 공식 OpenSearch 3.5.0 minimal Linux ARM64 배포판의 Java 구성을 외부 JDK 21로 실행한 macOS 루프백 환경에서 수행했습니다. 임시 인덱스와 서버는 정리했으며, AWS 패키지 검증과 도메인 연결, Linux 네이티브 빌드는 수행하지 않았습니다.
+Homebrew 의존성은 이미 설치되어 있어 신규 설치 분기는 실측하지 않았습니다. Linux 네이티브 빌드는 수행하지 않았습니다.
+
+2026년 9월 22일에는 서울 리전의 임시 Amazon OpenSearch Service 3.5 도메인에 같은 ZIP을 배포했습니다. 패키지 검증과 연결 후 분석 88건, 상품 색인 4건과 복합명사 검색이 통과했습니다. 기본 Nori는 일부 품사 표기가 로컬과 달랐고, 커스텀 tokenizer 27건은 품사를 포함해 일치했습니다. 테스트 리소스는 모두 삭제했습니다. 이 결과는 한 도메인에 두 플러그인을 함께 연결한 테스트이며, 현재의 두 도메인 실습을 새로 배포해 실행한 결과는 아닙니다. 상세 결과는 [AWS 배포 테스트 결과](AWS_DEPLOYMENT_TEST_RESULTS.md)에 있습니다.
 
 ## 환경 변수
 
@@ -228,7 +233,6 @@ Homebrew 의존성은 이미 설치되어 있어 신규 설치 분기는 실측�
 | `NORI_BUILD_DIR` | 샘플 루트의 `build/` | 절대 출력 경로 |
 | `NORI_BUILD_JOBS` | `4` | 빌드 병렬 수 |
 | `GRADLE_USER_HOME` | 샘플 루트의 `.cache/gradle/` | Gradle 캐시 |
-| `NORI_TEST_ENDPOINT` | `http://127.0.0.1:19235` | 선택적 로컬 HTTP 검증 |
 
 ## 공개 저장소에 포함하지 않는 파일
 
