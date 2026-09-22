@@ -12,6 +12,6 @@
 
 - ACK upstream: `https://github.com/aws-controllers-k8s/bedrockagentcorecontrol-controller/tree/v1.15.1`, Apache-2.0.
 - 기준 컨트롤러 이미지 및 Go 도구 이미지의 digest는 `Dockerfile`에 고정되어 있습니다.
-- upstream의 LICENSE와 NOTICE 원문을 함께 제공합니다. 적용 범위와 수정 사항은 [외부 소스 고지](../../THIRD-PARTY.md)에 정리했습니다. 상위 MIT-0 라이선스가 upstream Apache-2.0 구성 요소를 자동 재라이선스하는 것은 아닙니다. 빌드한 이미지를 배포할 때에는 추가 의존성의 라이선스도 보존해야 합니다.
+- 빌드 시 다운로드하는 upstream 소스의 LICENSE와 NOTICE는 유지합니다. 상위 저장소의 라이선스가 외부 구성 요소의 라이선스를 대체하지는 않습니다. 빌드한 이미지를 재배포할 때에는 upstream 및 추가 의존성의 조건을 확인하세요.
 
-원본 검증에서는 Go 테스트 18개와 패치 회귀 테스트 6개, 실제 Runtime/Gateway 호출 및 버전 전환을 확인했습니다. 공개용 디렉터리의 신규 배포는 [검증 범위](../../VALIDATION.md)를 따릅니다.
+원본 검증에서는 Go 테스트 18개와 패치 회귀 테스트 6개, 실제 Runtime/Gateway 호출 및 버전 전환을 확인했습니다. 공개 monorepo 커밋으로 새 Git-only 환경을 처음부터 배포하는 검증은 별도로 수행해야 합니다.

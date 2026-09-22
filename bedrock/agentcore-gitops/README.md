@@ -2,7 +2,7 @@
 
 Amazon EKS의 Argo CD와 ACK를 사용해 Amazon Bedrock AgentCore Runtime과 Gateway를 관리하는 AWS Tech Blog 한국어 예제입니다. 에이전트는 EKS Pod가 아닌 AgentCore Runtime에서 실행합니다. Strands Agents SDK와 `global.anthropic.claude-sonnet-5`를 사용합니다.
 
-이 샘플은 비운영 전용 계정을 대상으로 합니다. 공식 ACK 1.15.1은 Runtime을 지원하지만 Gateway HTTP Runtime target에는 포함된 확장 패치가 필요합니다. Argo Rollouts는 PostSync AnalysisRun에 사용하며 blue/green, canary 또는 자동 rollback은 구현하지 않습니다. [보안 검토](SECURITY.md)와 [검증 범위](VALIDATION.md)를 먼저 읽으세요.
+이 샘플은 비운영 전용 계정을 대상으로 합니다. 공식 ACK 1.15.1은 Runtime을 지원하지만 Gateway HTTP Runtime target에는 포함된 확장 패치가 필요합니다. Argo Rollouts는 PostSync AnalysisRun에 사용하며 blue/green, canary 또는 자동 rollback은 구현하지 않습니다.
 
 ## 저장소 위치와 준비
 
@@ -121,6 +121,8 @@ bash scripts/argo-admin.sh
 
 관리 ALB는 허용한 IPv4 /32만 접근할 수 있으며 데모 자체 서명 인증서를 사용합니다. 비밀번호는 마지막 명령으로 로컬 터미널에서만 확인합니다. 운영에는 SSO, 정식 인증서, HA와 관측 설정이 필요합니다.
 
+공개용 폴더의 단위 테스트, CDK 합성, Helm 렌더링과 기존 AWS Runtime 호출을 확인했습니다. 이 monorepo 커밋으로 새 Git-only 환경을 처음부터 배포한 검증은 별도입니다. 배포 전 이미지 취약점을 다시 스캔하고 public EKS endpoint, managed IAM policy 및 wildcard 권한의 적합성을 검토하세요. 문서에 기록된 실험 결과는 운영 준비 완료나 보안 승인을 의미하지 않습니다.
+
 ```bash
 CONFIRM_DESTROY=eks-ack-agentcore bash scripts/destroy.sh
 ```
@@ -131,9 +133,6 @@ CONFIRM_DESTROY=eks-ack-agentcore bash scripts/destroy.sh
 
 - [AWS Tech Blog 원고](docs/aws-tech-blog/article.md)
 - [Helm chart 코드 해설](docs/aws-tech-blog/helm-highlights.md)
-- [보안 검토와 발행 전 조건](SECURITY.md)
-- [검증 범위](VALIDATION.md)
 - [ACK 확장 범위와 출처](patches/ack-controller/README.md)
-- [외부 소스 라이선스와 수정 고지](THIRD-PARTY.md)
 
 이 샘플의 제출은 상위 저장소의 `CONTRIBUTING.md`와 라이선스 검토 절차를 따릅니다. 이 문서는 AWS 보안 승인 또는 프로덕션 사용 적합성 보증이 아닙니다.
