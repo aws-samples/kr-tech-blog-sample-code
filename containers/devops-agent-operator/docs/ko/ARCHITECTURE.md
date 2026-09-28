@@ -1,3 +1,5 @@
+> [English](../en/ARCHITECTURE.md) | **한국어**
+
 # DevOps Agent Operator 동작 원리
 
 이 문서는 DevOps Agent Operator가 어떻게 Pod 이상 상태를 감지하고, 트러블슈팅 데이터를 수집하여 외부 시스템으로 전달하는지 전체 흐름을 설명합니다.

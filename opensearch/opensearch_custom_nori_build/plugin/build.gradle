@@ -1,0 +1,89 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.9'
+}
+
+group = 'example.opensearch'
+version = '1.0.0'
+
+def sampleRoot = rootDir.parentFile
+def pinned = new Properties()
+new File(sampleRoot, 'versions.env').withInputStream { pinned.load(it) }
+def noriJar = providers.gradleProperty('noriJar').get()
+layout.buildDirectory = file(providers.gradleProperty('outputDir').get())
+
+repositories { mavenCentral() }
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+configurations { verificationRuntime }
+
+dependencies {
+    compileOnly "org.opensearch:opensearch:${pinned.OPENSEARCH_VERSION}"
+    compileOnly "org.apache.lucene:lucene-core:${pinned.LUCENE_VERSION}"
+    compileOnly "org.apache.lucene:lucene-analysis-common:${pinned.LUCENE_VERSION}"
+    implementation files(noriJar)
+    verificationRuntime "org.opensearch:opensearch:${pinned.OPENSEARCH_VERSION}"
+    verificationRuntime "org.apache.lucene:lucene-analysis-common:${pinned.LUCENE_VERSION}"
+    verificationRuntime "org.apache.lucene:lucene-analysis-nori:${pinned.LUCENE_VERSION}"
+}
+
+tasks.named('shadowJar') {
+    archiveClassifier = ''
+    relocate 'org.apache.lucene.analysis.ko', 'example.opensearch.nori.internal.ko'
+    exclude 'module-info.class', 'META-INF/versions/**/module-info.class'
+    exclude 'META-INF/services/org.apache.lucene.analysis.*'
+    exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA'
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.named('jar') { enabled = false }
+
+def descriptor = tasks.register('pluginDescriptor') {
+    inputs.property('opensearchVersion', pinned.OPENSEARCH_VERSION)
+    inputs.property('pluginVersion', project.version)
+    outputs.file(layout.buildDirectory.file('descriptor/plugin-descriptor.properties'))
+    doLast {
+        def output = outputs.files.singleFile
+        output.parentFile.mkdirs()
+        output.text = """description=Commerce Nori with isolated Korean dictionary resources
+version=${project.version}
+name=analysis-nori-commerce
+classname=example.opensearch.nori.CommerceNoriPlugin
+java.version=21
+opensearch.version=${pinned.OPENSEARCH_VERSION}
+has.native.controller=false
+"""
+    }
+}
+
+def bundlePlugin = tasks.register('bundlePlugin', Zip) {
+    dependsOn tasks.named('shadowJar'), descriptor
+    archiveFileName = "analysis-nori-commerce-${project.version}-os-${pinned.OPENSEARCH_VERSION}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(tasks.named('shadowJar'))
+    from(descriptor)
+    from(new File(sampleRoot, 'LICENSE'))
+    from(new File(sampleRoot, "sources/mecab-ko-dic-${pinned.MECAB_DIC_VERSION}/COPYING")) {
+        rename { 'MECAB-KO-DIC-LICENSE.txt' }
+    }
+    from(new File(sampleRoot, 'sources/lucene/LICENSE.txt')) { rename { 'LUCENE-LICENSE.txt' } }
+    from(new File(sampleRoot, 'sources/lucene/NOTICE.txt')) { rename { 'LUCENE-NOTICE.txt' } }
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.named('assemble') { dependsOn bundlePlugin }
+
+tasks.register('verifyCoexistence', Exec) {
+    dependsOn tasks.named('shadowJar')
+    doFirst {
+        def classpath = files(tasks.named('shadowJar').get().archiveFile, configurations.verificationRuntime).asPath
+        commandLine javaToolchains.launcherFor(java.toolchain).get().executablePath.asFile,
+            '-cp', classpath, new File(sampleRoot, 'tests/PluginCoexistenceCheck.java')
+    }
+}

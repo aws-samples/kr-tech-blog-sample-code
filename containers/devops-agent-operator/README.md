@@ -1,103 +1,106 @@
+> **English** | [한국어](README.ko.md)
+
 # DevOps Agent Operator
 
-DevOps Agent Operator는 Amazon EKS에서 Pod 워크로드의 장애를 실시간으로 감지하고, 트러블슈팅에 필요한 정보를 자동 수집하여 [AWS DevOps Agent](https://aws.amazon.com/devops-agent/)의 조사를 트리거하는 Kubernetes Operator입니다.
+DevOps Agent Operator is a Kubernetes Operator that detects Pod workload failures in real time on Amazon EKS, automatically gathers the information needed for troubleshooting, and triggers an investigation by [AWS DevOps Agent](https://aws.amazon.com/devops-agent/).
 
 ![DevOps Agent Architecture](docs/devops-agent-architecture.png)
 
-## 동작 방식
+## How It Works
 
-DevOps Agent Operator는 Kubernetes Watch API를 통해 Pod 상태 변경을 실시간으로 수신하고, 장애가 감지되면 즉시 데이터를 수집하여 외부 시스템으로 전달합니다.
+DevOps Agent Operator subscribes to Pod state changes via the Kubernetes Watch API in real time. As soon as a failure is detected, it collects data and forwards it to external systems.
 
 ```
-Pod 상태 변경 → EventFilter (장애 상태 변화만 통과)
-    → detectPodFailure (5-레이어 감지)
-    → 데이터 수집 (manifest, describe, logs, events, node logs)
-    → 출력 (CloudWatch Logs / S3 / Webhook)
-    → 처리 완료 마킹 (annotation 기반 중복 방지)
+Pod state change → EventFilter (only failure-state changes pass)
+    → detectPodFailure (5-layer detection)
+    → Data collection (manifest, describe, logs, events, node logs)
+    → Output (CloudWatch Logs / S3 / Webhook)
+    → Mark as processed (annotation-based dedup)
 ```
 
-### 장애 감지
+### Failure Detection
 
-화이트리스트 기반으로 "정상이 아니면 이상"이라는 원칙으로 동작합니다. 5개 레이어를 우선순위 순으로 검사합니다:
+The operator follows a whitelist-based principle: "if it isn't normal, it's abnormal." It inspects five layers in priority order:
 
-| 레이어 | 감지 대상 | 예시 |
-|--------|----------|------|
-| 1. Pod Status Reason | 근본 원인 신호 | Evicted, DeadlineExceeded |
-| 2. Container Waiting | 비정상 대기 상태 | CrashLoopBackOff, ImagePullBackOff, ErrImagePull |
-| 3. Container Terminated | 비정상 종료 | OOMKilled, Error, NonZeroExit |
-| 4. Pod Phase | Pod 레벨 상태 | PodFailed, PodUnknown |
-| 5. Pod Conditions | 스케줄링 조건 | Unschedulable |
+| Layer | Detected Conditions | Examples |
+|-------|---------------------|----------|
+| 1. Pod Status Reason | Root-cause signals | Evicted, DeadlineExceeded |
+| 2. Container Waiting | Abnormal waiting states | CrashLoopBackOff, ImagePullBackOff, ErrImagePull |
+| 3. Container Terminated | Abnormal termination | OOMKilled, Error, NonZeroExit |
+| 4. Pod Phase | Pod-level state | PodFailed, PodUnknown |
+| 5. Pod Conditions | Scheduling conditions | Unschedulable |
 
-ContainerCreating, Unschedulable 같은 일시적 상태는 설정된 대기 시간(기본 3분) 이후에도 해결되지 않을 때만 장애로 승격합니다.
+Transient states such as ContainerCreating and Unschedulable are promoted to a failure only when they remain unresolved past the configured grace period (default: 3 minutes).
 
-### 데이터 수집
+### Data Collection
 
-장애 감지 시 다음 정보를 즉시 수집합니다:
+When a failure is detected, the following information is collected immediately:
 
-- Pod manifest (전체 YAML)
-- Pod describe (상태 상세 정보)
-- Container logs (현재 + 이전 로그)
-- Kubernetes Events (Pod 관련 이벤트 타임라인)
+- Pod manifest (full YAML)
+- Pod describe (detailed status)
+- Container logs (current + previous)
+- Kubernetes Events (timeline of Pod-related events)
 - Node logs via AWS SSM (kubelet/containerd/dmesg/ipamd/ipamd-introspection/networking/disk/inode/memory)
 
-### 출력
+### Output
 
-설정에 따라 3개 출력을 독립적으로 사용할 수 있습니다:
+Three outputs can be enabled independently based on configuration:
 
-- CloudWatch Logs: 구조화된 JSON 형식의 인시던트 이벤트
-- S3: 계층 구조 파일 저장 (manifest, logs, node-logs 등)
-- Webhook: HMAC-SHA256 서명이 포함된 인시던트 페이로드를 DevOps Agent로 전송
+- CloudWatch Logs: incident events as structured JSON
+- S3: hierarchical file storage (manifest, logs, node-logs, etc.)
+- Webhook: incident payload signed with HMAC-SHA256, sent to the DevOps Agent
 
 
-## 프로젝트 구조
+## Project Layout
 
 ```
-├── cmd/main.go                     # 엔트리포인트
+├── cmd/main.go                     # Entry point
 ├── internal/
 │   ├── controller/
-│   │   ├── pod_controller.go       # Pod Watch, 장애 감지, 데이터 수집 오케스트레이션
-│   │   └── detector.go             # 5-레이어 장애 감지 로직
+│   │   ├── pod_controller.go       # Pod Watch, failure detection, data-collection orchestration
+│   │   └── detector.go             # 5-layer failure detection logic
 │   ├── collector/
-│   │   ├── types.go                # 데이터 구조 정의
-│   │   ├── logs.go                 # 컨테이너 로그 수집
-│   │   ├── ssm.go                  # AWS SSM 노드 로그 수집 (병렬 실행)
-│   │   └── severity.go             # 장애 유형별 심각도 매핑
+│   │   ├── types.go                # Data structure definitions
+│   │   ├── logs.go                 # Container log collection
+│   │   ├── ssm.go                  # AWS SSM node-log collection (parallel execution)
+│   │   └── severity.go             # Severity mapping by failure type
 │   ├── output/
-│   │   ├── webhook.go              # DevOps Agent 웹훅 (HMAC 서명, 우선순위 매핑)
-│   │   ├── s3.go                   # S3 업로드
-│   │   └── cloudwatch.go           # CloudWatch Logs 출력
+│   │   ├── webhook.go              # DevOps Agent webhook (HMAC signing, priority mapping)
+│   │   ├── s3.go                   # S3 upload
+│   │   └── cloudwatch.go           # CloudWatch Logs output
 │   └── config/
-│       └── config.go               # 환경 변수 기반 설정 관리
-├── config/                         # Kubernetes 매니페스트 (Kustomize)
-├── test/                           # E2E 테스트
-├── examples/                       # 배포 예제 (YAML, Terraform)
-├── runbooks/                       # 운영 런북
+│       └── config.go               # Environment-variable-based config management
+├── config/                         # Kubernetes manifests (Kustomize)
+├── test/                           # E2E tests
+├── examples/                       # Deployment examples (YAML, Terraform)
+├── skills/                         # Operational skills
 ├── Dockerfile
 └── Makefile
 ```
 
-## 환경 변수
+## Environment Variables
 
-### 클러스터 메타데이터
+### Cluster Metadata
 
-| 변수명 | 설명 | 기본값 |
-|--------|------|--------|
-| `EKS_CLUSTER_NAME` | EKS 클러스터 이름 | - |
-| `AWS_REGION` | AWS 리전. SSM, S3, CloudWatch Logs 등 AWS SDK 클라이언트의 대상 리전으로 사용됩니다. 클러스터와 다른 리전의 S3 버킷이나 CloudWatch Logs 그룹을 사용하려면 해당 리전으로 지정하세요. Webhook 트리거시에는 페이로드 메타데이터에 정보성으로만 포함됩니다. | `us-east-1` |
-| `AWS_ACCOUNT_ID` | AWS 계정 ID | - |
+| Name | Description | Default |
+|------|-------------|---------|
+| `EKS_CLUSTER_NAME` | EKS cluster name | - |
+| `AWS_REGION` | AWS region. Used as the target region for AWS SDK clients (SSM, S3, CloudWatch Logs, etc.). To use S3 buckets or CloudWatch Logs groups in a different region than the cluster, set this accordingly. For webhook triggers, this value is included only as informational metadata in the payload. | `us-east-1` |
+| `AWS_ACCOUNT_ID` | AWS account ID | - |
 
-### 출력 설정
+### Output Settings
 
-| 변수명 | 설명 | 기본값 |
-|--------|------|--------|
-| `DEVOPS_AGENT_WEBHOOK_URL` | DevOps Agent 웹훅 URL | - |
-| `DEVOPS_AGENT_WEBHOOK_SECRET` | HMAC 서명 시크릿 | - |
-| `WEBHOOK_TIMEOUT` | 웹훅 타임아웃 | `30s` |
-| `CLOUDWATCH_LOG_GROUP` | CloudWatch Logs 그룹 | - |
-| `S3_BUCKET` | S3 버킷 이름 | - |
-| `S3_PREFIX` | S3 키 프리픽스 | - |
+| Name | Description | Default |
+|------|-------------|---------|
+| `DEVOPS_AGENT_WEBHOOK_URL` | DevOps Agent webhook URL | - |
+| `DEVOPS_AGENT_WEBHOOK_SECRET` | HMAC signing secret | - |
+| `WEBHOOK_TIMEOUT` | Webhook timeout | `30s` |
+| `CLOUDWATCH_LOG_GROUP` | CloudWatch Logs group | - |
+| `S3_BUCKET` | S3 bucket name | - |
+| `S3_PREFIX` | S3 key prefix | - |
 
-### 기능 설정
+### Feature Settings
+
 
 | 변수명 | 설명 | 기본값 |
 |--------|------|--------|
@@ -112,25 +115,29 @@ ContainerCreating, Unschedulable 같은 일시적 상태는 설정된 대기 시
 | `WEBHOOK_MIN_SEVERITY` | 출력을 트리거할 최소 심각도 | - |
 | `WEBHOOK_EXCLUDE_TYPES` | 웹훅/S3/CloudWatch 출력을 건너뛸 장애 유형 (쉼표 구분) | - |
 
-#### 출력 필터링
+
+#### Output Filtering
+
 
 `WEBHOOK_SKIP_CATEGORIES`, `WEBHOOK_MIN_SEVERITY`, `WEBHOOK_EXCLUDE_TYPES`는 AND 조건으로 동작합니다. 세 조건을 모두 통과해야 CloudWatch Logs, S3, Webhook 출력이 실행됩니다. 미설정 시 모든 장애에 대해 출력이 실행됩니다.
 
-**WEBHOOK_SKIP_CATEGORIES** — 특정 감지 레이어의 장애를 출력에서 제외합니다.
 
-유효한 값: `ContainerWaiting`, `ContainerTerminated`, `PodPhase`, `PodStatus`, `PodCondition` ([감지 레이어 상세](docs/ARCHITECTURE.md#3단계-장애-감지---detectpodfailure))
+
+**WEBHOOK_SKIP_CATEGORIES** — excludes failures from specific detection layers from the output.
+
+Valid values: `ContainerWaiting`, `ContainerTerminated`, `PodPhase`, `PodStatus`, `PodCondition` ([detection layer details](docs/en/ARCHITECTURE.md#five-detection-layers))
 
 ```
-# Layer 4, 5 장애는 출력하지 않음
+# Do not output Layer 4 and Layer 5 failures
 WEBHOOK_SKIP_CATEGORIES=PodPhase,PodCondition
 ```
 
-**WEBHOOK_MIN_SEVERITY** — 설정한 심각도 이상의 장애만 출력합니다.
+**WEBHOOK_MIN_SEVERITY** — outputs only failures at or above the configured severity.
 
-유효한 값 (낮을수록 심각): `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` ([심각도별 장애 유형](docs/ARCHITECTURE.md#6단계-심각도-결정---determineseverity))
+Valid values (lower index = more severe): `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` ([failure types by severity](docs/en/ARCHITECTURE.md#step-6-severity-determination--determineseverity))
 
 ```
-# HIGH 이상(CRITICAL, HIGH)만 출력
+# Output only HIGH and above (CRITICAL, HIGH)
 WEBHOOK_MIN_SEVERITY=HIGH
 ```
 
@@ -153,9 +160,9 @@ WEBHOOK_MIN_SEVERITY=HIGH
 WEBHOOK_EXCLUDE_TYPES=ErrImagePull
 ```
 
-## IAM 권한
+## IAM Permissions
 
-Operator Pod에 다음 IAM 권한이 필요합니다. 리소스 ARN은 환경에 맞게 수정하세요.
+The Operator Pod needs the following IAM permissions. Adjust the resource ARNs to match your environment.
 
 ```json
 {

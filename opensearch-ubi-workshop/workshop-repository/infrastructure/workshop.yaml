@@ -1,0 +1,1101 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  OpenSearch Search Relevance Workbench + UBI Workshop - single-template deploy
+  (full conversion of the reference CDK in opensearch-ubi/). One stack: OpenSearch
+  3.5 domain (3 master + 3 data, public, FGAC), S3 buckets, IAM roles, a post-deploy
+  Lambda registering Bedrock Titan v2 + Claude Sonnet 4.5 ml-commons connectors,
+  OSIS UBI pipeline, Step Functions ML pipeline, and the CloudFront/API GW storefront.
+  Assets are staged to S3 first by static/scripts/build-and-stage.sh. Region: ap-northeast-2.
+
+# ===========================================================================
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: ubi-workshop
+    AllowedPattern: "[a-z0-9-]+"
+    Description: Resource name prefix.
+  DomainName:
+    Type: String
+    Default: ubi-workshop-search
+    AllowedPattern: "[a-z][a-z0-9-]{2,27}"
+    Description: OpenSearch domain name.
+  MasterUserName:
+    Type: String
+    Default: admin
+    Description: FGAC master user (temporary workshop account).
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: FGAC master password for this temporary workshop deployment.
+  DataNodeInstanceType:
+    Type: String
+    Default: r8g.2xlarge.search
+  DataNodeCount:
+    Type: Number
+    Default: 3
+  MasterNodeInstanceType:
+    Type: String
+    Default: c8g.large.search
+  MasterNodeCount:
+    Type: Number
+    Default: 3
+  EbsVolumeSize:
+    Type: Number
+    Default: 100
+  AvailabilityZoneCount:
+    Type: Number
+    Default: 3
+    AllowedValues: [2, 3]
+  AssetsBucketName:
+    Type: String
+    Default: ws-assets-prod-iad-r-icn-ced060f0d38bc0b0
+    Description: >
+      Staged-assets S3 bucket. Default is the public workshop assets bucket
+      (ap-northeast-2) for zero-clone Launch Stack deploys. Workshop Studio
+      overrides this via contentspec; self-account CLI users pass their own
+      build-and-stage.sh bucket.
+  AssetsPrefix:
+    Type: String
+    Default: 84a951c0-83b7-4d48-accc-eb318fc538ba/assets/
+    Description: >
+      Key prefix under the assets bucket. Default includes the public bucket's
+      content-id path so Lambda code keys resolve for zero-clone deploys.
+      Workshop Studio overrides with its own prefix; self-account users use "assets/".
+  JudgeBedrockModel:
+    Type: String
+    Default: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+    Description: Bedrock model id / inference profile for the LLM-as-a-judge connector.
+  BedrockRegion:
+    Type: String
+    Default: us-west-2
+    AllowedValues: [us-west-2, us-east-1]
+    Description: >
+      AWS Region used for Amazon Bedrock model invocation. Workshop Studio only
+      permits Bedrock in us-west-2 / us-east-1, so ml-commons connectors call
+      Bedrock in this region regardless of the domain's region.
+  MinUnits:
+    Type: Number
+    Default: 1
+    Description: OSIS pipeline minimum OCU.
+  MaxUnits:
+    Type: Number
+    Default: 2
+    Description: OSIS pipeline maximum OCU.
+
+# ===========================================================================
+Resources:
+
+  # -------------------------------------------------------------------------
+  # S3 buckets
+  # -------------------------------------------------------------------------
+  # Central S3 server access log bucket for the data/dlq/site buckets.
+  # Uses BucketOwnerEnforced (no ACLs); the S3 logging service principal is
+  # granted PutObject via LogBucketPolicy. Logs to itself via a !Sub name string
+  # (a plain !Ref would create a circular dependency).
+  LogBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-logs-${AWS::Region}-${AWS::AccountId}"
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Sub "${EnvironmentName}-logs-${AWS::Region}-${AWS::AccountId}"
+        LogFilePrefix: s3-access-logs/logs/
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireAccessLogs
+            Status: Enabled
+            ExpirationInDays: 90
+          - Id: CleanupIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload: { DaysAfterInitiation: 7 }
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  # Allow the S3 server-access-logging service to write logs from the data/dlq/
+  # site/log buckets into this bucket (required when ObjectOwnership is
+  # BucketOwnerEnforced, since ACL-based log delivery no longer applies).
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: S3ServerAccessLogsWrite
+            Effect: Allow
+            Principal: { Service: logging.s3.amazonaws.com }
+            Action: s3:PutObject
+            Resource: !Sub "${LogBucket.Arn}/s3-access-logs/*"
+            Condition:
+              StringEquals:
+                "aws:SourceAccount": !Ref AWS::AccountId
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-data-${AWS::Region}-${AWS::AccountId}"
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+        LogFilePrefix: s3-access-logs/data/
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireUbiArchive
+            Status: Enabled
+            Prefix: ubi-archive/
+            ExpirationInDays: 90
+          - Id: ExpireDlq
+            Status: Enabled
+            Prefix: osi-dlq/
+            ExpirationInDays: 30
+          - Id: CleanupIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload: { DaysAfterInitiation: 7 }
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  DlqBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-dlq-${AWS::Region}-${AWS::AccountId}"
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+        LogFilePrefix: s3-access-logs/dlq/
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldDLQItems
+            Status: Enabled
+            ExpirationInDays: 14
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub "${EnvironmentName}-site-${AWS::Region}-${AWS::AccountId}"
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+        LogFilePrefix: s3-access-logs/site/
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # -------------------------------------------------------------------------
+  # IAM roles
+  # -------------------------------------------------------------------------
+  OpenSearchBedrockRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-opensearch-bedrock-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: opensearchservice.amazonaws.com }
+            Action: sts:AssumeRole
+      Description: Connector role for OpenSearch ml-commons to invoke Bedrock models
+      Policies:
+        - PolicyName: BedrockInvoke
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource:
+                  - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/*"
+                  - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+                  - "arn:aws:bedrock:*::foundation-model/*"
+              # On first invoke, Bedrock may need to (auto-)subscribe the model via
+              # AWS Marketplace; without these the call fails with "Model access is
+              # denied ... required AWS Marketplace actions (Subscribe/ViewSubscriptions)".
+              - Effect: Allow
+                Action:
+                  - aws-marketplace:Subscribe
+                  - aws-marketplace:ViewSubscriptions
+                  - aws-marketplace:Unsubscribe
+                Resource: "*"
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  OsiPipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-osi-pipeline-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: osis-pipelines.amazonaws.com }
+            Action: sts:AssumeRole
+      Description: Role for OpenSearch Ingestion pipeline to access OpenSearch and S3
+      Policies:
+        - PolicyName: OpenSearchAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [es:DescribeDomain, es:ESHttp*]
+                Resource:
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}"
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*"
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject, s3:ListBucket, s3:GetBucketLocation, s3:AbortMultipartUpload]
+                Resource:
+                  - !GetAtt DataBucket.Arn
+                  - !Sub "${DataBucket.Arn}/*"
+                  - !GetAtt DlqBucket.Arn
+                  - !Sub "${DlqBucket.Arn}/*"
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-lambda-exec-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Description: Execution role for UBI workshop Lambdas (OpenSearch/Bedrock/S3/OSIS)
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: WorkshopLambdaAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: OpenSearchAccess
+                Effect: Allow
+                Action: [es:ESHttpGet, es:ESHttpPost, es:ESHttpPut, es:ESHttpDelete, es:ESHttpHead]
+                Resource: !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*"
+              - Sid: BedrockAccess
+                Effect: Allow
+                Action: [bedrock:InvokeModel, bedrock:InvokeModelWithResponseStream]
+                Resource:
+                  - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/*"
+                  - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+                  - "arn:aws:bedrock:*::foundation-model/*"
+              - Sid: OsisIngest
+                Effect: Allow
+                Action: [osis:Ingest]
+                Resource: !Sub "arn:aws:osis:${AWS::Region}:${AWS::AccountId}:pipeline/*"
+              - Sid: S3Access
+                Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:ListBucket]
+                Resource:
+                  - !GetAtt DataBucket.Arn
+                  - !Sub "${DataBucket.Arn}/*"
+                  - !Sub "arn:aws:s3:::${AssetsBucketName}"
+                  - !Sub "arn:aws:s3:::${AssetsBucketName}/*"
+              - Sid: SsmAccess
+                Effect: Allow
+                Action: [ssm:GetParameter, ssm:PutParameter]
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${EnvironmentName}/*"
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  # -------------------------------------------------------------------------
+  # OpenSearch 3.5 domain
+  # -------------------------------------------------------------------------
+  OpenSearchDomain:
+    Type: AWS::OpenSearchService::Domain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      DomainName: !Ref DomainName
+      EngineVersion: OpenSearch_3.5
+      ClusterConfig:
+        InstanceType: !Ref DataNodeInstanceType
+        InstanceCount: !Ref DataNodeCount
+        DedicatedMasterEnabled: true
+        DedicatedMasterType: !Ref MasterNodeInstanceType
+        DedicatedMasterCount: !Ref MasterNodeCount
+        ZoneAwarenessEnabled: true
+        ZoneAwarenessConfig: { AvailabilityZoneCount: !Ref AvailabilityZoneCount }
+        MultiAZWithStandbyEnabled: false
+      EBSOptions:
+        EBSEnabled: true
+        VolumeType: gp3
+        VolumeSize: !Ref EbsVolumeSize
+        Throughput: 125
+        Iops: 3000
+      EncryptionAtRestOptions: { Enabled: true }
+      NodeToNodeEncryptionOptions: { Enabled: true }
+      DomainEndpointOptions:
+        EnforceHTTPS: true
+        TLSSecurityPolicy: Policy-Min-TLS-1-2-PFS-2023-10
+      AdvancedSecurityOptions:
+        Enabled: true
+        InternalUserDatabaseEnabled: true
+        MasterUserOptions:
+          MasterUserName: !Ref MasterUserName
+          MasterUserPassword: !Ref MasterUserPassword
+      AdvancedOptions:
+        "rest.action.multi.allow_explicit_index": "true"
+        "indices.query.bool.max_clause_count": "4096"
+      AccessPolicies:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { AWS: "*" }
+            Action: "es:*"
+            Resource: !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*"
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  SsmOpenSearchHost:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${EnvironmentName}/opensearch/host"
+      Type: String
+      Value: !GetAtt OpenSearchDomain.DomainEndpoint
+
+  # -------------------------------------------------------------------------
+  # Post-deploy setup Lambda + custom resource
+  # (registers connectors, maps FGAC roles, creates indexes, seeds catalog)
+  # -------------------------------------------------------------------------
+  SetupFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-setup-lambda-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SetupAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: PassConnectorRole
+                Effect: Allow
+                Action: iam:PassRole
+                Resource: !GetAtt OpenSearchBedrockRole.Arn
+              - Sid: OpenSearchHttp
+                Effect: Allow
+                Action: [es:ESHttp*, es:DescribeDomain]
+                Resource:
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}"
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*"
+              - Sid: ReadAssets
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${AssetsBucketName}/*"
+              - Sid: WriteSsm
+                Effect: Allow
+                Action: ssm:PutParameter
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${EnvironmentName}/*"
+
+  SetupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-setup-opensearch"
+      Runtime: python3.12
+      Handler: setup_opensearch.handler
+      Timeout: 900
+      # products.json now carries pre-computed 1024-float vectors (~40MB JSON),
+      # loaded + parsed in memory during seeding, so give it headroom.
+      MemorySize: 2048
+      Role: !GetAtt SetupFunctionRole.Arn
+      Code:
+        S3Bucket: !Ref AssetsBucketName
+        S3Key: !Sub "${AssetsPrefix}setup_opensearch.zip"
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          MASTER_USER: !Ref MasterUserName
+          MASTER_PASS: !Ref MasterUserPassword
+          ACCOUNT_ID: !Ref AWS::AccountId
+          CONNECTOR_ROLE_ARN: !GetAtt OpenSearchBedrockRole.Arn
+          # Includes the devbox EC2 role ARN even though the devbox is a
+          # separate, later stack: FGAC backend-role mapping is by ARN string
+          # (the IAM role need not exist yet), so when the devbox is deployed and
+          # its instance calls OpenSearch via SigV4 it is already mapped to
+          # all_access/ml_full_access. Role name is deterministic from EnvironmentName.
+          BACKEND_ROLE_ARNS: !Sub "${SetupFunctionRole.Arn},${PopulateFunctionRole.Arn},${LambdaExecutionRole.Arn},${OsiPipelineRole.Arn},arn:aws:iam::${AWS::AccountId}:role/${EnvironmentName}-devbox-ec2-${AWS::Region}"
+          ASSETS_BUCKET: !Ref AssetsBucketName
+          PRODUCTS_KEY: !Sub "${AssetsPrefix}products.json"
+          PRODUCTS_INDEX: ecom_products
+          UBI_QUERIES_INDEX: ubi_queries_ecom
+          UBI_EVENTS_INDEX: ubi_events_ecom
+          JUDGMENTS_INDEX: ecom_judgments
+          METRICS_INDEX: ecom_ltr_metrics
+          LTR_STORE: ecom
+          JUDGE_BEDROCK_MODEL: !Ref JudgeBedrockModel
+          BEDROCK_REGION: !Ref BedrockRegion
+          SSM_JUDGE_MODEL_PARAM: !Sub "/${EnvironmentName}/ml/judge-model-id"
+          SSM_EMBED_MODEL_PARAM: !Sub "/${EnvironmentName}/ml/embed-model-id"
+
+  SetupResource:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn: [OpenSearchDomain, SsmOpenSearchHost]
+    Properties:
+      ServiceToken: !GetAtt SetupFunction.Arn
+      # bump to re-run setup (e.g. to (re)map FGAC backend roles) on stack update
+      SetupVersion: "6"
+
+  # -------------------------------------------------------------------------
+  # OpenSearch Ingestion (OSIS) UBI pipeline
+  # depends on SetupResource so the OSI role is FGAC-mapped before it runs
+  # -------------------------------------------------------------------------
+  OsiLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub "/aws/vendedlogs/OpenSearchIngestion/${EnvironmentName}-ubi-pipeline"
+      RetentionInDays: 14
+
+  UbiPipeline:
+    Type: AWS::OSIS::Pipeline
+    DependsOn: SetupResource
+    Properties:
+      PipelineName: !Sub "${EnvironmentName}-ubi-pipeline"
+      MinUnits: !Ref MinUnits
+      MaxUnits: !Ref MaxUnits
+      LogPublishingOptions:
+        IsLoggingEnabled: true
+        CloudWatchLogDestination: { LogGroup: !Ref OsiLogGroup }
+      PipelineConfigurationBody: !Sub |
+        version: "2"
+        ecom-ubi-pipeline:
+          source:
+            http:
+              path: "/ecom-ubi"
+          processor:
+            - date:
+                from_time_received: true
+                destination: "@timestamp"
+          route:
+            - queries: '/type == "query"'
+            - events: '/type == "event"'
+          sink:
+            - opensearch:
+                hosts:
+                  - "https://${OpenSearchDomain.DomainEndpoint}"
+                index: "ubi_queries_ecom"
+                document_id: "${!query_id}"
+                aws:
+                  sts_role_arn: "${OsiPipelineRole.Arn}"
+                  region: "${AWS::Region}"
+                routes:
+                  - queries
+                dlq:
+                  s3:
+                    bucket: "${DlqBucket}"
+                    key_path_prefix: "osi-dlq/queries/"
+                    region: "${AWS::Region}"
+                    sts_role_arn: "${OsiPipelineRole.Arn}"
+            - opensearch:
+                hosts:
+                  - "https://${OpenSearchDomain.DomainEndpoint}"
+                index: "ubi_events_ecom"
+                aws:
+                  sts_role_arn: "${OsiPipelineRole.Arn}"
+                  region: "${AWS::Region}"
+                routes:
+                  - events
+                dlq:
+                  s3:
+                    bucket: "${DlqBucket}"
+                    key_path_prefix: "osi-dlq/events/"
+                    region: "${AWS::Region}"
+                    sts_role_arn: "${OsiPipelineRole.Arn}"
+            - s3:
+                aws:
+                  sts_role_arn: "${OsiPipelineRole.Arn}"
+                  region: "${AWS::Region}"
+                bucket: "${DataBucket}"
+                object_key:
+                  path_prefix: "ubi-archive/queries/%{yyyy}/%{MM}/%{dd}/"
+                threshold:
+                  event_collect_timeout: "60s"
+                  maximum_size: "10mb"
+                codec:
+                  ndjson:
+                routes:
+                  - queries
+            - s3:
+                aws:
+                  sts_role_arn: "${OsiPipelineRole.Arn}"
+                  region: "${AWS::Region}"
+                bucket: "${DataBucket}"
+                object_key:
+                  path_prefix: "ubi-archive/events/%{yyyy}/%{MM}/%{dd}/"
+                threshold:
+                  event_collect_timeout: "60s"
+                  maximum_size: "10mb"
+                codec:
+                  ndjson:
+                routes:
+                  - events
+      Tags:
+        - { Key: Project, Value: UBI-Workshop }
+
+  # -------------------------------------------------------------------------
+  # ML pipeline: deps layer + 5 Lambdas + Step Functions
+  # -------------------------------------------------------------------------
+  DepsLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: !Sub "${EnvironmentName}-deps"
+      CompatibleRuntimes: [python3.12]
+      CompatibleArchitectures: [arm64]
+      Content:
+        S3Bucket: !Ref AssetsBucketName
+        S3Key: !Sub "${AssetsPrefix}deps_layer.zip"
+
+  ExtractFn:
+    Type: AWS::Lambda::Function
+    DependsOn: SetupResource
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-extract-ubi-data"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: extract_ubi_data.handler
+      Timeout: 300
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Layers: [!Ref DepsLayer]
+      Code: { S3Bucket: !Ref AssetsBucketName, S3Key: !Sub "${AssetsPrefix}extract_ubi_data.zip" }
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          DATA_BUCKET: !Ref DataBucket
+          PRODUCTS_INDEX: ecom_products
+          UBI_QUERIES_INDEX: ubi_queries_ecom
+          UBI_EVENTS_INDEX: ubi_events_ecom
+          APPLICATION: voltmall
+
+  JudgeFn:
+    Type: AWS::Lambda::Function
+    DependsOn: SetupResource
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-generate-judgments"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: generate_judgments.handler
+      Timeout: 900
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Layers: [!Ref DepsLayer]
+      Code: { S3Bucket: !Ref AssetsBucketName, S3Key: !Sub "${AssetsPrefix}generate_judgments.zip" }
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          DATA_BUCKET: !Ref DataBucket
+          PRODUCTS_INDEX: ecom_products
+          JUDGMENTS_INDEX: ecom_judgments
+          LTR_STORE: ecom
+          # registered Claude judge model id, straight from the setup custom resource
+          JUDGE_MODEL_ID: !GetAtt SetupResource.judge_model_id
+          BEDROCK_REGION: !Ref BedrockRegion
+          LTR_LAST_MODEL_PARAM: !Sub "/${EnvironmentName}/ltr/last-trained-model"
+          APPLICATION: voltmall
+
+  FeaturesFn:
+    Type: AWS::Lambda::Function
+    DependsOn: SetupResource
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-build-features"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: build_features.handler
+      Timeout: 600
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Layers: [!Ref DepsLayer]
+      Code: { S3Bucket: !Ref AssetsBucketName, S3Key: !Sub "${AssetsPrefix}build_features.zip" }
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          DATA_BUCKET: !Ref DataBucket
+          PRODUCTS_INDEX: ecom_products
+          LTR_STORE: ecom
+          LTR_FEATURESET: ecom_features
+
+  EvaluateFn:
+    Type: AWS::Lambda::Function
+    DependsOn: SetupResource
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-evaluate-model"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: evaluate_model.handler
+      Timeout: 600
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Layers: [!Ref DepsLayer]
+      Code: { S3Bucket: !Ref AssetsBucketName, S3Key: !Sub "${AssetsPrefix}evaluate_model.zip" }
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          DATA_BUCKET: !Ref DataBucket
+          PRODUCTS_INDEX: ecom_products
+          METRICS_INDEX: ecom_ltr_metrics
+          LTR_STORE: ecom
+          LTR_FEATURESET: ecom_features
+          LTR_MODEL_PARAM: !Sub "/${EnvironmentName}/ltr/model-name"
+
+  TrainFn:
+    Type: AWS::Lambda::Function
+    DependsOn: SetupResource
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-train-ltr-model"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: train_ltr_model.handler
+      Timeout: 900
+      MemorySize: 3008
+      Role: !GetAtt LambdaExecutionRole.Arn
+      # train zip already bundles xgboost+numpy+opensearch-py, so NO layer here
+      Code: { S3Bucket: !Ref AssetsBucketName, S3Key: !Sub "${AssetsPrefix}train_ltr_model.zip" }
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          DATA_BUCKET: !Ref DataBucket
+          LTR_STORE: ecom
+          LTR_FEATURESET: ecom_features
+          LTR_LAST_MODEL_PARAM: !Sub "/${EnvironmentName}/ltr/last-trained-model"
+
+  StateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-ltr-sfn-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: states.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokePipelineLambdas
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource:
+                  - !GetAtt ExtractFn.Arn
+                  - !GetAtt JudgeFn.Arn
+                  - !GetAtt FeaturesFn.Arn
+                  - !GetAtt TrainFn.Arn
+                  - !GetAtt EvaluateFn.Arn
+
+  LtrPipeline:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "${EnvironmentName}-ltr-pipeline"
+      RoleArn: !GetAtt StateMachineRole.Arn
+      DefinitionString: !Sub
+        - |
+          {
+            "Comment": "UBI -> Judgments -> Features -> Train -> Evaluate",
+            "StartAt": "ExtractUbiData",
+            "States": {
+              "ExtractUbiData": {
+                "Type": "Task", "Resource": "arn:aws:states:::lambda:invoke", "OutputPath": "$.Payload",
+                "Parameters": {"FunctionName": "${ExtractArn}", "Payload": {"run_id.$": "$$.Execution.Name", "options.$": "$"}},
+                "Retry": [{"ErrorEquals": ["Lambda.ServiceException","Lambda.SdkClientException","Lambda.TooManyRequestsException"], "IntervalSeconds": 10, "MaxAttempts": 3, "BackoffRate": 2}],
+                "Next": "GenerateJudgments"
+              },
+              "GenerateJudgments": {
+                "Type": "Task", "Resource": "arn:aws:states:::lambda:invoke", "OutputPath": "$.Payload",
+                "Parameters": {"FunctionName": "${JudgeArn}", "Payload.$": "$"},
+                "Retry": [{"ErrorEquals": ["Lambda.ServiceException","Lambda.SdkClientException","Lambda.TooManyRequestsException"], "IntervalSeconds": 10, "MaxAttempts": 3, "BackoffRate": 2}],
+                "Next": "BuildFeatures"
+              },
+              "BuildFeatures": {
+                "Type": "Task", "Resource": "arn:aws:states:::lambda:invoke", "OutputPath": "$.Payload",
+                "Parameters": {"FunctionName": "${FeaturesArn}", "Payload.$": "$"},
+                "Retry": [{"ErrorEquals": ["Lambda.ServiceException","Lambda.SdkClientException","Lambda.TooManyRequestsException"], "IntervalSeconds": 10, "MaxAttempts": 3, "BackoffRate": 2}],
+                "Next": "TrainModel"
+              },
+              "TrainModel": {
+                "Type": "Task", "Resource": "arn:aws:states:::lambda:invoke", "OutputPath": "$.Payload",
+                "Parameters": {"FunctionName": "${TrainArn}", "Payload.$": "$"},
+                "Retry": [{"ErrorEquals": ["Lambda.ServiceException","Lambda.SdkClientException","Lambda.TooManyRequestsException"], "IntervalSeconds": 10, "MaxAttempts": 3, "BackoffRate": 2}],
+                "Next": "EvaluateModel"
+              },
+              "EvaluateModel": {
+                "Type": "Task", "Resource": "arn:aws:states:::lambda:invoke", "OutputPath": "$.Payload",
+                "Parameters": {"FunctionName": "${EvaluateArn}", "Payload.$": "$"},
+                "Retry": [{"ErrorEquals": ["Lambda.ServiceException","Lambda.SdkClientException","Lambda.TooManyRequestsException"], "IntervalSeconds": 10, "MaxAttempts": 3, "BackoffRate": 2}],
+                "End": true
+              }
+            }
+          }
+        - ExtractArn: !GetAtt ExtractFn.Arn
+          JudgeArn: !GetAtt JudgeFn.Arn
+          FeaturesArn: !GetAtt FeaturesFn.Arn
+          TrainArn: !GetAtt TrainFn.Arn
+          EvaluateArn: !GetAtt EvaluateFn.Arn
+
+  # -------------------------------------------------------------------------
+  # Storefront: FastAPI Lambda + API Gateway (HTTP) + CloudFront (OAC) + S3
+  # -------------------------------------------------------------------------
+  BackendFn:
+    Type: AWS::Lambda::Function
+    DependsOn: [SetupResource, UbiPipeline]
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-webapp-backend"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: main.handler
+      Timeout: 29
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code: { S3Bucket: !Ref AssetsBucketName, S3Key: !Sub "${AssetsPrefix}webapp_backend.zip" }
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          OSI_INGEST_URL: !Sub
+            - "https://${Endpoint}/ecom-ubi"
+            - Endpoint: !Select [0, !GetAtt UbiPipeline.IngestEndpointUrls]
+          PRODUCTS_INDEX: ecom_products
+          LTR_STORE: ecom
+          LTR_FEATURESET: ecom_features
+          LTR_MODEL_PARAM: !Sub "/${EnvironmentName}/ltr/model-name"
+          APPLICATION: voltmall
+
+  Api:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${EnvironmentName}-api"
+      ProtocolType: HTTP
+      Target: !GetAtt BackendFn.Arn
+
+  ApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BackendFn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*"
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${EnvironmentName}-site-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "${EnvironmentName} VoltMall storefront"
+        DefaultRootObject: index.html
+        Origins:
+          - Id: s3-site
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig: { OriginAccessIdentity: "" }
+          - Id: api-origin
+            DomainName: !Sub "${Api}.execute-api.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+        DefaultCacheBehavior:
+          TargetOriginId: s3-site
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CacheBehaviors:
+          - PathPattern: api/*
+            TargetOriginId: api-origin
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+        CustomErrorResponses:
+          - { ErrorCode: 403, ResponseCode: 200, ResponsePagePath: /index.html, ErrorCachingMinTTL: 10 }
+          - { ErrorCode: 404, ResponseCode: 200, ResponsePagePath: /index.html, ErrorCachingMinTTL: 10 }
+        PriceClass: PriceClass_200
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontRead
+            Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+
+  SiteDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CopySite
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # source read only (GetObject); the public assets bucket denies
+              # cross-account ListBucket, and SiteDeployFn no longer lists it.
+              - Effect: Allow
+                Action: [s3:GetObject]
+                Resource:
+                  - !Sub "arn:aws:s3:::${AssetsBucketName}/*"
+              # destination (own SiteBucket): list is needed for the Delete path
+              - Effect: Allow
+                Action: [s3:PutObject, s3:DeleteObject, s3:ListBucket]
+                Resource:
+                  - !GetAtt SiteBucket.Arn
+                  - !Sub "${SiteBucket.Arn}/*"
+
+  SiteDeployFn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-site-deploy"
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 300
+      MemorySize: 512
+      Role: !GetAtt SiteDeployRole.Arn
+      Environment:
+        Variables:
+          ASSETS_BUCKET: !Ref AssetsBucketName
+          ASSETS_PREFIX: !Ref AssetsPrefix
+          SITE_BUCKET: !Ref SiteBucket
+      Code:
+        ZipFile: |
+          import json, os, re, urllib.request, boto3
+          s3 = boto3.client("s3")
+          def send(event, status, reason="ok"):
+              body = json.dumps({"Status": status, "Reason": reason,
+                  "PhysicalResourceId": "site-deploy", "StackId": event["StackId"],
+                  "RequestId": event["RequestId"], "LogicalResourceId": event["LogicalResourceId"],
+                  "Data": {}}).encode()
+              req = urllib.request.Request(event["ResponseURL"], data=body, method="PUT",
+                                           headers={"content-type": ""})
+              urllib.request.urlopen(req, timeout=30)
+          CT = {".html":"text/html",".js":"application/javascript",".css":"text/css",
+                ".json":"application/json",".svg":"image/svg+xml",".png":"image/png",
+                ".ico":"image/x-icon",".map":"application/json",".woff2":"font/woff2"}
+          def handler(event, context):
+              try:
+                  b = os.environ["SITE_BUCKET"]
+                  if event.get("RequestType") == "Delete":
+                      p = s3.get_paginator("list_objects_v2")
+                      for page in p.paginate(Bucket=b):
+                          objs = [{"Key": o["Key"]} for o in page.get("Contents", [])]
+                          if objs: s3.delete_objects(Bucket=b, Delete={"Objects": objs})
+                      return send(event, "SUCCESS")
+                  src = os.environ["ASSETS_BUCKET"]
+                  pref = os.environ["ASSETS_PREFIX"]
+                  if not pref.endswith("/"): pref += "/"
+                  pref += "frontend/"
+                  # The public assets bucket denies (cross-account) ListBucket, so we
+                  # download-then-upload (pure GetObject on the source, no ListBucket,
+                  # no cross-account CopyObject). index.html is the manifest: parse the
+                  # asset paths it references so this survives Vite hash renames.
+                  def put(rel, body):
+                      ext = rel[rel.rfind("."):] if "." in rel else ""
+                      s3.put_object(Bucket=b, Key=rel, Body=body,
+                          ContentType=CT.get(ext, "binary/octet-stream"))
+                  html = s3.get_object(Bucket=src, Key=pref + "index.html")["Body"].read()
+                  put("index.html", html)
+                  n = 1
+                  refs = set(re.findall(rb'(?:src|href)="([^"]+\.(?:js|css))"', html))
+                  for m in refs:
+                      rel = m.decode()
+                      rel = rel[2:] if rel.startswith("./") else (rel[1:] if rel.startswith("/") else rel)
+                      body = s3.get_object(Bucket=src, Key=pref + rel)["Body"].read()
+                      put(rel, body)
+                      n += 1
+                  send(event, "SUCCESS", f"deployed {n} objects")
+              except Exception as e:
+                  send(event, "FAILED", str(e))
+
+  SiteDeployResource:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn: SiteBucket
+    Properties:
+      ServiceToken: !GetAtt SiteDeployFn.Arn
+      # bump to re-run the site copy (e.g. after changing the deploy logic)
+      Version: "3"
+
+  # -------------------------------------------------------------------------
+  # Pre-populate the workshop (traffic -> judgments -> Workbench -> Dashboards)
+  # Runs last: after the domain/connectors/indexes/catalog + OSI + ML + webapp.
+  # -------------------------------------------------------------------------
+  PopulateFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-populate-lambda-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: PopulateAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: OpenSearchHttp
+                Effect: Allow
+                Action: [es:ESHttp*, es:DescribeDomain]
+                Resource:
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}"
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*"
+              - Sid: ReadAssets
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${AssetsBucketName}/*"
+              - Sid: ReadSsm
+                Effect: Allow
+                Action: ssm:GetParameter
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${EnvironmentName}/*"
+
+  PopulateFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${EnvironmentName}-populate-workshop"
+      Runtime: python3.12
+      Handler: populate_workshop.handler
+      Timeout: 900
+      # More memory = more network bandwidth + more vCPU for the parallel BM25
+      # prewarm and the many OpenSearch round-trips (traffic sim + bulk indexing).
+      MemorySize: 4096
+      Role: !GetAtt PopulateFunctionRole.Arn
+      Code:
+        S3Bucket: !Ref AssetsBucketName
+        S3Key: !Sub "${AssetsPrefix}populate_workshop.zip"
+      Environment:
+        Variables:
+          OPENSEARCH_ENDPOINT: !GetAtt OpenSearchDomain.DomainEndpoint
+          ASSETS_BUCKET: !Ref AssetsBucketName
+          DASHBOARDS_KEY: !Sub "${AssetsPrefix}dashboards.ndjson"
+          # pre-computed LLM judgments asset -> no Claude/Bedrock call at populate
+          JUDGMENTS_LLM_KEY: !Sub "${AssetsPrefix}judgments_llm.json"
+          JUDGE_MODEL_ID: !GetAtt SetupResource.judge_model_id
+          EMBED_MODEL_ID: !GetAtt SetupResource.embed_model_id
+          HYBRID_PIPELINE: voltmall_hybrid_norm
+          SEMANTIC_FIELD: name_embedding
+          LTR_MODEL_PARAM: !Sub "/${EnvironmentName}/ltr/model-name"
+          LTR_STORE: ecom
+          SESSIONS: "250"
+
+  PopulateResource:
+    Type: AWS::CloudFormation::CustomResource
+    # everything the populate step reads/uses must already exist
+    DependsOn: [SetupResource, UbiPipeline, BackendFn, LtrPipeline, SiteDeployResource]
+    Properties:
+      ServiceToken: !GetAtt PopulateFunction.Arn
+      PopulateVersion: "5"
+
+# ===========================================================================
+# Outputs — 워크샵 참가자가 바로 사용할 접속 정보. 순서대로 노출됩니다.
+Outputs:
+  StorefrontURL:
+    Description: "1. Storefront (frontend) URL - searching/clicking starts UBI collection"
+    Value: !Sub "https://${Distribution.DomainName}"
+  DashboardsURL:
+    Description: "2. OpenSearch Dashboards URL (includes Search Relevance Workbench)"
+    Value: !Sub "https://${OpenSearchDomain.DomainEndpoint}/_dashboards/"
+  DashboardsUsername:
+    Description: "3. Dashboards login username (workshop temporary account)"
+    Value: !Ref MasterUserName
+  DashboardsPassword:
+    Description: "4. Dashboards login password (workshop temporary account)"
+    Value: !Ref MasterUserPassword
+  OpenSearchDomainEndpoint:
+    Description: "5. OpenSearch domain endpoint (for API/curl, https://<endpoint>)"
+    Value: !GetAtt OpenSearchDomain.DomainEndpoint
+  ApiEndpoint:
+    Description: Storefront backend API Gateway endpoint
+    Value: !GetAtt Api.ApiEndpoint
+  JudgeModelId:
+    Description: Registered Claude Sonnet 4.5 judge (ml-commons) model ID
+    Value: !GetAtt SetupResource.judge_model_id
+  EmbedModelId:
+    Description: Registered Titan v2 embedding (ml-commons) model ID
+    Value: !GetAtt SetupResource.embed_model_id
+  UbiIngestUrl:
+    Description: OSIS UBI ingest endpoint URL
+    Value: !Sub
+      - "https://${Endpoint}/ecom-ubi"
+      - Endpoint: !Select [0, !GetAtt UbiPipeline.IngestEndpointUrls]
+  StateMachineArn:
+    Description: LTR ML pipeline Step Functions ARN
+    Value: !Ref LtrPipeline
+  DomainArn:
+    Value: !GetAtt OpenSearchDomain.Arn
+  DataBucketName:
+    Value: !Ref DataBucket
+  DlqBucketName:
+    Value: !Ref DlqBucket
+  Region:
+    Value: !Ref AWS::Region

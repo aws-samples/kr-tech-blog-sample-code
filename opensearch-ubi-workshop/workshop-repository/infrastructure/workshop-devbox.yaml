@@ -1,0 +1,403 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  OpenSearch UBI/LTR Workshop - code-server devbox. A browser-based VS Code
+  (code-server) on EC2 so participants can run the ML pipeline and scripts
+  hands-on. Pattern adapted from aws-samples/sample-developer-environment:
+  CloudFront (HTTPS) -> EC2 code-server (HTTP 8080), guarded by an X-Origin-Verify
+  secret header; login password stored in Secrets Manager. Deploy AFTER the core
+  workshop stack (ubi-workshop); this is a separate, independently-deployable stack.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: ubi-workshop
+    AllowedPattern: "[a-z0-9-]+"
+    Description: Core workshop stack prefix (for pipeline/domain references).
+  CoreStackName:
+    Type: String
+    Default: ubi-workshop
+    Description: Name of the deployed core stack (to import domain/pipeline/bucket).
+  MasterUserName:
+    Type: String
+    Default: admin
+    Description: OpenSearch FGAC master user (same as the core stack).
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: >
+      OpenSearch FGAC master password (must match the core stack). The notebook
+      uses basic auth with this, since the devbox EC2 role is not (yet) mapped as
+      an FGAC backend role.
+  AssetsBucketName:
+    Type: String
+    Default: ws-assets-prod-iad-r-icn-ced060f0d38bc0b0
+    Description: >
+      Staging bucket holding the optional workshop scripts (devbox/ prefix).
+      Default is the public workshop assets bucket so the Launch Stack needs no
+      input; the devbox script pull is best-effort (|| true), so code-server
+      still starts even if the bucket denies the cross-account listing.
+  AssetsKeyPrefix:
+    Type: String
+    Default: 84a951c0-83b7-4d48-accc-eb318fc538ba/
+    Description: >
+      Key prefix under the assets bucket where the devbox/ folder lives.
+      Public bucket layout is <contentId>/devbox/..., so the default is the
+      content-id path. Workshop Studio events override this via contentspec.
+  InstanceType:
+    Type: String
+    Default: t3.xlarge
+  CodeServerVersion:
+    Type: String
+    Default: "4.99.3"
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  VpcCidr:
+    Type: String
+    Default: "10.180.0.0/16"
+
+Resources:
+
+  # -------------------------------------------------------------------------
+  # Minimal VPC: one public subnet (EC2 gets a public IP for egress; inbound
+  # is CloudFront-only via security group + secret header).
+  # -------------------------------------------------------------------------
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: [{ Key: Name, Value: !Sub "${EnvironmentName}-devbox-vpc" }]
+
+  Igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: [{ Key: Name, Value: !Sub "${EnvironmentName}-devbox-igw" }]
+
+  IgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref Igw
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags: [{ Key: Name, Value: !Sub "${EnvironmentName}-devbox-public" }]
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttach
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Igw
+
+  SubnetRouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # -------------------------------------------------------------------------
+  # Security group: inbound 8080 only from the CloudFront origin-facing prefix
+  # list (edge IPs). The secret header adds a second gate at the app layer.
+  # -------------------------------------------------------------------------
+  CodeServerSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: code-server ingress from CloudFront edge only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourcePrefixListId: !FindInMap [CloudFrontPrefix, !Ref "AWS::Region", PrefixId]
+          Description: CloudFront origin-facing
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags: [{ Key: Name, Value: !Sub "${EnvironmentName}-devbox-sg" }]
+
+  # -------------------------------------------------------------------------
+  # Login password (Secrets Manager) + origin-verify header secret
+  # -------------------------------------------------------------------------
+  CodeServerSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${EnvironmentName}-devbox-password"
+      Description: code-server login password (workshop)
+      GenerateSecretString:
+        SecretStringTemplate: '{"username":"workshop"}'
+        GenerateStringKey: password
+        PasswordLength: 20
+        ExcludePunctuation: true
+
+  # -------------------------------------------------------------------------
+  # IAM: EC2 can run the ML pipeline + read/write workshop data, SSM, Bedrock
+  # -------------------------------------------------------------------------
+  DevboxRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-devbox-ec2-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: WorkshopDevboxAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ReadPassword
+                Effect: Allow
+                Action: [secretsmanager:GetSecretValue]
+                Resource: !Ref CodeServerSecret
+              - Sid: RunPipeline
+                Effect: Allow
+                Action:
+                  - states:StartExecution
+                  - states:DescribeExecution
+                  - states:ListExecutions
+                  - states:DescribeStateMachine
+                Resource:
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${EnvironmentName}-ltr-pipeline"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:${EnvironmentName}-ltr-pipeline:*"
+              - Sid: ListStateMachines
+                Effect: Allow
+                Action: states:ListStateMachines
+                Resource: "*"
+              - Sid: OpenSearchHttp
+                Effect: Allow
+                Action: [es:ESHttp*, es:DescribeDomain]
+                Resource:
+                  # DescribeDomain needs the bare domain ARN; ESHttp* needs the
+                  # /* sub-resource form. Grant both.
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EnvironmentName}-search"
+                  - !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${EnvironmentName}-search/*"
+              - Sid: DataAndAssets
+                Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:ListBucket]
+                Resource:
+                  - !Sub "arn:aws:s3:::${EnvironmentName}-data-${AWS::Region}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::${EnvironmentName}-data-${AWS::Region}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::${AssetsBucketName}"
+                  - !Sub "arn:aws:s3:::${AssetsBucketName}/*"
+              - Sid: Ssm
+                Effect: Allow
+                # PutParameter too: the LTR pipeline/notebook promotes a trained
+                # model by writing /{Env}/ltr/model-name (and last-trained-model),
+                # which the storefront reads for ?use_ltr=true.
+                Action: [ssm:GetParameter, ssm:GetParameters, ssm:PutParameter]
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${EnvironmentName}/*"
+              - Sid: Bedrock
+                Effect: Allow
+                Action: [bedrock:InvokeModel]
+                Resource: "*"
+              # (No cloudformation:DescribeStacks — the devbox resolves the
+              # domain by name via es:DescribeDomain and reads model ids from
+              # SSM, so it never needs to read the CFN stack. This also works on
+              # Workshop Studio events where the stack name is not predictable.)
+
+  DevboxProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref DevboxRole]
+
+  # -------------------------------------------------------------------------
+  # EC2 instance running code-server
+  # -------------------------------------------------------------------------
+  DevboxInstance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      IamInstanceProfile: !Ref DevboxProfile
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref CodeServerSg]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeSize: 50, VolumeType: gp3, Encrypted: true }
+      Tags: [{ Key: Name, Value: !Sub "${EnvironmentName}-devbox" }]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          exec > /var/log/devbox-setup.log 2>&1
+
+          # wait for any concurrent dnf/rpm (cloud-init) to release the lock,
+          # then install prerequisites — avoids "can't create transaction lock".
+          dnf_go() { for i in $(seq 1 60); do dnf "$@" && return 0; sleep 5; done; return 1; }
+          dnf_go install -y git tar gzip jq python3.12 python3.12-pip aws-cfn-bootstrap
+
+          # --- fetch login password from Secrets Manager ---
+          PW=$(aws secretsmanager get-secret-value --region ${AWS::Region} \
+                --secret-id ${CodeServerSecret} --query SecretString --output text | jq -r .password)
+
+          # --- install code-server (rpm lock may still be held; retry) ---
+          export HOME=/root
+          for i in $(seq 1 30); do
+            if ! fuser /var/lib/rpm/.rpm.lock >/dev/null 2>&1; then
+              curl -fsSL https://code-server.dev/install.sh | sh -s -- --version ${CodeServerVersion} && break
+            fi
+            sleep 5
+          done
+
+          # --- write config BEFORE first start so code-server can't generate a
+          #     default (127.0.0.1) config. Stop service first to be safe. ---
+          systemctl stop code-server@ec2-user 2>/dev/null || true
+          install -d -o ec2-user -g ec2-user /home/ec2-user/.config/code-server
+          cat > /home/ec2-user/.config/code-server/config.yaml <<EOF
+          bind-addr: 0.0.0.0:8080
+          auth: password
+          password: $PW
+          cert: false
+          EOF
+          chown -R ec2-user:ec2-user /home/ec2-user/.config
+
+          # --- workshop workspace: pull scripts + notebook from the assets bucket ---
+          # Two ways, because the assets bucket differs per deploy path:
+          #  - Event bucket (same account, private): `aws s3 cp` (SigV4) works.
+          #  - Public promote bucket (cross-account): SigV4 ListBucket/GetObject
+          #    is denied, but anonymous HTTPS GET is open — so fall back to curl.
+          # Try SigV4 recursive copy first; if the files aren't there afterwards,
+          # curl each known devbox file over public HTTPS.
+          WS=/home/ec2-user/workshop
+          mkdir -p $WS
+          aws s3 cp s3://${AssetsBucketName}/${AssetsKeyPrefix}devbox/ $WS/ --recursive --region ${AWS::Region} || true
+          if [ ! -f $WS/ltr_pipeline_workshop.ipynb ]; then
+            BASE="https://${AssetsBucketName}.s3.${AWS::Region}.amazonaws.com/${AssetsKeyPrefix}devbox"
+            for f in ltr_pipeline_workshop.ipynb run_pipeline.sh generate_ubi_events.py; do
+              curl -fsSL "$BASE/$f" -o "$WS/$f" || echo "WARN: could not fetch $f"
+            done
+          fi
+          # Resolve the domain endpoint by domain name (deterministic from
+          # EnvironmentName), NOT via the CloudFormation stack — the stack name
+          # differs on Workshop Studio events and the role can't read it.
+          OS_EP=$(aws opensearch describe-domain --region ${AWS::Region} --domain-name ${EnvironmentName}-search --query "DomainStatus.Endpoint" --output text)
+          cat > $WS/.workshop-env <<EOF
+          export AWS_REGION=${AWS::Region}
+          export OPENSEARCH_ENDPOINT=$OS_EP
+          export STATE_MACHINE_ARN=arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${EnvironmentName}-ltr-pipeline
+          export DASHBOARDS_USER=${MasterUserName}
+          export DASHBOARDS_PASS=${MasterUserPassword}
+          EOF
+          chmod 600 $WS/.workshop-env
+          chown -R ec2-user:ec2-user $WS
+
+          # --- Jupyter notebook support (runs BEFORE the service starts; all
+          #     best-effort so a slow Open VSX / PyPI never blocks cfn-signal).
+          #     Everything runs AS ec2-user with HOME set, because the code-server
+          #     binary install above left HOME=/root — per-user extensions/kernels
+          #     must land in /home/ec2-user or the ec2-user service won't see them.
+          runas() { sudo -u ec2-user env HOME=/home/ec2-user PATH=$PATH "$@"; }
+          # Only the packages the LTR notebook actually imports. xgboost<2.1 avoids
+          # the ~500MB CUDA wheel pulled by 3.x (CPU-only notebook on a 2-vCPU box).
+          for i in 1 2 3; do
+            runas python3.12 -m pip install --user ipykernel numpy 'xgboost<2.1' \
+              boto3 opensearch-py requests requests-aws4auth && break
+            sleep 10
+          done
+          # Register the kernel under the name the notebook expects (metadata
+          # kernelspec.name == "python3") so it auto-binds with no kernel picker.
+          runas python3.12 -m ipykernel install --user --name python3 \
+            --display-name 'Python 3 (workshop)' 2>/dev/null || true
+          # VS Code Python + Jupyter extensions from Open VSX. Jupyter MUST be
+          # pinned to 2025.3.0 (engines ^1.99.0); latest requires a newer Code
+          # than code-server 4.99.3 (Code 1.99.x) and would be rejected.
+          CS=$(command -v code-server)
+          for EXT in ms-python.python ms-toolsai.jupyter@2025.3.0 ms-toolsai.jupyter-renderers; do
+            for i in 1 2 3; do
+              runas "$CS" --install-extension "$EXT" --force && break
+              sleep 8
+            done
+          done
+          # default interpreter so the notebook binds python3.12 without prompting
+          install -d -o ec2-user -g ec2-user /home/ec2-user/.local/share/code-server/User
+          cat > /home/ec2-user/.local/share/code-server/User/settings.json <<'EOF'
+          { "python.defaultInterpreterPath": "/usr/bin/python3.12" }
+          EOF
+          chown -R ec2-user:ec2-user /home/ec2-user/.local /home/ec2-user/.config $WS
+
+          # --- start code-server as ec2-user via systemd, verify it binds 0.0.0.0 ---
+          systemctl enable --now code-server@ec2-user
+          sleep 5
+          ss -ltn | grep -q '0.0.0.0:8080' && OK=0 || OK=1
+
+          # signal CFN with the bind check result
+          /opt/aws/bin/cfn-signal -e $OK --stack ${AWS::StackName} --resource DevboxInstance --region ${AWS::Region} || \
+            cfn-signal -e $OK --stack ${AWS::StackName} --resource DevboxInstance --region ${AWS::Region} || true
+
+  # -------------------------------------------------------------------------
+  # CloudFront in front of code-server (HTTPS + WebSocket + secret header)
+  # -------------------------------------------------------------------------
+  OriginVerifySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${EnvironmentName}-devbox-originverify"
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: header
+        PasswordLength: 32
+        ExcludePunctuation: true
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "${EnvironmentName} code-server devbox"
+        Origins:
+          - Id: codeserver
+            DomainName: !GetAtt DevboxInstance.PublicDnsName
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              HTTPPort: 8080
+              OriginReadTimeout: 60
+              OriginKeepaliveTimeout: 60
+            OriginCustomHeaders:
+              - HeaderName: X-Origin-Verify
+                HeaderValue: !Sub "{{resolve:secretsmanager:${OriginVerifySecret}:SecretString:header}}"
+        DefaultCacheBehavior:
+          TargetOriginId: codeserver
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+          # AWS managed: CachingDisabled + AllViewer (forwards all headers incl. WebSocket upgrade)
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+        PriceClass: PriceClass_200
+
+Mappings:
+  CloudFrontPrefix:
+    ap-northeast-2:
+      PrefixId: pl-22a6434b
+
+Outputs:
+  DevboxURL:
+    Description: code-server access URL (via CloudFront)
+    Value: !Sub "https://${Distribution.DomainName}"
+  DevboxPasswordSecret:
+    Description: Secrets Manager secret containing the code-server login password
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/secretsmanager/secret?name=${CodeServerSecret}&region=${AWS::Region}"
+  DevboxPasswordCLI:
+    Description: CLI command to retrieve the login password
+    Value: !Sub "aws secretsmanager get-secret-value --region ${AWS::Region} --secret-id ${EnvironmentName}-devbox-password --query SecretString --output text"
+  DevboxInstanceId:
+    Value: !Ref DevboxInstance

@@ -1,0 +1,14 @@
+{{- if .Values.endpoint.enabled }}
+apiVersion: bedrockagentcorecontrol.services.k8s.aws/v1alpha1
+kind: AgentRuntimeEndpoint
+metadata:
+  name: {{ .Values.runtime.name | replace "_" "-" }}-{{ .Values.endpoint.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    services.k8s.aws/deletion-policy: delete
+spec:
+  agentRuntimeID: {{ required "endpoint.runtimeId is required" .Values.endpoint.runtimeId | quote }}
+  agentRuntimeVersion: {{ .Values.endpoint.version | quote }}
+  name: {{ .Values.endpoint.name }}
+  description: Stable endpoint with a Git-pinned AgentCore version
+{{- end }}

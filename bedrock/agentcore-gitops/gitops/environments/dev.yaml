@@ -1,0 +1,22 @@
+runtime:
+  name: eks_ack_devops
+  imageUri: ''
+  roleArn: ''
+  region: us-east-1
+  modelId: global.anthropic.claude-sonnet-5
+  release: v1
+  buildRevision: blog-v1
+gateway:
+  enabled: false
+  name: eks-ack-devops-gateway
+  roleArn: ''
+  runtimeArn: ''
+  targetName: agent
+analysis:
+  enabled: false
+  imageUri: ''
+endpoint:
+  enabled: false
+  runtimeId: ''
+  version: '1'
+  name: live

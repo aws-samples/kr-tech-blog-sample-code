@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: agentcore
+  namespace: argocd
+spec:
+  description: Namespace-scoped AgentCore GitOps demonstration
+  sourceRepos:
+    - ssh://git@github.com/YOUR_GITHUB_ORG/YOUR_REPOSITORY.git
+  destinations:
+    - namespace: agentcore
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: bedrockagentcorecontrol.services.k8s.aws
+      kind: AgentRuntime
+    - group: bedrockagentcorecontrol.services.k8s.aws
+      kind: AgentRuntimeEndpoint
+    - group: bedrockagentcorecontrol.services.k8s.aws
+      kind: Gateway
+    - group: bedrockagentcorecontrol.services.k8s.aws
+      kind: GatewayTarget
+    - group: argoproj.io
+      kind: AnalysisRun
+    - group: argoproj.io
+      kind: AnalysisTemplate
+    - group: ""
+      kind: ServiceAccount

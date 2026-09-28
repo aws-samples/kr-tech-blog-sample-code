@@ -1,0 +1,11 @@
+input,value,unit,owner,source_or_assumption
+monthly_searches,1000000,searches,Analytics,production traffic forecast
+average_order_value,75000,KRW,Finance,rolling 90-day average
+gross_margin_rate,0.30,ratio,Finance,blended gross margin
+rollout_coverage,1.00,ratio,Engineering,planned eligible traffic
+confidence_haircut,0.70,ratio,PM,conservative realization factor
+implementation_cost,30000000,KRW,Engineering,loaded project cost
+incremental_monthly_operating_cost,1500000,KRW,Engineering,compute and operations
+monthly_hours_saved,40,hours,Operations,relevance tuning and reporting
+loaded_hourly_cost,80000,KRW,Finance,fully loaded labor cost
+analysis_horizon_months,12,months,PM,decision horizon

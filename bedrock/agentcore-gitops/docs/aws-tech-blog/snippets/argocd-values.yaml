@@ -1,0 +1,72 @@
+global:
+  domain: ""
+configs:
+  params:
+    server.insecure: false
+  cm:
+    timeout.reconciliation: 30s
+    timeout.reconciliation.jitter: 5s
+    resource.customizations.health.bedrockagentcorecontrol.services.k8s.aws_Gateway: |
+      if obj.status ~= nil then
+        for _, condition in ipairs(obj.status.conditions or {}) do
+          if condition.type == "ACK.Terminal" and condition.status == "True" then
+            return {status = "Degraded", message = condition.message or "Gateway failed"}
+          end
+          if condition.type == "ACK.ResourceSynced" and condition.status == "True" and obj.status.status == "READY" then
+            return {status = "Healthy", message = "Gateway READY"}
+          end
+        end
+      end
+      return {status = "Progressing", message = "Waiting for Gateway"}
+    resource.customizations.health.bedrockagentcorecontrol.services.k8s.aws_GatewayTarget: |
+      if obj.status ~= nil then
+        for _, condition in ipairs(obj.status.conditions or {}) do
+          if condition.type == "ACK.Terminal" and condition.status == "True" then
+            return {status = "Degraded", message = condition.message or "Target failed"}
+          end
+          if condition.type == "ACK.ResourceSynced" and condition.status == "True" and obj.status.status == "READY" then
+            return {status = "Healthy", message = "Gateway Target READY"}
+          end
+        end
+      end
+      return {status = "Progressing", message = "Waiting for Gateway Target"}
+    resource.customizations.health.argoproj.io_AnalysisRun: |
+      local phase = obj.status and obj.status.phase or "Pending"
+      if phase == "Successful" then return {status = "Healthy", message = phase} end
+      if phase == "Failed" or phase == "Error" or phase == "Inconclusive" then
+        return {status = "Degraded", message = phase}
+      end
+      return {status = "Progressing", message = phase}
+    resource.customizations.health.bedrockagentcorecontrol.services.k8s.aws_AgentRuntime: |
+      local health = {status = "Progressing", message = "Waiting for ACK reconciliation"}
+      if obj.status ~= nil and obj.status.conditions ~= nil then
+        for _, condition in ipairs(obj.status.conditions) do
+          if condition.type == "ACK.Terminal" and condition.status == "True" then
+            return {status = "Degraded", message = condition.message or "ACK terminal error"}
+          end
+          if condition.type == "ACK.ResourceSynced" and condition.status == "True" and obj.status.status == "READY" then
+            health = {status = "Healthy", message = "AgentCore runtime READY"}
+          end
+        end
+      end
+      return health
+    resource.customizations.health.bedrockagentcorecontrol.services.k8s.aws_AgentRuntimeEndpoint: |
+      local health = {status = "Progressing", message = "Waiting for ACK endpoint reconciliation"}
+      if obj.status ~= nil and obj.status.conditions ~= nil then
+        for _, condition in ipairs(obj.status.conditions) do
+          if condition.type == "ACK.Terminal" and condition.status == "True" then
+            return {status = "Degraded", message = condition.message or "ACK terminal error"}
+          end
+          if condition.type == "ACK.ResourceSynced" and condition.status == "True" and obj.status.status == "READY" then
+            health = {status = "Healthy", message = "AgentCore endpoint READY; verify liveVersion through the AWS API before invocation"}
+          end
+        end
+      end
+      return health
+dex:
+  enabled: false
+notifications:
+  enabled: false
+server:
+  ingress:
+    enabled: false

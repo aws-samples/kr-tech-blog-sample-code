@@ -1,0 +1,25 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/app.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["README.md", "cdk*.json", "**/*.d.ts", "**/*.js", "tsconfig.json", "package*.json", "node_modules", ".build", "webapp-frontend/node_modules", "webapp-frontend/dist"]
+  },
+  "context": {
+    "envPrefix": "ecom-ubi",
+    "productsIndex": "ecom_products",
+    "ubiQueriesIndex": "ubi_queries_ecom",
+    "ubiEventsIndex": "ubi_events_ecom",
+    "judgmentsIndex": "ecom_judgments",
+    "metricsIndex": "ecom_ltr_metrics",
+    "ltrStore": "ecom",
+    "ltrFeatureset": "ecom_features",
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/core:validateSnapshotRemovalPolicy": true,
+    "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
+    "@aws-cdk/core:enablePartitionLiterals": true,
+    "@aws-cdk/aws-iam:standardizedServicePrincipals": true,
+    "@aws-cdk/customresources:installLatestAwsSdkDefault": false
+  }
+}

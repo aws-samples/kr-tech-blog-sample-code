@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devops-agent
+  namespace: argocd
+spec:
+  project: agentcore
+  source:
+    repoURL: ssh://git@github.com/YOUR_GITHUB_ORG/YOUR_REPOSITORY.git
+    targetRevision: main
+    path: bedrock/agentcore-gitops/charts/agentcore-agent
+    helm:
+      releaseName: devops-agent
+      valueFiles:
+      - ../../gitops/environments/dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: agentcore
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 2m

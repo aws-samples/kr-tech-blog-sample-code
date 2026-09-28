@@ -1,0 +1,12 @@
+node_modules/
+cdk.out/
+.build/
+*.js
+!webapp-frontend/**/*.js
+*.d.ts
+webapp-frontend/node_modules/
+webapp-frontend/dist/
+__pycache__/
+*.pyc
+.venv/
+outputs.json

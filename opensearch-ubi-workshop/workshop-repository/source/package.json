@@ -1,0 +1,23 @@
+{
+  "name": "ecom-ubi-ltr",
+  "version": "1.0.0",
+  "description": "E-commerce UBI -> OSI -> OpenSearch -> LLM judgments -> LTR training sample (ltr-vector domain)",
+  "bin": {
+    "app": "bin/app.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "aws-cdk": "^2.1124.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.6.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.212.0",
+    "constructs": "^10.4.2"
+  }
+}

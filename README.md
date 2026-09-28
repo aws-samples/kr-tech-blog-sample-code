@@ -45,6 +45,7 @@ AWS 기술 블로그에서 제공하는 샘플 코드 저장소입니다.
 ```
 kr-tech-blog-sample-code/
 ├── bedrock/                    # Amazon Bedrock 관련 샘플
+│   ├── agentcore-gitops/
 │   ├── amazon-bedrock-travel-agent/
 │   ├── bedrock-mcp-agent-cdk/
 │   ├── bedrock_aurora_mysql/
@@ -53,6 +54,7 @@ kr-tech-blog-sample-code/
 ├── opensearch/                 # Amazon OpenSearch Service 관련 샘플
 │   ├── opensearch_custom_plugin/
 │   └── opensearch_ltr/
+├── opensearch-ubi-workshop/    # UBI 검색 관련성 워크샵 참여자 artifact
 ├── database/                   # Amazon Aurora 관련 샘플
 │   └── auroramysql-task-automation-tip/
 ├── iot/                        # AWS IoT Core 관련 샘플
@@ -71,6 +73,7 @@ Amazon Bedrock을 활용한 생성형 AI 애플리케이션 구축 샘플입니�
 
 | Project | Description | Tech Stack | Blog |
 |---------|-------------|------------|------|
+| [agentcore-gitops](./bedrock/agentcore-gitops) | EKS와 Argo CD, ACK를 통한 AgentCore Runtime 및 Gateway 관리 | CDK, Helm, Python | 준비 중 |
 | [amazon-bedrock-travel-agent](./bedrock/amazon-bedrock-travel-agent) | Bedrock Agent를 활용한 여행 예약 에이전트 | CDK, Python | [Link](https://aws.amazon.com/ko/blogs/tech/amazon-bedrock-agent-30mins-travel-reservation/) |
 | [cdk_bedrock_rag_chatbot](./bedrock/cdk_bedrock_rag_chatbot) | Bedrock Knowledge Base를 활용한 멀티모달 RAG 챗봇 | CDK, Python, Streamlit | [Link](https://aws.amazon.com/ko/blogs/tech/practical-guide-for-bedrock-kb-multimodal-chatbot/) |
 | [bedrock-mcp-agent-cdk](./bedrock/bedrock-mcp-agent-cdk) | Bedrock Agents와 MCP(Model Context Protocol) 통합 | CDK, TypeScript, Lambda | [Link](https://aws-blogs-prod.amazon.com/tech/amazon-bedrock-agents-mcp-model-context-protocol/) |
@@ -85,6 +88,7 @@ Amazon OpenSearch Service 검색 최적화 및 플러그인 개발 샘플입니�
 |---------|-------------|------------|------|
 | [opensearch_custom_plugin](./opensearch/opensearch_custom_plugin) | OpenSearch 커스텀 플러그인 개발 가이드 | Java, Gradle | [Link](https://aws.amazon.com/ko/blogs/tech/applying-amazon-opensearch-service-custom-plugin/) |
 | [opensearch_ltr](./opensearch/opensearch_ltr) | Learning to Rank 플러그인을 활용한 검색 품질 개선 | Python, Jupyter | [Link](https://aws.amazon.com/ko/blogs/tech/enhancing-search-with-ltr-plugin-for-amazon-opensearch-service/) |
+| [opensearch-ubi-workshop](./opensearch-ubi-workshop) | UBI, Search Relevance Workbench, LTR 실습 및 nDCG/CTR·ROI 참여자 artifact | CloudFormation, CDK, Python, React | - |
 
 ### database - Amazon Aurora
 

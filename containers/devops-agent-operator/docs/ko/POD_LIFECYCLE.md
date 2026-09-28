@@ -1,3 +1,5 @@
+> [English](../en/POD_LIFECYCLE.md) | **한국어**
+
 # Pod Lifecycle Reference
 
 Kubernetes Pod의 생명주기 단계별 동작과 각 단계에서 발생할 수 있는 오류를 정리한 참고 문서입니다.
