@@ -146,7 +146,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	// Evaluate filter once for all outputs
 	severity := collector.DetermineSeverity(failure)
-	shouldSend := r.Config.ShouldSendWebhook(failure.Category, severity)
+	shouldSend := r.Config.ShouldSendWebhook(failure.Category, severity, failure.Type)
 
 	if !shouldSend {
 		logger.Info("Outputs skipped by filter",

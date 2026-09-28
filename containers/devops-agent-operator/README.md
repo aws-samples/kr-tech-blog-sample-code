@@ -101,21 +101,27 @@ Three outputs can be enabled independently based on configuration:
 
 ### Feature Settings
 
-| Name | Description | Default |
-|------|-------------|---------|
-| `ENABLE_SSM_COLLECTION` | Enable SSM node-log collection | `false` |
-| `WATCH_NAMESPACES` | Watched namespaces (comma-separated) | all |
-| `EXCLUDE_NAMESPACES` | Excluded namespaces | `kube-system,kube-public,kube-node-lease` |
-| `LOG_SINCE_MINUTES` | Time window (in minutes) for log collection | `15` |
-| `PROCESSED_TTL` | Duration to suppress duplicate processing | `1h` |
-| `FAILURE_GRACE_PERIOD` | Timeout grace period | `3m` |
-| `FAILURE_RECHECK_INTERVAL` | Recheck interval for timeouts | `1m` |
-| `WEBHOOK_SKIP_CATEGORIES` | Detection layers to skip for webhook/S3/CloudWatch output (comma-separated) | - |
-| `WEBHOOK_MIN_SEVERITY` | Minimum severity that triggers output | - |
+
+| 변수명 | 설명 | 기본값 |
+|--------|------|--------|
+| `ENABLE_SSM_COLLECTION` | SSM 노드 로그 수집 활성화 | `false` |
+| `WATCH_NAMESPACES` | 감시 네임스페이스 (쉼표 구분) | 전체 |
+| `EXCLUDE_NAMESPACES` | 제외 네임스페이스 | `kube-system,kube-public,kube-node-lease` |
+| `LOG_SINCE_MINUTES` | 로그 수집 시간 범위 (분) | `15` |
+| `PROCESSED_TTL` | 중복 처리 방지 기간 | `1h` |
+| `FAILURE_GRACE_PERIOD` | 타임아웃 대기 기간 | `3m` |
+| `FAILURE_RECHECK_INTERVAL` | 타임아웃 재확인 간격 | `1m` |
+| `WEBHOOK_SKIP_CATEGORIES` | 웹훅/S3/CloudWatch 출력을 건너뛸 감지 레이어 (쉼표 구분) | - |
+| `WEBHOOK_MIN_SEVERITY` | 출력을 트리거할 최소 심각도 | - |
+| `WEBHOOK_EXCLUDE_TYPES` | 웹훅/S3/CloudWatch 출력을 건너뛸 장애 유형 (쉼표 구분) | - |
+
 
 #### Output Filtering
 
-`WEBHOOK_SKIP_CATEGORIES` and `WEBHOOK_MIN_SEVERITY` are combined with AND logic. Output to CloudWatch Logs, S3, and Webhook runs only when both conditions pass. If neither is set, output runs for every failure.
+
+`WEBHOOK_SKIP_CATEGORIES`, `WEBHOOK_MIN_SEVERITY`, `WEBHOOK_EXCLUDE_TYPES`는 AND 조건으로 동작합니다. 세 조건을 모두 통과해야 CloudWatch Logs, S3, Webhook 출력이 실행됩니다. 미설정 시 모든 장애에 대해 출력이 실행됩니다.
+
+
 
 **WEBHOOK_SKIP_CATEGORIES** — excludes failures from specific detection layers from the output.
 
@@ -135,12 +141,23 @@ Valid values (lower index = more severe): `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` ([
 WEBHOOK_MIN_SEVERITY=HIGH
 ```
 
-You can combine the two options for finer control.
+**WEBHOOK_EXCLUDE_TYPES** — 특정 장애 유형을 카테고리나 심각도와 무관하게 출력에서 제외합니다.
+
+유효한 값: 장애 유형 문자열 (예: `ErrImagePull`, `ContainerCreating`, `Unschedulable`)
 
 ```
-# Always exclude PodPhase + output the rest only when HIGH or above
+# ErrImagePull은 일시적 상태로 kubelet이 자동 재시도하므로 제외
+# (지속되면 ImagePullBackOff로 전환되며 이는 제외되지 않음)
+WEBHOOK_EXCLUDE_TYPES=ErrImagePull
+```
+
+세 옵션을 조합하면 더 세밀하게 제어할 수 있습니다.
+
+```
+# PodPhase는 무조건 제외 + 나머지는 HIGH 이상만 출력 + ErrImagePull 제외
 WEBHOOK_SKIP_CATEGORIES=PodPhase,PodCondition
 WEBHOOK_MIN_SEVERITY=HIGH
+WEBHOOK_EXCLUDE_TYPES=ErrImagePull
 ```
 
 ## IAM Permissions

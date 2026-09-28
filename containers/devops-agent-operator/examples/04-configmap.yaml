@@ -29,3 +29,9 @@ data:
   # Empty means all severities trigger webhooks (default behavior).
   # Example: "HIGH" → only HIGH and CRITICAL failures trigger webhooks
   WEBHOOK_MIN_SEVERITY: ""
+  # Comma-separated list of failure types to exclude from webhook calls,
+  # regardless of category or severity.
+  # e.g., "ErrImagePull" - transient state that kubelet retries automatically;
+  # persistent failures transition to ImagePullBackOff which is not excluded.
+  # Empty means no failure types are excluded (default behavior).
+  WEBHOOK_EXCLUDE_TYPES: ""
