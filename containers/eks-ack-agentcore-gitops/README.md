@@ -2,17 +2,8 @@
 
 Amazon EKS의 Argo CD와 ACK를 사용해 Amazon Bedrock AgentCore Runtime과 Gateway를 관리하는 실습 코드입니다. 에이전트는 EKS Pod가 아닌 AgentCore Runtime에서 실행합니다. Strands Agents SDK와 `global.anthropic.claude-sonnet-5`를 사용합니다.
 
-이 샘플은 비운영 전용 계정을 대상으로 합니다. 공식 ACK 1.15.1은 Runtime을 지원하지만 Gateway HTTP Runtime target에는 포함된 확장 패치가 필요합니다. Argo Rollouts는 PostSync AnalysisRun에 사용하며 blue/green, canary 또는 자동 rollback은 구현하지 않습니다.
+이 샘플은 비운영 전용 계정을 대상으로 합니다. 공식 ACK 1.15.1은 Runtime을 지원하지만 Gateway HTTP Runtime target에는 포함된 확장 패치가 필요합니다. Argo Rollouts는 PostSync AnalysisRun에 사용하고 있으며 ArgoRollout의 B/G나 Canary 배포를 지원하지는 않습니다.
 
-## 저장소 위치와 준비
-
-이 디렉터리는 `kr-tech-blog-sample-code/containers/eks-ack-agentcore-gitops`에 배치합니다. 원본 저장소를 자신의 GitHub 계정으로 포크하거나 같은 디렉터리 구조로 복사합니다. GitOps의 쓰기 대상은 자신이 관리하는 저장소입니다. 아래 명령은 모두 `containers/eks-ack-agentcore-gitops`에서 실행합니다. 이 아티팩트에는 README와 실습 코드만 포함하며 블로그 원고나 이미지는 포함하지 않습니다.
-
-- Node.js 24 이상, npm, AWS CLI v2, Docker Buildx, Helm, kubectl, uv, jq, GitHub CLI를 준비합니다.
-- Python 실행 버전과 라이브러리는 `agent/pyproject.toml` 및 lockfile을 따릅니다. Go 빌드는 컨테이너 안에서 실행합니다.
-- AWS 프로파일 기본값은 `default`, 리전 기본값은 `us-east-1`입니다. 모델의 사용 권한과 Global inference profile의 데이터 처리 정책을 확인합니다.
-- EKS 노드, NAT Gateway, ALB, ECR, 로그와 모델 호출에는 비용이 발생합니다.
-- `eks-ack-agentcore`라는 클러스터 및 ECR 이름을 사용하므로 기존 다른 프로젝트와 이름이 충돌하는 환경에는 실행하지 않습니다.
 
 ## 1. 인프라와 플랫폼 설치
 
@@ -150,9 +141,3 @@ CONFIRM_DESTROY=eks-ack-agentcore bash scripts/destroy.sh
 ```
 
 삭제는 프로젝트 전용 클러스터에서만 수행합니다. ACK 리소스와 ALB를 먼저 지우고 컨트롤러, CDK 스택 순서로 정리합니다. 조직 GuardDuty가 생성한 VPC endpoint는 별도 소유권 검토가 필요할 수 있습니다. ECR 이미지, 과거 로그와 Git deploy key는 보존하므로 잔여 비용과 접근 권한도 정리하세요. CDKToolkit과 다른 프로젝트 리소스는 삭제하지 않습니다.
-
-## ACK 확장 범위
-
-ACK 기준 소스는 `aws-controllers-k8s/bedrockagentcorecontrol-controller`의 v1.15.1 commit `ba36b95fc5ec9ad1e8fa306fe339d227246bf601`입니다. `patches/ack-controller`는 Gateway HTTP Runtime target의 타입과 SDK 매핑, named endpoint 업데이트 보정을 포함합니다. HTTP passthrough나 inference target 전체를 구현하지 않습니다. 빌드할 때 upstream 소스를 받아 패치와 회귀 테스트를 적용하며, 다운로드한 소스의 라이선스와 고지 파일은 유지합니다.
-
-이 샘플은 AWS 보안 승인이나 프로덕션 사용 적합성을 보증하지 않습니다.
