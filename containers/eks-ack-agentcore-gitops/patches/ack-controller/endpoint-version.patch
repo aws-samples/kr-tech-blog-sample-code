@@ -1,0 +1,77 @@
+--- a/pkg/resource/agent_runtime_endpoint/sdk.go
++++ b/pkg/resource/agent_runtime_endpoint/sdk.go
+@@ -90,6 +90,7 @@
+ 	// Merge in the information we read from the API call above to the copy of
+ 	// the original Kubernetes object we passed to the function
+ 	ko := r.ko.DeepCopy()
++	setObservedRuntimeVersion(ko, resp)
+ 
+ 	if resp.AgentRuntimeArn != nil {
+ 		ko.Status.AgentRuntimeARN = resp.AgentRuntimeArn
+@@ -349,6 +350,7 @@
+ 	delta *ackcompare.Delta,
+ ) (*svcsdk.UpdateAgentRuntimeEndpointInput, error) {
+ 	res := &svcsdk.UpdateAgentRuntimeEndpointInput{}
++	res.EndpointName = r.ko.Spec.Name
+ 
+ 	if r.ko.Spec.AgentRuntimeID != nil {
+ 		res.AgentRuntimeId = r.ko.Spec.AgentRuntimeID
+--- /dev/null
++++ b/pkg/resource/agent_runtime_endpoint/version_fix.go
+@@ -0,0 +1,14 @@
++package agent_runtime_endpoint
++
++import (
++	svcapitypes "github.com/aws-controllers-k8s/bedrockagentcorecontrol-controller/apis/v1alpha1"
++	svcsdk "github.com/aws/aws-sdk-go-v2/service/bedrockagentcorecontrol"
++)
++
++func setObservedRuntimeVersion(resource *svcapitypes.AgentRuntimeEndpoint, response *svcsdk.GetAgentRuntimeEndpointOutput) {
++	if response.TargetVersion != nil {
++		resource.Spec.AgentRuntimeVersion = response.TargetVersion
++	} else if response.LiveVersion != nil {
++		resource.Spec.AgentRuntimeVersion = response.LiveVersion
++	}
++}
+--- /dev/null
++++ b/pkg/resource/agent_runtime_endpoint/version_fix_test.go
+@@ -0,0 +1,39 @@
++package agent_runtime_endpoint
++
++import (
++	"context"
++	"testing"
++
++	svcapitypes "github.com/aws-controllers-k8s/bedrockagentcorecontrol-controller/apis/v1alpha1"
++	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
++	"github.com/aws/aws-sdk-go-v2/aws"
++	svcsdk "github.com/aws/aws-sdk-go-v2/service/bedrockagentcorecontrol"
++)
++
++func TestObservedVersionCreatesPromotionDelta(t *testing.T) {
++	desired := &resource{ko: &svcapitypes.AgentRuntimeEndpoint{Spec: svcapitypes.AgentRuntimeEndpointSpec{AgentRuntimeVersion: aws.String("2")}}}
++	observed := &resource{ko: desired.ko.DeepCopy()}
++	setObservedRuntimeVersion(observed.ko, &svcsdk.GetAgentRuntimeEndpointOutput{LiveVersion: aws.String("1")})
++	if !newResourceDelta(desired, observed).DifferentAt("Spec.AgentRuntimeVersion") {
++		t.Fatal("a live version of 1 must differ from desired version 2")
++	}
++}
++
++func TestTargetVersionWinsDuringUpdate(t *testing.T) {
++	endpoint := &svcapitypes.AgentRuntimeEndpoint{}
++	setObservedRuntimeVersion(endpoint, &svcsdk.GetAgentRuntimeEndpointOutput{LiveVersion: aws.String("1"), TargetVersion: aws.String("2")})
++	if aws.ToString(endpoint.Spec.AgentRuntimeVersion) != "2" {
++		t.Fatal("in-flight target version should be used for reconciliation")
++	}
++}
++
++func TestUpdateIncludesEndpointNameAndVersion(t *testing.T) {
++	manager := &resourceManager{}
++	endpoint := &resource{ko: &svcapitypes.AgentRuntimeEndpoint{Spec: svcapitypes.AgentRuntimeEndpointSpec{
++		AgentRuntimeID: aws.String("eks_ack_example-1234567890"), Name: aws.String("live"), AgentRuntimeVersion: aws.String("2"),
++	}}}
++	request, err := manager.newUpdateRequestPayload(context.Background(), endpoint, ackcompare.NewDelta())
++	if err != nil || aws.ToString(request.EndpointName) != "live" || aws.ToString(request.AgentRuntimeVersion) != "2" {
++		t.Fatalf("invalid update request: %+v, error: %v", request, err)
++	}
++}

@@ -1,0 +1,15 @@
+node_modules/
+cdk.out/
+.state/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+.env
+.env.*
+!.env.example
+dist/
+cdk.context.json
+*.pem
+*.key

@@ -1,0 +1,63 @@
+{{- if .Values.analysis.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gateway-check
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+metadata:
+  name: {{ .Release.Name }}-gateway-check
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  metrics:
+    - name: gateway-runtime-inference
+      count: 1
+      failureLimit: 0
+      provider:
+        job:
+          spec:
+            backoffLimit: 1
+            activeDeadlineSeconds: 660
+            template:
+              spec:
+                serviceAccountName: gateway-check
+                automountServiceAccountToken: false
+                restartPolicy: Never
+                nodeSelector:
+                  kubernetes.io/arch: arm64
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 10001
+                  seccompProfile:
+                    type: RuntimeDefault
+                containers:
+                  - name: verify
+                    image: {{ required "analysis.imageUri is required" .Values.analysis.imageUri | quote }}
+                    command: [python, /app/gateway_probe.py]
+                    args:
+                      - --gateway-name
+                      - {{ .Values.gateway.name | quote }}
+                      - --target
+                      - {{ .Values.gateway.targetName | quote }}
+                      - --runtime-id
+                      - {{ .Values.endpoint.runtimeId | quote }}
+                      - --expect-release
+                      - {{ .Values.runtime.release | quote }}
+                      - --expect-image
+                      - {{ .Values.runtime.imageUri | quote }}
+                      - --expect-build
+                      - {{ .Values.runtime.buildRevision | quote }}
+                    env:
+                      - name: AWS_REGION
+                        value: {{ .Values.runtime.region | quote }}
+                    resources:
+                      requests: {cpu: 100m, memory: 128Mi}
+                      limits: {memory: 512Mi}
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop: [ALL]
+{{- end }}

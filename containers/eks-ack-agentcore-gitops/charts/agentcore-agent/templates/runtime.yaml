@@ -1,0 +1,28 @@
+apiVersion: bedrockagentcorecontrol.services.k8s.aws/v1alpha1
+kind: AgentRuntime
+metadata:
+  name: {{ .Values.runtime.name | replace "_" "-" }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    services.k8s.aws/deletion-policy: delete
+spec:
+  agentRuntimeName: {{ .Values.runtime.name }}
+  description: Strands DevOps agent managed by EKS, Argo CD and ACK
+  roleARN: {{ required "runtime.roleArn is required" .Values.runtime.roleArn | quote }}
+  agentRuntimeArtifact:
+    containerConfiguration:
+      containerURI: {{ required "runtime.imageUri is required" .Values.runtime.imageUri | quote }}
+  networkConfiguration:
+    networkMode: PUBLIC
+  protocolConfiguration:
+    serverProtocol: HTTP
+  environmentVariables:
+    AWS_REGION: {{ .Values.runtime.region | quote }}
+    MODEL_ID: {{ .Values.runtime.modelId | quote }}
+    RELEASE_VERSION: {{ .Values.runtime.release | quote }}
+  lifecycleConfiguration:
+    idleRuntimeSessionTimeout: 300
+    maxLifetime: 3600
+  tags:
+    Project: eks-ack-agentcore
+    ManagedBy: argocd-ack
