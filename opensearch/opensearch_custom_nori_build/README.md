@@ -233,11 +233,3 @@ Homebrew 의존성은 이미 설치되어 있어 신규 설치 분기는 실측�
 | `NORI_BUILD_DIR` | 샘플 루트의 `build/` | 절대 출력 경로 |
 | `NORI_BUILD_JOBS` | `4` | 빌드 병렬 수 |
 | `GRADLE_USER_HOME` | 샘플 루트의 `.cache/gradle/` | Gradle 캐시 |
-
-## 공개 저장소에 포함하지 않는 파일
-
-`.gitignore`가 `sources/`, `.cache/`, `build/`, `dist/`, `.gradle/`, Python 캐시, JAR/ZIP 및 압축 소스를 제외합니다. 업스트림 코드는 다운로드 스크립트로 재현하며 이 폴더의 소스로 복제하지 않습니다. 학습 노트북, 모델 가중치, 고객 데이터, AWS 계정 정보도 포함하지 않습니다.
-
-## 라이선스
-
-이 샘플 코드는 저장소의 MIT-0 라이선스를 따릅니다. 다운로드한 OpenSearch, Lucene 및 MeCab-Ko 소스와 사전은 각각의 라이선스를 따릅니다. 최종 ZIP에는 포함한 Lucene 및 사전의 LICENSE/NOTICE와 샘플 라이선스를 함께 넣습니다.
