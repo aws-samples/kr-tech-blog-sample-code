@@ -1,0 +1,25 @@
+version: 0.2
+
+env:
+  variables:
+    ECR_REPO: sample-app
+    AWS_ACCOUNT_ID: "<YOUR_AWS_ACCOUNT_ID>"
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - IMAGE_TAG=$(date +%Y%m%d%H%M%S)
+      - FULL_IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+      - echo "Building image $FULL_IMAGE"
+      - ls -la && ls -la sample-app/ || true
+  build:
+    commands:
+      - echo Building Docker image...
+      - cd sample-app && docker build -t $FULL_IMAGE .
+  post_build:
+    commands:
+      - echo Pushing to ECR...
+      - docker push $FULL_IMAGE
+      - echo "Image pushed successfully - $FULL_IMAGE"
