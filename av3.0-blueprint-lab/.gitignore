@@ -1,0 +1,49 @@
+# ── Python ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+infra/.venv/
+venv/
+env/
+
+# ── Node / frontend ────────────────────────────────────
+node_modules/
+web/*/node_modules/
+web/*/dist/
+dist/
+build/
+*.tsbuildinfo
+
+# ── AWS CDK ────────────────────────────────────────────
+cdk.out/
+infra/cdk.out/
+cdk.context.json
+infra/cdk.context.json
+*.cdk.staging/
+
+# ── Secrets / local config (NEVER commit) ──────────────
+.env
+.env.*
+*.pem
+*.key
+# HF/NGC tokens, AWS creds — keep out even by accident
+*_token.txt
+*credentials*
+
+# ── Build / run artifacts ──────────────────────────────
+build.log
+*.log
+*.tar.gz
+# ...but DO ship the curated executed-notebook example bundle:
+!examples/notebooks-with-outputs.tar.gz
+
+# ── OS / editor cruft ──────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ── Repo-prep staging (not part of the public tree) ────
+_docs_src/

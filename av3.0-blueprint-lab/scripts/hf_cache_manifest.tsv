@@ -1,0 +1,184 @@
+# hf_cache_manifest.tsv — the exact HuggingFace repos, revisions and files that
+# make up s3://<shared>/hf-cache/hub/, the offline cache M5/M6/M9 read.
+#
+# GENERATED, NOT HAND-WRITTEN, and that distinction is load-bearing: this file was
+# produced by listing a known-good seeded tree (us-west-2, 2026-09-26). A hand-typed
+# list would have missed that nvidia/Cosmos-Predict2.5-2B is pinned at TWO different
+# revisions — f176dc95 for tokenizer.pth and 15a82a2e for the post-trained EMA — because
+# cosmos's checkpoint_db.py registers them separately. It would also have omitted the
+# Qwen and google/siglip repos, which are transitive dependencies no NVIDIA doc lists.
+#
+# Revisions are PINNED SHAs, not 'main', because that is what checkpoint_db.py requests
+# and an offline lookup of a different revision is a cache MISS. Four of these repos have
+# no refs/main at all, so asking for 'main' fails even on a byte-perfect cache.
+#
+# Regenerate after the upstream pins move:
+#   aws s3 ls s3://<shared>/hf-cache/hub/ --recursive | scripts/cache_hf_tree.sh --regenerate
+#
+# Format: <repo>\t<revision>\t<file>
+# 164 files, 12 (repo, revision) pairs, 61.17 GiB of snapshot payload.
+
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	chat_template.json
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	merges.txt
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	preprocessor_config.json
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	tokenizer.json
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	tokenizer_config.json
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	video_preprocessor_config.json
+Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	vocab.json
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	chat_template.json
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	merges.txt
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	preprocessor_config.json
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	tokenizer.json
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	tokenizer_config.json
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	video_preprocessor_config.json
+Qwen/Qwen3-VL-8B-Instruct	0c351dd01ed87e9c1b53cbc748cba10e6187ff3b	vocab.json
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	config.json
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	generation_config.json
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	merges.txt
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	model.safetensors
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	tokenizer.json
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	tokenizer_config.json
+Qwen/Qwen3Guard-Gen-0.6B	fada3b2f655b89601929198343c94cd2f64d93cc	vocab.json
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	config.json
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	model.safetensors
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	preprocessor_config.json
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	special_tokens_map.json
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	spiece.model
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	tokenizer.json
+google/siglip-so400m-patch14-384	9fdffc58afc957d1a03a25b10dba0329ab15c2a3	tokenizer_config.json
+google/siglip2-so400m-patch16-naflex	cc24074f717b612951c2dead130904ab9b65a81e	config.json
+google/siglip2-so400m-patch16-naflex	cc24074f717b612951c2dead130904ab9b65a81e	model.safetensors
+google/siglip2-so400m-patch16-naflex	cc24074f717b612951c2dead130904ab9b65a81e	preprocessor_config.json
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	config.json
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	model-00001-of-00005.safetensors
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	model-00002-of-00005.safetensors
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	model-00003-of-00005.safetensors
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	model-00004-of-00005.safetensors
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	model-00005-of-00005.safetensors
+nvidia/Alpamayo-1.5-10B	bf580713f08656674827cd6e09888c79cf65fbf2	model.safetensors.index.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	.gitattributes
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	README.md
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/custom/blocklist
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/exact_match/blocked
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/corpora/wordnet.zip
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab.zip
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/README
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/czech/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/czech/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/czech/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/czech/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/danish/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/danish/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/danish/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/danish/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/dutch/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/dutch/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/dutch/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/dutch/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/english/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/english/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/english/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/english/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/estonian/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/estonian/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/estonian/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/estonian/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/finnish/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/finnish/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/finnish/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/finnish/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/french/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/french/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/french/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/french/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/german/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/german/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/german/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/german/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/greek/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/greek/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/greek/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/greek/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/italian/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/italian/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/italian/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/italian/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/norwegian/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/norwegian/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/norwegian/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/norwegian/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/polish/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/polish/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/polish/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/polish/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/portuguese/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/portuguese/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/portuguese/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/portuguese/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/russian/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/russian/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/russian/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/russian/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/slovene/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/slovene/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/slovene/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/slovene/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/spanish/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/spanish/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/spanish/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/spanish/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/swedish/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/swedish/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/swedish/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/swedish/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/turkish/abbrev_types.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/turkish/collocations.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/turkish/ortho_context.tab
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/nltk_data/tokenizers/punkt_tab/turkish/sent_starters.txt
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	blocklist/whitelist/whitelisted
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	face_blur_filter/Resnet50_Final.pth
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/.no_exist/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/adapter_config.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/.no_exist/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/added_tokens.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/.no_exist/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/chat_template.jinja
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/.no_exist/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/chat_template.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/.no_exist/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/processor_config.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/051261b5a784a2e7e5f93de1f86d170d69a9efd9
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/1e5036bed065526c3c212dfbe288752391797c4bb1a284aa18c9a0b23fcaf8ec
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/6555f2261d409dea394d6b6973129a53b8725803
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/6d6fd0bd6cc263099dc98e4fa383f90c9baa3521
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/70741c5c1f6d21423ebf51ee77ef2fce868c33f2
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/a513b447f6b05f640f9980d25f4d8a5cff6cd25d
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/blobs/ea2abad2b7f8a9c1aa5e49a244d5d57ffa71c56f720c94bc5d240ef4d6e1d94a
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/refs/main
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/config.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/model.safetensors
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/preprocessor_config.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/special_tokens_map.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/spiece.model
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/tokenizer.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/models--google--siglip-so400m-patch14-384/snapshots/9fdffc58afc957d1a03a25b10dba0329ab15c2a3/tokenizer_config.json
+nvidia/Cosmos-Guardrail1	d6d4bfa899a71454a700907664f3e88f503950cf	video_content_safety_filter/safety_filter.pt
+nvidia/Cosmos-Predict2.5-2B	15a82a2ec231bc318692aa0456a36537c806e7d4	base/post-trained/81edfebe-bd6a-4039-8c1d-737df1a790bf_ema_bf16.pt
+nvidia/Cosmos-Predict2.5-2B	f176dc95b4a70f53ce01c4b302851595e7322b00	tokenizer.pth
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	.gitattributes
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	README.md
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	chat_template.json
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	config.json
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	generation_config.json
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	model-00001-of-00004.safetensors
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	model-00002-of-00004.safetensors
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	model-00003-of-00004.safetensors
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	model-00004-of-00004.safetensors
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	model.safetensors.index.json
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	preprocessor_config.json
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	tokenizer.json
+nvidia/Cosmos-Reason1-7B	3210bec0495fdc7a8d3dbb8d58da5711eab4b423	tokenizer_config.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	chat_template.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	config.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	merges.txt
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	preprocessor_config.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	tokenizer.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	tokenizer_config.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	video_preprocessor_config.json
+nvidia/Cosmos-Reason2-8B	a9fae2cf89dc64db96b12860417f0eb403013bb9	vocab.json
+nvidia/Cosmos-Transfer2.5-2B	b67b64abda3801a9aceddbff2bdb86126c06db74	general/edge/61f5694b-0ad5-4ecd-8ad7-c8545627d125_ema_bf16.pt

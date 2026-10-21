@@ -1,0 +1,57 @@
+AV 3.0 Blueprint Lab
+====================
+
+The **workshop code** in this repository — the AWS CDK infrastructure, Lambda
+functions, Jupyter notebooks, React dashboards, and shell/Python scripts — is
+released under the MIT No Attribution license (MIT-0). See the LICENSE file.
+
+However, this repository is a workshop that *orchestrates* third-party models,
+datasets, and software that are **NOT** covered by the MIT-0 license above and
+are **NOT redistributed** by this repository. When you run the notebooks you
+download those artifacts yourself (with your own credentials and license
+acceptances), and each remains governed by its own license. You are responsible
+for reviewing and complying with every applicable license before use.
+
+The most important constraints to be aware of:
+
+--------------------------------------------------------------------------------
+NVIDIA models (downloaded from Hugging Face — admin accepts the license once)
+--------------------------------------------------------------------------------
+
+  * nvidia/Alpamayo-1.5-10B                (used by modules M9, M10)
+        ==> **NON-COMMERCIAL** license — research / evaluation only.
+            Commercial use requires a separate agreement with NVIDIA.
+  * nvidia/Cosmos-Reason1-7B               (M2, M5, M6, M8)  — NVIDIA Open Model License
+  * nvidia/Cosmos-Guardrail1               (M5, M6)      — NVIDIA Open Model License
+  * nvidia/Cosmos-Transfer2.5-2B           (M5)          — NVIDIA Open Model License
+  * nvidia/Cosmos-Predict2.5-2B            (M6)          — NVIDIA Open Model License
+  * nvidia/Cosmos-Reason2-8B               (M9, M10)      — NVIDIA Open Model License
+
+--------------------------------------------------------------------------------
+Datasets
+--------------------------------------------------------------------------------
+
+  * nuScenes-mini (Motional)               (M1, M3, M7)
+        Pulled from the public AWS Open Data mirror. Subject to the nuScenes
+        Terms of Use (non-commercial; see https://www.nuscenes.org/terms-of-use).
+  * nvidia/PhysicalAI-Autonomous-Vehicles  (M9 demo clip / dataset) — NVIDIA license
+  * nvidia/PhysicalAI-Autonomous-Vehicles-NuRec  (M10 AlpaSim eval scenes)
+        NVIDIA AV NuRec Dataset License. Downloaded at runtime; the account whose
+        Hugging Face token is used must have accepted this dataset license.
+
+--------------------------------------------------------------------------------
+Third-party software the notebooks build / run
+--------------------------------------------------------------------------------
+
+  * AlpaSim  (NVlabs/alpasim)              (M10)  — Apache-2.0
+  * NuRec renderer image  nvcr.io/nvidia/nre/nre-ga  (M10)
+        Pulled from NVIDIA NGC; subject to the NGC / NVIDIA container license.
+  * NeMo Curator (M3), Nerfstudio + gsplat (M7), and other pip/uv-installed
+        packages retain their respective upstream licenses.
+
+--------------------------------------------------------------------------------
+
+Nothing in this repository grants you rights to any of the above third-party
+material. Accepting the relevant Hugging Face / NGC / dataset licenses, and
+complying with them (including the non-commercial restrictions on Alpamayo-1.5-10B
+and nuScenes), is your responsibility as the operator of the workshop.

@@ -1,0 +1,1 @@
+{"apiBaseUrl":"https://<api-gateway-id>.execute-api.<region>.amazonaws.com/prod/","cognitoPoolId":"<region>_<cognito-pool-id>","cognitoClientId":"<cognito-client-id>","region":"<region>","cognitoDomain":"https://av30lab-admin.auth.<region>.amazoncognito.com","cognitoRedirectUri":"https://<admin-cloudfront-domain>","userDashboardUrl":"https://<user-cloudfront-domain>"}
