@@ -188,14 +188,35 @@ if [ -n "${OWNER_TAG:-}" ]; then
     CDK_CONTEXT+=(--context owner_tag="$OWNER_TAG")
 fi
 
-# 2. Cognito hosted-UI domain. The prefix is unique per REGION (not globally), so a second
-#    region needs no rename — but if a domain with this prefix already exists in THIS region
-#    and the stack does not own it, declaring it fails the create. Conversely, setting the
-#    flag when no domain exists yields a user pool with NO sign-in endpoint.
+# 2. Cognito hosted-UI domain. The prefix is unique per REGION across ALL AWS accounts, so a
+#    second region needs no rename — but if a domain with this prefix already exists in THIS
+#    region and the stack does not own it, declaring it fails the create. Conversely, setting
+#    the flag when no domain exists yields a user pool with NO sign-in endpoint.
 UI_PREFIX="${HOSTED_UI_PREFIX:-$UI_PREFIX_DEFAULT}"
 [ -n "${HOSTED_UI_PREFIX:-}" ] && CDK_CONTEXT+=(--context hosted_ui_prefix="$HOSTED_UI_PREFIX")
-UI_DOMAIN_POOL=$(aws cognito-idp describe-user-pool-domain --domain "$UI_PREFIX" \
-    --region "$REGION" --output json 2>/dev/null | jq -r '.DomainDescription.UserPoolId // empty')
+# DescribeUserPoolDomain answers three ways (docs/en/ADDING_A_REGION.md §3): a populated
+# DomainDescription (ours), an EMPTY one (free), or ResourceNotFoundException — "does not
+# exist in this account" — meaning ANOTHER account owns the prefix in this region. That last
+# case used to exit 254 here with no message (set -e + pipefail), or, with the error
+# swallowed, fail ~10 min into the CloudFormation create with "AlreadyExists" and a rollback
+# that orphans the KMS key. The default 'av30lab-admin' is taken in us-west-2 and
+# ap-northeast-2 by the reference deployment, so this is every first deploy elsewhere.
+UI_DOMAIN_JSON=$(aws cognito-idp describe-user-pool-domain --domain "$UI_PREFIX" \
+    --region "$REGION" --output json 2>&1) || {
+    if echo "$UI_DOMAIN_JSON" | grep -q ResourceNotFoundException; then
+        echo "REFUSING: the Cognito hosted-UI prefix '$UI_PREFIX' is already taken in $REGION" >&2
+        echo "          by ANOTHER AWS account (prefixes are unique per region across all" >&2
+        echo "          accounts), so the stack cannot create its sign-in domain there." >&2
+        echo "          Pick a prefix of your own, e.g.:" >&2
+        echo "            HOSTED_UI_PREFIX=av30lab-$ACCOUNT_ID $0 --region $REGION" >&2
+        echo "          and pass the same value on every later deploy of this stack." >&2
+    else
+        echo "ERROR: describe-user-pool-domain failed for '$UI_PREFIX' in $REGION:" >&2
+        echo "$UI_DOMAIN_JSON" >&2
+    fi
+    exit 1
+}
+UI_DOMAIN_POOL=$(echo "$UI_DOMAIN_JSON" | jq -r '.DomainDescription.UserPoolId // empty')
 # list-stack-resources, NOT describe-stack-resources: the latter caps at 100 resources with
 # no pagination and this stack has 176, so it reported "0 UserPoolDomain" for a region that
 # demonstrably manages one. Counting non-empty lines sums across pages.
