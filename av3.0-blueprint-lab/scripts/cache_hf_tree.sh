@@ -218,6 +218,17 @@ if [ "$FAIL" -gt 0 ]; then
     exit 1
 fi
 
+# `hf download --revision <sha>` writes no refs/main, but loaders that pass no revision
+# (Alpamayo1_5.from_pretrained, the Reason2 backbone it pulls) resolve 'main' through that
+# file — offline, a missing ref is a cache MISS on a byte-perfect snapshot. Point main at
+# the pin for every repo pinned at exactly ONE revision; a multi-revision repo
+# (Cosmos-Predict2.5-2B) is only ever looked up by sha, so it gets no main.
+while IFS=$'\t' read -r repo sha; do
+    d="$SCRATCH/hub/models--${repo//\//--}/refs"
+    mkdir -p "$d" && printf '%s' "$sha" > "$d/main"
+done < <(awk -F'\t' '!/^#/ && NF==3 {print $1"\t"$2}' "$MANIFEST" | sort -u \
+         | awk -F'\t' '{n[$1]++; s[$1]=$2} END {for (r in n) if (n[r]==1) print r"\t"s[r]}')
+
 echo ""
 echo "=== Uploading $SCRATCH/hub -> $DEST ==="
 if ! aws s3 sync "$SCRATCH/hub" "$DEST" --region "$REGION" --only-show-errors; then
