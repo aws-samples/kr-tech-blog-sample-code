@@ -39,6 +39,25 @@ but the open question has moved. It is no longer "does it train" — it is "why 
 render exit 1 and write nothing", and separately "why does a module that produced no
 renders report itself complete".
 
+> **Update (2026-10-28) — render root cause found and fixed.** Re-running cell 7's
+> `ns-render interpolate` by hand on `ml.g6.24xlarge` (4x L4) printed the stderr the cell
+> truncates:
+>
+> ```
+> _pickle.UnpicklingError: Weights only load failed. ...
+> WeightsUnpickler error: Unsupported global: GLOBAL numpy.core.multiarray.scalar
+> ```
+>
+> nerfstudio 1.1.5's `eval_load_checkpoint` calls `torch.load()` without `weights_only`,
+> and PyTorch 2.6 flipped that default to `True`; the SMD image ships torch 2.8. The
+> checkpoint holds numpy scalars, so the load is refused before a single frame renders —
+> on any GPU, which is why the A10G run failed the same way. Cell 7 now runs `ns-render`
+> with `TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1` (scoped to that subprocess; the checkpoint is
+> the one cell 5 just wrote). Measured after the fix: **260 frames in 19.5 s**, 262 files
+> uploaded to `m7/`, and cell 10 marked the module complete. The completion cell already
+> refuses to mark M7 complete on a 0-frame render, so the second question above is settled
+> too. Section 2 below is kept for the record.
+
 ---
 
 ## 2. What is left to settle — the render, not the training
