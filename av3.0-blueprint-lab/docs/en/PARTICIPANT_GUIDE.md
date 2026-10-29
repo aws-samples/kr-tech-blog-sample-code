@@ -247,9 +247,11 @@ EC2InsufficientCapacityError: Instance type 'ml.g5.12xlarge' is temporarily unav
 ```
 
 Fix: open **Instance Options** again and pick the **`ml.g6.12xlarge`**
-alternative (4× NVIDIA L40S, 192 GB — a newer generation with more availability).
-It comfortably meets M2 and M3's requirements (the only two `ml.g5.12xlarge`
-modules). Apply & Restart, then continue.
+alternative (4× NVIDIA L4, 24 GB each / 96 GB total — the same per-GPU VRAM as the
+A10G in `ml.g5.12xlarge`). It meets the requirements of every module that defaults to
+`ml.g5.12xlarge` (M2, M3, M5, M6, M8, M9 — all measured passing on 4× L4). If it is out
+of capacity too, the larger 4× / 8× 24 GB types further down the list work the same way.
+Apply & Restart, then continue.
 
 The panel's alternative list already offers the right fallbacks for each module,
 so just choose the next one down.

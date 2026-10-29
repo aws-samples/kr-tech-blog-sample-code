@@ -104,7 +104,7 @@ tar xzf notebooks-with-outputs.tar.gz
 | AWS CLI | v2.x | 設定済みであること（`aws sts get-caller-identity`） |
 | Node.js | 18+ | CDK CLI + フロントエンドビルド |
 | Python | 3.12+ | CDK インフラストラクチャコード |
-| AWS CDK | 2.x | `npm install -g aws-cdk` |
+| AWS CDK CLI | 最新の 2.x | `npm install -g aws-cdk@latest`。`infra/requirements.txt` は `aws-cdk-lib` を固定しないため新しい venv には最新ライブラリが入り、それより古い CLI は `cdk bootstrap`/`deploy` で *Cloud assembly schema version mismatch* により中断します。 |
 | jq | — | デプロイスクリプト内での JSON パース |
 | Hugging Face トークン | — | **管理者のみ** — ゲート付きモデル（M2/M5/M6/M9）を事前キャッシュし、M10 のリファレンス評価を実行します。**参加者に HF トークンは不要です。** [docs/ja/PREREQUISITES.md](PREREQUISITES.md) を参照してください。 |
 | NGC API キー | — | **管理者のみ、M10 のみ** — AlpaSim NuRec レンダラーイメージ用。 |
@@ -139,6 +139,10 @@ export AWS_REGION="$REGION"                   # 下のシーディングスク�
 export HF_TOKEN="hf_..."                      # 管理者の Hugging Face 読み取りトークン
 # 任意だが推奨: 管理者ダッシュボードへのアクセスを自分の IP/CIDR に制限する
 export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # デフォルト 0.0.0.0/0 = WAF は全開放
+# Cognito ホスト UI プレフィックス: リージョン内で全アカウントを通じて一意で、既定の
+# "av30lab-admin" は us-west-2 / ap-northeast-2 で既に使用中です。独自の値を使い、
+# このスタックを以後デプロイする際も同じ値を export してください。
+export HOSTED_UI_PREFIX="av30lab-$(aws sts get-caller-identity --query Account --output text)"
 
 # 2b. Hugging Face 上でゲート付きモデル/データセットのライセンスに同意する（ステップ 6 の前に）。
 #     huggingface.co にログインし、各ゲート付きリポジトリで "Agree and access repository" を

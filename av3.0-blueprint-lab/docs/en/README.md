@@ -142,7 +142,7 @@ at the top of the page to change language):
 | AWS CLI | v2.x | Configured (`aws sts get-caller-identity`) |
 | Node.js | 18+ | CDK CLI + frontend builds |
 | Python | 3.12+ | CDK infrastructure code |
-| AWS CDK | 2.x | `npm install -g aws-cdk` |
+| AWS CDK CLI | latest 2.x | `npm install -g aws-cdk@latest`. `infra/requirements.txt` floats `aws-cdk-lib`, so a fresh venv gets the newest library; an older CLI aborts `cdk bootstrap`/`deploy` with *Cloud assembly schema version mismatch*. |
 | jq | — | JSON parsing in deploy scripts |
 | Hugging Face token | — | **Admin-only** — pre-caches gated models (M2/M5/M6/M9) and runs the M10 reference eval. **Participants need NO HF token.** See [PREREQUISITES.md](PREREQUISITES.md). |
 | NGC API key | — | **Admin-only, M10 only** — the AlpaSim NuRec renderer image. |
@@ -186,6 +186,10 @@ export AWS_REGION="$REGION"                   # used by the seeding scripts belo
 export HF_TOKEN="hf_..."                      # admin Hugging Face read token
 # Optional but recommended: restrict admin-dashboard access to your IP/CIDR
 export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # default 0.0.0.0/0 = WAF open
+# Cognito hosted-UI prefix: unique per region across ALL accounts, and the default
+# "av30lab-admin" is already taken in us-west-2 / ap-northeast-2. Use your own, and
+# keep exporting the same value on every later deploy of this stack.
+export HOSTED_UI_PREFIX="av30lab-$(aws sts get-caller-identity --query Account --output text)"
 
 # 2b. Accept gated model/dataset licenses on Hugging Face (before Step 6).
 #     Log in to huggingface.co and click "Agree and access repository" on each

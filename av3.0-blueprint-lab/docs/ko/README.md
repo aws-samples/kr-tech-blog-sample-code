@@ -139,7 +139,7 @@ VALIDATE 다섯 개 단계 열로 배치하고, 각 모듈을 Completed / In Pro
 | AWS CLI | v2.x | 구성 완료(`aws sts get-caller-identity`) |
 | Node.js | 18+ | CDK CLI + 프런트엔드 빌드 |
 | Python | 3.12+ | CDK 인프라 코드 |
-| AWS CDK | 2.x | `npm install -g aws-cdk` |
+| AWS CDK CLI | 최신 2.x | `npm install -g aws-cdk@latest`. `infra/requirements.txt`가 `aws-cdk-lib` 버전을 고정하지 않아 새 venv에는 최신 라이브러리가 설치되며, 그보다 오래된 CLI는 `cdk bootstrap`/`deploy`에서 *Cloud assembly schema version mismatch*로 중단됩니다. |
 | jq | — | 배포 스크립트의 JSON 파싱 |
 | Hugging Face 토큰 | — | **관리자 전용** — 게이트된 모델(M2/M5/M6/M9)을 사전 캐싱하고 M10 레퍼런스 평가를 실행합니다. **참가자에게는 HF 토큰이 필요 없습니다.** [docs/ko/PREREQUISITES.md](PREREQUISITES.md)를 참고하세요. |
 | NGC API 키 | — | **관리자 전용, M10 전용** — AlpaSim NuRec 렌더러 이미지용. |
@@ -177,6 +177,10 @@ export AWS_REGION="$REGION"                   # 아래 시딩 스크립트가 �
 export HF_TOKEN="hf_..."                      # 관리자 Hugging Face 읽기 토큰
 # 선택 사항이지만 권장: 관리자 대시보드 접근을 특정 IP/CIDR로 제한
 export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # 기본값 0.0.0.0/0 = WAF 개방
+# Cognito 호스티드 UI 접두사: 리전 안에서 모든 계정을 통틀어 고유하며, 기본값
+# "av30lab-admin"은 us-west-2 / ap-northeast-2에서 이미 사용 중입니다. 자신만의 값을 쓰고,
+# 이 스택을 이후에 다시 배포할 때도 같은 값을 export하세요.
+export HOSTED_UI_PREFIX="av30lab-$(aws sts get-caller-identity --query Account --output text)"
 
 # 2b. Hugging Face에서 게이트된 모델/데이터셋 라이선스에 동의(6단계 전에).
 #     huggingface.co에 로그인하여 각 게이트된 리포지토리에서 "Agree and access repository"를

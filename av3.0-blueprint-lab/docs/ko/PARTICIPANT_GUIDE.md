@@ -246,9 +246,10 @@ EC2InsufficientCapacityError: Instance type 'ml.g5.12xlarge' is temporarily unav
 ```
 
 해결 방법: **Instance Options**를 다시 열고 대체 인스턴스인 <strong>`ml.g6.12xlarge`</strong>를
-선택하세요(4× NVIDIA L40S, 192 GB — 가용성이 더 높은 최신 세대). 이는 M2와 M3의
-요구 사항을 충분히 충족합니다(`ml.g5.12xlarge`를 사용하는 유일한 두 모듈).
-Apply & Restart한 후 계속 진행하세요.
+선택하세요(4× NVIDIA L4, GPU당 24 GB / 합계 96 GB — `ml.g5.12xlarge`의 A10G와 GPU당 VRAM이
+같습니다). `ml.g5.12xlarge`가 기본값인 모든 모듈(M2, M3, M5, M6, M8, M9 — 4× L4에서 모두
+통과를 측정)의 요구 사항을 충족합니다. 이것마저 용량이 없으면 목록 아래쪽의 더 큰 4× / 8×
+24 GB 타입도 같은 방식으로 동작합니다. Apply & Restart한 후 계속 진행하세요.
 
 패널의 대체 목록에는 이미 각 모듈에 적합한 대체 인스턴스가 제공되므로, 바로 다음
 항목을 선택하기만 하면 됩니다.

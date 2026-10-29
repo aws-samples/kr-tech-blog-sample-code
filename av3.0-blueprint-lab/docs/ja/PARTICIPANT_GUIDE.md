@@ -248,9 +248,11 @@ S3 にアップロードされたものは何も影響を受けません。
 EC2InsufficientCapacityError: Instance type 'ml.g5.12xlarge' is temporarily unavailable ...
 ```
 
-修正：**Instance Options** をもう一度開き、**`ml.g6.12xlarge`** の代替（4× NVIDIA L40S、
-192 GB — 可用性の高い新世代）を選びます。M2 と M3 の要件（`ml.g5.12xlarge` を使う唯一の 2 つの
-モジュール）を余裕を持って満たします。Apply & Restart してから続行します。
+修正：**Instance Options** をもう一度開き、**`ml.g6.12xlarge`** の代替（4× NVIDIA L4、
+GPU あたり 24 GB / 合計 96 GB — `ml.g5.12xlarge` の A10G と GPU あたりの VRAM が同じ）を選びます。
+`ml.g5.12xlarge` が既定のすべてのモジュール（M2、M3、M5、M6、M8、M9 — 4× L4 で全て通過を実測）の
+要件を満たします。これも容量不足なら、リストの下にあるより大きな 4× / 8× 24 GB タイプも同様に動作します。
+Apply & Restart してから続行します。
 
 パネルの代替リストには、各モジュールに適したフォールバックがすでに用意されているので、
 1 つ下のものを選ぶだけです。
