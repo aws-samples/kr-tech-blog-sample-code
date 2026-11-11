@@ -19,8 +19,8 @@ SageMaker Python SDK **v2**입니다. 그것의 문제는 M12가 겪은 것과 �
 | Step1이 `INPUT_DIR/*.jpg`를 glob했지만, M1은 `m1/`에 JSON만 씀 → 캡션 0개 | Step1이 M1의 `selected_scenes.json`(실제 장면 이름 + 설명)을 읽음 → 근거 있는 캡션 |
 | 3개 단계가 `ml.g5.12xlarge`/`g5.xlarge`(GPU)를 요청함 — 여기서 처리 할당량은 0 | CPU `ml.m5.xlarge`(처리 할당량 이용 가능); 스크립트가 순수 Python이라 GPU가 아무것도 추가하지 않음 |
 | GPU `pytorch-training` 이미지 | `image_uris.retrieve("sklearn", …)`를 통한 CPU sklearn 컨테이너 — **`image_scope` 없음**(sklearn에는 `processing` 스코프가 없음; 전달하면 `ValueError: Unsupported image scope` 발생) |
-| 실행 역할에 `CreatePipeline`/`StartPipelineExecution`/`CreateProcessingJob`이 없었음 | CDK 실행 역할에 `SageMakerPipelines`(pipeline/av30-*) + `SageMakerProcessingJobs`(processing-job/*)를 추가함 |
-| SDK 업로드(단계 코드, 파이프라인 정의)가 기본적으로 `sagemaker-<region>-<account>` 루트로 감 — 역할의 `users/*` 쓰기 범위 밖 → AccessDenied | `Session`/`PipelineSession(default_bucket=USER_BUCKET, default_bucket_prefix=users/<profile>/m11)` |
+| 실행 역할에 `CreatePipeline`/`StartPipelineExecution`/`CreateProcessingJob`이 없었음 | CDK 실행 역할에 `SageMakerPipelines`(현재는 호출자 자신의 `pipeline/av30-data-pipeline-<profile>`만) + `SageMakerProcessingJobs`(processing-job/*)를 추가함 |
+| SDK 업로드(단계 코드, 파이프라인 정의)가 기본적으로 `sagemaker-<region>-<account>` 루트로 감 — 역할의 쓰기 범위(`users/<your-profile>/`만) 밖 → AccessDenied | `Session`/`PipelineSession(default_bucket=USER_BUCKET, default_bucket_prefix=users/<profile>/m11)` |
 | 비용 셀이 GPU 요율을 하드코딩함 | `execution.list_steps()`에서 실제 단계별 소요 시간 + CPU 요율; GPU는 개념적 프로덕션으로 표시됨 |
 
 ## 왜 CPU인가(그리고 왜 그것이 올바른 선택인가)
@@ -51,7 +51,11 @@ construction, intersection, turn left, following...")을 가집니다. 캡션은
 
 `infra/av30_constructs/sagemaker.py`에서, SageMaker 실행 역할에 추가됨:
 - `SageMakerPipelines` — `CreatePipeline`/`UpdatePipeline`/`StartPipelineExecution`/
-  `Describe*`/`ListPipelineExecutionSteps`/…, `pipeline/av30-*`로 범위 지정됨.
+  `Describe*`/`ListPipelineExecutionSteps`/…, 호출자 자신의 파이프라인과 그 실행으로 범위
+  지정됨: `pipeline/av30-data-pipeline-${aws:SourceIdentity}`(+ `/*`). source identity는
+  사용자 프로필 이름이므로 참가자가 만들고, 고치고, 실행할 수 있는 이름은 노트북의
+  `PIPELINE_NAME = av30-data-pipeline-<profile>` 하나뿐이며, 다른 참가자의 파이프라인을
+  덮어쓸 수 없습니다.
 - `SageMakerProcessingJobs` — `processing-job/*`에서
   `CreateProcessingJob`/`DescribeProcessingJob`/`StopProcessingJob`/`AddTags`(SDK가
   처리 작업 이름을 자동 생성하므로, 리소스를 프리픽스로 범위 지정할 수 없음).

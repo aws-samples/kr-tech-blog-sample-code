@@ -327,6 +327,74 @@ if [ -n "${ACCOUNT_BUDGET:-}" ]; then
     [ -n "${ACCOUNT_BUDGET_LIMIT:-}" ] \
         && CDK_CONTEXT+=(--context account_budget_limit="$ACCOUNT_BUDGET_LIMIT")
 fi
+
+# 3. Studio domain source-identity switch. The stack sets the domain's
+#    DomainSettings.ExecutionRoleIdentityConfig to USER_PROFILE_NAME, which the per-user
+#    S3 scope (users/${aws:SourceIdentity}/) depends on. SageMaker accepts that change only
+#    while no app in the domain is running, so on a stack that predates it, a deploy with
+#    apps up fails at the domain update and rolls back mid-workshop. Check the live domain
+#    and REFUSE first. Every lookup here fails CLOSED: an error that is not "the stack does
+#    not exist" stops the deploy, because a guard that passes on a failed call is no guard.
+SM_GUARD_ERR=$(mktemp)
+if SM_DOMAIN_RES=$(aws cloudformation list-stack-resources --stack-name "$STACK_NAME" \
+        --region "$REGION" \
+        --query "StackResourceSummaries[?ResourceType=='AWS::SageMaker::Domain' && ResourceStatus!='DELETE_COMPLETE'].PhysicalResourceId" \
+        --output text 2>"$SM_GUARD_ERR"); then
+    SM_DOMAIN_ID=$(printf '%s' "$SM_DOMAIN_RES" | tr '\t' '\n' | grep '^d-' | head -1 || true)
+elif grep -q 'does not exist' "$SM_GUARD_ERR"; then
+    SM_DOMAIN_ID=""   # first deploy: the domain is created with the setting already on
+else
+    echo "REFUSING: could not list the resources of stack $STACK_NAME in $REGION, so the" >&2
+    echo "          Studio domain's source-identity setting cannot be checked:" >&2
+    cat "$SM_GUARD_ERR" >&2
+    rm -f "$SM_GUARD_ERR"
+    exit 1
+fi
+if [ -n "$SM_DOMAIN_ID" ]; then
+    SM_DOMAIN_JSON=$(aws sagemaker describe-domain --domain-id "$SM_DOMAIN_ID" \
+        --region "$REGION" --output json 2>"$SM_GUARD_ERR") || {
+        echo "REFUSING: describe-domain failed for $SM_DOMAIN_ID in $REGION:" >&2
+        cat "$SM_GUARD_ERR" >&2
+        rm -f "$SM_GUARD_ERR"
+        exit 1
+    }
+    SM_IDENTITY_NOW=$(printf '%s' "$SM_DOMAIN_JSON" \
+        | jq -r '.DomainSettings.ExecutionRoleIdentityConfig // "DISABLED"')
+    if [ "$SM_IDENTITY_NOW" != "USER_PROFILE_NAME" ]; then
+        SM_APPS_JSON=$(aws sagemaker list-apps --domain-id-equals "$SM_DOMAIN_ID" \
+            --region "$REGION" --output json 2>"$SM_GUARD_ERR") || {
+            echo "REFUSING: list-apps failed for domain $SM_DOMAIN_ID in $REGION, so it" >&2
+            echo "          cannot be confirmed that every app is stopped:" >&2
+            cat "$SM_GUARD_ERR" >&2
+            rm -f "$SM_GUARD_ERR"
+            exit 1
+        }
+        # One ready-to-run stop command per app that is not Deleted/Failed (Deleting counts
+        # as running here: wait for it). Printed, never executed.
+        SM_LIVE_APPS=$(printf '%s' "$SM_APPS_JSON" | jq -r --arg d "$SM_DOMAIN_ID" \
+            --arg r "$REGION" '.Apps[]
+            | select(.Status != "Deleted" and .Status != "Failed")
+            | "  [\(.Status)] aws sagemaker delete-app --domain-id \($d) "
+              + (if .SpaceName then "--space-name \(.SpaceName)"
+                 else "--user-profile-name \(.UserProfileName)" end)
+              + " --app-type \(.AppType) --app-name \(.AppName) --region \($r)"')
+        if [ -n "$SM_LIVE_APPS" ]; then
+            echo "REFUSING: this deploy switches Studio domain $SM_DOMAIN_ID to per-user" >&2
+            echo "          source identity (ExecutionRoleIdentityConfig: $SM_IDENTITY_NOW ->" >&2
+            echo "          USER_PROFILE_NAME), and SageMaker only accepts that while no app" >&2
+            echo "          is running. These apps are not stopped yet:" >&2
+            echo "$SM_LIVE_APPS" >&2
+            echo "          Stop them (the commands above, or Admin dashboard -> Sessions ->" >&2
+            echo "          Terminate), wait until list-apps shows them Deleted, and re-run." >&2
+            echo "          Home volumes and S3 data are kept. See ADMIN_GUIDE §5." >&2
+            rm -f "$SM_GUARD_ERR"
+            exit 1
+        fi
+        echo "    (domain $SM_DOMAIN_ID: switching to per-user source identity; no app running)"
+    fi
+fi
+rm -f "$SM_GUARD_ERR"
+
 npx cdk deploy --require-approval never "${CDK_CONTEXT[@]}"
 cd ..
 

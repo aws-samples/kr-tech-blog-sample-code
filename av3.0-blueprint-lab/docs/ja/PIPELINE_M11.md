@@ -19,8 +19,8 @@ SageMaker Python SDK **v2** です。その問題は M12 が当たったのと�
 | Step1 は `INPUT_DIR/*.jpg` を glob したが、M1 は JSON のみを `m1/` に書く → 0 キャプション | Step1 は M1 の `selected_scenes.json` (実際のシーン名 + 説明) を読む → 根拠のあるキャプション |
 | 3 ステップが `ml.g5.12xlarge`/`g5.xlarge` (GPU) を要求 — 処理クォータはここで 0 | CPU `ml.m5.xlarge` (処理クォータが利用可能); スクリプトは純粋な Python なので GPU は何も追加しない |
 | GPU `pytorch-training` イメージ | `image_uris.retrieve("sklearn", …)` 経由の CPU sklearn コンテナ — **`image_scope` なし** (sklearn には `processing` スコープがなく、渡すと `ValueError: Unsupported image scope` を出す) |
-| exec ロールに `CreatePipeline`/`StartPipelineExecution`/`CreateProcessingJob` が欠けていた | CDK exec ロールに `SageMakerPipelines` (pipeline/av30-*) + `SageMakerProcessingJobs` (processing-job/*) を追加 |
-| SDK のアップロード (ステップコード、パイプライン定義) はデフォルトで `sagemaker-<region>-<account>` ルート — ロールの `users/*` 書き込みスコープ外 → AccessDenied | `Session`/`PipelineSession(default_bucket=USER_BUCKET, default_bucket_prefix=users/<profile>/m11)` |
+| exec ロールに `CreatePipeline`/`StartPipelineExecution`/`CreateProcessingJob` が欠けていた | CDK exec ロールに `SageMakerPipelines` (現在は呼び出し元自身の `pipeline/av30-data-pipeline-<profile>` のみ) + `SageMakerProcessingJobs` (processing-job/*) を追加 |
+| SDK のアップロード (ステップコード、パイプライン定義) はデフォルトで `sagemaker-<region>-<account>` ルート — ロールの書き込みスコープ (`users/<your-profile>/` のみ) の外 → AccessDenied | `Session`/`PipelineSession(default_bucket=USER_BUCKET, default_bucket_prefix=users/<profile>/m11)` |
 | コストセルは GPU レートをハードコード | `execution.list_steps()` + CPU レートからの実際のステップごとの時間; GPU は概念的な本番として表示 |
 
 ## なぜ CPU なのか (そしてなぜそれが正しい選択なのか)
@@ -49,7 +49,11 @@ following...") を持ちます。キャプションはそれらの実際の説�
 
 `infra/av30_constructs/sagemaker.py` で、SageMaker 実行ロールに追加:
 - `SageMakerPipelines` — `CreatePipeline`/`UpdatePipeline`/`StartPipelineExecution`/
-  `Describe*`/`ListPipelineExecutionSteps`/…、`pipeline/av30-*` にスコープ。
+  `Describe*`/`ListPipelineExecutionSteps`/…、呼び出し元自身のパイプラインとその実行に
+  スコープ: `pipeline/av30-data-pipeline-${aws:SourceIdentity}` (+ `/*`)。source identity は
+  ユーザープロファイル名なので、参加者が作成・更新・実行できる名前はノートブックの
+  `PIPELINE_NAME = av30-data-pipeline-<profile>` だけであり、他の参加者のパイプラインを
+  上書きすることはできない。
 - `SageMakerProcessingJobs` — `processing-job/*` 上の `CreateProcessingJob`/`DescribeProcessingJob`/
   `StopProcessingJob`/`AddTags` (SDK は処理ジョブを自動命名するため、リソースをプレフィックスで
   スコープできない)。

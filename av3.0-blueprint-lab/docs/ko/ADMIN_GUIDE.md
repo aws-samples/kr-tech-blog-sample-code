@@ -16,14 +16,59 @@
 - **하나의 CDK 스택** (`Av30PlatformStack`) → VPC, KMS로 암호화된 S3(공유 + 사용자별
   워크스페이스), DynamoDB, Cognito, WAF, API Gateway + Lambda, CloudFront 대시보드 2개
   (관리자 + 사용자), 그리고 참가자 전원이 **하나의** 실행 역할
-  `av30lab-sagemaker-execution-role`을 공유하는 SageMaker Studio 도메인(사용자별 역할이
-  아닙니다). 참가자 간 격리는 스페이스 소유자를 `${sagemaker:UserProfileName}`과 비교하는
-  IAM 조건으로 이루어집니다 — `infra/av30_constructs/sagemaker.py`의 잔여 위험 주석 참조.
+  `av30lab-sagemaker-execution-role-<region>`을 공유하는 SageMaker Studio 도메인(사용자별
+  역할이 아닙니다). 이 역할로 무엇이 분리되고 무엇이 분리되지 않는지는 아래
+  **참가자 격리**에 정리했습니다.
 - **S3 버킷 2개** (이름은 **당신의** 계정 + 리전에서 파생됩니다 — 이 가이드의
   예시는 레퍼런스 배포인 계정 `<aws-account-id>` / `us-west-2`를 사용합니다.
   당신의 값으로 치환하세요 — §1.5 참고):
   - `av30lab-shared-data-<account>-<region>` — 모델, 데이터셋, 노트북 템플릿, M10 레퍼런스.
   - `av30lab-user-workspace-<account>-<region>` — 참가자당 `users/<id>/` 프리픽스 하나.
+
+> **참가자 격리(신뢰 모델).** 참가자의 노트북, 터미널, 작업(job)은 모두 이 역할 하나로
+> 실행됩니다. 참가자를 구분하는 값은 두 가지입니다. 도메인에
+> `ExecutionRoleIdentityConfig = USER_PROFILE_NAME`이 설정되어 있어 SageMaker가 이 역할의
+> 세션마다 `aws:SourceIdentity` = 사용자 프로필 이름(참가자 id, S3 프리픽스와 같은 값)을
+> 붙이고, SageMaker API 호출에는 `${sagemaker:UserProfileName}`이 실립니다. 그래서 참가자는
+> 다음 항목에서 자기 것에만 접근할 수 있습니다.
+> - **S3 워크스페이스.** 워크스페이스 버킷의 읽기, 쓰기, 삭제, 목록 조회가
+>   `users/${aws:SourceIdentity}/`로 제한됩니다. 다른 참가자의 노트북이나
+>   `.av30-progress.env`(그 사람의 대시보드 토큰이 들어 있음)를 읽을 수 없고, 다른 참가자의
+>   홈에 `.bashrc`나 IPython 시작 파일을 심을 수 없으며(앱은 시작할 때마다 `users/<id>/`를
+>   홈으로 복사합니다), 다른 참가자의 산출물을 지울 수도 없습니다. source identity가 없는
+>   세션은 `users/` 전체가 거부됩니다(fail-closed).
+> - **M11 파이프라인과 M12 학습 작업**(`av30-data-pipeline-<id>`,
+>   `av30-m12-distributed-<id>-*`).
+> - **프라이빗 스페이스.** `UpdateSpace`와 Studio 자체의 presigned URL은 호출한 사람의
+>   스페이스와 프로필로 제한됩니다.
+>
+> **여전히 공유되는 것.** 코호트는 서로를 공격하지 않는 사람들이라고 전제하고, 아래
+> 위치에는 다른 참가자가 보거나 바꾸면 안 되는 것을 두지 마세요.
+> - 스페이스, 앱, 프로필의 Describe/List: 누가 무엇을 실행 중인지 누구나 볼 수 있습니다.
+> - `*`에 대한 `CreateApp`/`DeleteApp`: boto3를 쓰면 다른 참가자의 앱을 시작하거나 중지할
+>   수 있습니다(좁힐 수 있는지는 §8의 4b 단계에서 판단합니다).
+> - OpenSearch Serverless: `collection/*`에 `aoss:APIAccessAll`이 허용되어 있고 M4의
+>   data-access policy가 공유 역할을 principal로 지정하므로, 다른 참가자의 M4 컬렉션을
+>   읽거나 바꿀 수 있습니다.
+> - Processing job(`processing-job/*`): M11 단계 작업의 이름은 Pipelines 서비스가 프로필
+>   없이 붙이므로, 다른 참가자의 단계 작업을 조회하거나 중지할 수 있습니다.
+> - 학습 작업의 한 가지 예외: `av30-m12-distributed-<id>-*`는 id가 `<id>-<추가 문자>`인
+>   프로필에도 일치합니다(예: `kim-abc123`과 `kim-abc123-q1w2e3`).
+> - 공유 데이터 버킷은 누구나 읽을 수 있고, CloudWatch Logs `/aws/sagemaker/*`에는 누구나
+>   쓸 수 있습니다(로그를 읽을 수 있는 참가자는 없습니다).
+> - M10 자가 실행용 EC2 인스턴스 프로필(§7)을 만들었다면 `users/*/m10/*`에 쓸 수 있습니다.
+> - 참가자 토큰은 만료되지 않고 교체 수단도 없습니다. 다시 발급하려면 사용자를 삭제한 뒤
+>   새로 만드세요.
+>
+> 관리자도 같은 제한을 받습니다. Studio 앱에서는 관리자 자신의 프로필도 자기 프리픽스에만
+> 접근합니다. 참가자 프리픽스는 워크스테이션에서 관리자 자격 증명으로 확인하세요.
+>
+> 이 모든 것은 SageMaker가 새 Studio의 JupyterLab 세션, 라이프사이클 스크립트, M11/M12
+> 작업에 실제로 source identity를 붙인다는 전제 위에 있습니다. AWS 문서에 나와 있는
+> 동작이지만 실제 배포로만 증명할 수 있으니, 새 스택마다 §8의 교차 사용자 확인을 실행하세요.
+> 이 확인을 통과하면 §6.3의 전제 조건("사용자 워크스페이스 버킷이 사용자별로 격리된 뒤")이
+> 이후에 쓰이는 파일에 대해 충족됩니다. 업그레이드 전에 관리자 프리픽스에 심어진 파일은 그대로
+> 남으며, 이 경우는 §6.3에서 다룹니다.
 
 > **이 가이드의 ID에 관한 참고.** `<aws-account-id>`나
 > `us-west-2`가 보이는 곳(버킷 이름, ARN, 쿼터 "current" 값, CLI 예시)은 모두
@@ -300,6 +345,27 @@ aws service-quotas request-service-quota-increase \
 > 실행할 정확한 명령을 출력합니다. **새 리전은 이 플래그가 전혀 필요 없습니다.**
 > 리전을 **추가**하려면 [../en/ADDING_A_REGION.md](../en/ADDING_A_REGION.md) 를 보세요
 > (한국어: [ADDING_A_REGION.md](ADDING_A_REGION.md)).
+
+> **사용자별 S3 격리(§0) 이전에 배포한 스택을 업그레이드할 때: 먼저 모든 앱을 중지하세요.**
+> 이 버전은 Studio 도메인의 `ExecutionRoleIdentityConfig`를 `USER_PROFILE_NAME`으로 바꾸는데,
+> SageMaker는 도메인에 실행 중인 앱이 하나도 없을 때만 이 변경을 받아들입니다. 라이브 도메인에
+> 아직 이 설정이 없으면 `deploy.sh`가 도메인의 앱 목록을 조회하고, `Deleted`나 `Failed`가 아닌
+> 앱이 하나라도 있으면 앱마다 `delete-app` 명령을 출력하고 **배포를 거부합니다**. 스택, 도메인,
+> 앱 목록 중 하나라도 조회하지 못해도 추측하지 않고 거부합니다. 앱을 중지해도 홈 볼륨과 S3
+> 데이터는 유지되며, 도메인은 같은 자리에서 갱신됩니다(domain id 그대로). 그다음:
+> - 참가자는 앱을 다시 시작합니다. 전환 전에 시작한 세션에는 source identity가 없어서 자기
+>   `users/<id>/`에도 `AccessDenied`가 납니다(§13).
+> - 예전 정책으로 이미 코호트를 운영한 스택이라면, 어떤 참가자든 다른 참가자의
+>   `.av30-progress.env` 토큰을 복사해 갔을 수 있습니다. 신경 쓰인다면 해당 사용자를 삭제한 뒤
+>   다시 만들어 토큰을 새로 발급하세요.
+> - **이전 커밋을 재배포하는 방식으로 롤백하지 마세요.** trust policy 변경 이전의 커밋은
+>   `sts:SetSourceIdentity`를 빼 버리는데, 도메인은 여전히 source identity를 요구하므로 앱과
+>   작업 생성이 실패합니다. 롤백은 `execution_role_identity_config="DISABLED"`와 예전 S3
+>   statement를 명시한 커밋으로 하고, trust statement는 그대로 두고, 모든 앱을 중지한 상태에서
+>   배포하세요.
+> - 아직 확인하지 못한 점: 이후 도메인을 바꾸는 배포(LCC 변경, `-c idle_timeout_minutes=...`)
+>   때마다 모든 앱을 중지해야 하는지. 가드는 처음 전환할 때만 확인합니다. 그런 배포가 도메인
+>   갱신 단계에서 실패하면 앱을 중지하고 다시 실행하세요.
 
 
 ```bash
@@ -590,7 +656,8 @@ aws s3 sync scripts/   s3://<shared>/notebook-templates/scripts/ --region "$AWS_
 
 ## 8. 스모크 테스트 (D−1) — 사용자 1명이 엔드투엔드로 작동함을 증명
 
-1. Admin Dashboard → **Add User** → 테스트 이름 + 이메일 → **Provision**.
+1. Admin Dashboard → **Add User** → 테스트 이름 + 이메일 → **Provision**. 테스트 사용자를
+   하나 더(B) 만드세요. 4c 단계에서 비교할 상대가 필요합니다.
 2. 성공 다이얼로그에서 **Participant Dashboard Link**를 복사하세요(내구성 있는
    `#userId=&token=` 링크 — 5분짜리 "Direct workspace URL"이 **아님**).
 3. 그 링크를 새 브라우저에서 열면 → 12개 모듈 노드가 있는 Pipeline Map(M1~M12. M0은 개요 노트북이라 노드가 없습니다)이 렌더링되고,
@@ -607,11 +674,34 @@ aws s3 sync scripts/   s3://<shared>/notebook-templates/scripts/ --region "$AWS_
      `SageMakerStudioAppLifecycle` 문장에 붙은 주석을 보세요.
    - **AccessDenied 발생** → 이 계정에서는 해석되지 않습니다. `CreateApp`은 넓은 상태로
      두고, 참가자에게는 계속 대시보드 버튼을 쓰게 합니다.
+4c. **사용자별 S3 격리 증명(새 스택마다 필수, §0).** 먼저 라이프사이클 스크립트 로그를
+   확인합니다. CloudWatch Logs의 로그 그룹 `/aws/sagemaker/studio`에서 테스트 사용자 스페이스의
+   스트림 중 이름이 `LifecycleConfigOnStart`로 끝나는 가장 최근 것을 엽니다.
+   `Notebook bootstrap complete`가 있어야 하고 `WARN: notebook sync failed`나
+   `AccessDenied`는 **없어야** 합니다. 동기화가 실패해도 앱은 멈추지 않기 때문에, 이 확인을
+   하지 않으면 홈 디렉터리가 비어 있는 것으로만 보입니다. 다음으로 테스트 사용자의 JupyterLab
+   터미널에서(`$USER_BUCKET`과 `$USER_PROFILE`이 설정되어 있습니다), 두 번째 테스트 사용자의
+   id를 `<B-id>`에 넣어 실행합니다.
+   ```bash
+   aws s3 ls "s3://$USER_BUCKET/users/$USER_PROFILE/"                  # 성공: 자기 파일
+   aws s3 ls "s3://$USER_BUCKET/users/<B-id>/"                         # AccessDenied
+   aws s3 cp "s3://$USER_BUCKET/users/<B-id>/.av30-progress.env" -     # 403 / AccessDenied
+   echo probe | aws s3 cp - "s3://$USER_BUCKET/users/<B-id>/probe.txt" # AccessDenied
+   aws s3 rm "s3://$USER_BUCKET/users/<B-id>/M1_Data_Exploration.ipynb" # AccessDenied
+   aws s3 ls "s3://$USER_BUCKET/"                                      # AccessDenied
+   aws sagemaker describe-pipeline --pipeline-name "av30-data-pipeline-<B-id>"  # AccessDenied
+   ```
+   첫 줄이 성공한다는 것 자체가 세션에 올바른 source identity가 실려 있다는 증거입니다.
+   source identity가 없으면 첫 줄도 거부됩니다. 첫 줄이 거부되면 §13을 보세요. AccessDenied로
+   표시한 줄 중 하나라도 성공하면 이 스택은 격리되어 있지 않은 것이니 코호트를 프로비저닝하지
+   마세요.
 5. **M1**(CPU)을 엔드투엔드로 실행한 뒤 **M2**(GPU)를 실행 — GPU 이미지가
    자동 선택되고 모델 캐시가 해석되는지 확인합니다.
-6. M12/M11을 실행한다면, 테스트 사용자로 각각 한 번씩 실행하여 작업
-   쿼터(§2b)와 IAM이 갖춰졌는지 확인하세요 — 실제 관리형 작업을 제출합니다.
-7. 테스트 사용자를 **Delete**하세요(Users 탭 → Delete) — 앱/스페이스/프로필 + S3를 제거합니다.
+6. 테스트 사용자로 **M11**과 **M12**를 한 번씩 실행하세요. 실제 입력이 있도록 M1과 M3 다음에
+   실행합니다. 작업 쿼터(§2b)와 IAM 확인 외에, source identity가 관리형 작업까지 전달되는지
+   확인하는 방법은 이것뿐입니다. 전달되지 않으면 제출 단계가 아니라 작업 안에서, 파이프라인의
+   1단계나 학습 작업이 S3 `AccessDenied`로 실패합니다.
+7. 두 테스트 사용자를 모두 **Delete**하세요(Users 탭 → Delete) — 앱/스페이스/프로필 + S3를 제거합니다.
 
 ---
 
@@ -757,7 +847,8 @@ PARTICIPANT_GUIDE가 서술하는 선택적 개념 + 데이터 준비 데모로 
 | 증상 | 원인 / 해결 |
 |---|---|
 | `ResourceLimitExceeded: ...Studio JupyterLab Apps... is 0` | GPU 앱 쿼터가 증설되지 않음 — §2a. |
-| M12 작업이 제출에서 실패 (`CreateTrainingJob`에 `AccessDeniedException`) | exec-role의 training-job ARN 프리픽스가 노트북 `JOB_NAME`과 일치해야 합니다. 모듈 재번호로 HyperPod가 M9→M12로 옮겨져 노트북은 `av30-m12-distributed-*`를 제출하는데, 그 수정 이전 배포는 여전히 `av30-m9-*`만 허용해 모든 제출이 거부됩니다. m5.xlarge **작업** 쿼터(§2b)는 별개의 드문 원인입니다 — 에러를 먼저 보세요: `AccessDenied`는 IAM 프리픽스, `ResourceLimitExceeded`는 쿼터. |
+| M12 작업이 제출에서 실패 (`CreateTrainingJob`에 `AccessDeniedException`) | 실행 역할은 `av30-m12-distributed-<자기 프로필>-*` 이름의 학습 작업만 허용하고(프로필은 세션의 source identity에서 옵니다), 노트북의 `JOB_NAME`이 여기에 맞아야 합니다. 어긋나는 경우는 두 가지입니다. M9→M12 재번호 이전의 배포는 여전히 `av30-m9-*`만 허용합니다. 또는 커널에 `USER_PROFILE`이 없어 `PROFILE`이 `default`로 대체되어 이름에 잘못된 프로필이 들어갑니다(라이프사이클 스크립트가 값을 넣도록 앱을 다시 시작하세요). m5.xlarge **작업** 쿼터(§2b)는 별개의 드문 원인입니다 — 에러를 먼저 보세요: `AccessDenied`는 IAM 이름 범위, `ResourceLimitExceeded`는 쿼터. |
+| 사용자별 격리 업그레이드(§5) 후: 홈 디렉터리가 비어 있거나 노트북이 없음, `aws s3 ls s3://$USER_BUCKET/users/$USER_PROFILE/`가 `AccessDenied`, 또는 M11/M12 작업이 작업 안에서 S3 `AccessDenied`로 실패 | 세션에 source identity가 없어서 `users/${aws:SourceIdentity}/` 범위가 아무것도 가리키지 않습니다(fail-closed). 순서대로 확인하세요. (1) 도메인이 전환되기 전에 시작한 앱입니다: 중지했다가 다시 시작하세요. (2) 관리자 자격 증명으로 `aws sagemaker describe-domain --domain-id <id> --query DomainSettings.ExecutionRoleIdentityConfig`가 `USER_PROFILE_NAME`을 출력해야 하고, `aws iam get-role --role-name av30lab-sagemaker-execution-role-<region> --query Role.AssumeRolePolicyDocument`에 `sts:SetSourceIdentity`가 있어야 합니다. (3) 라이프사이클 스크립트의 `LifecycleConfigOnStart` 로그에서 동기화가 거부되었는지 봅니다(§8의 4c 단계). (4) 두 설정이 모두 맞는데도 새로 시작한 앱이나 작업이 계속 거부되면, 이 계정에서는 그 세션 유형에 source identity가 전달되지 않는 것입니다. §5의 방법으로 롤백하세요. S3 statement를 `users/*`로 넓히지 마세요. 모든 사람의 격리가 사라집니다. |
 | GPU 인스턴스에서 참가자 "No GPU detected" | CPU 이미지가 선택됨 — Instance Options로 다시 Apply. |
 | M5/M6/M9 설정 셀이 "this region has no usable offline HuggingFace cache and no HF_TOKEN"으로 멈춤(exit 2) | 이 리전에 `hf-cache/hub/`가 시딩되지 않음(§6.3). 시딩 후 `./scripts/check_seeding.sh --region <r>`. 이 메시지는 *고쳐진* 동작입니다 — 2026-09-26 전에는 같은 조건이 침묵이었고, 설정 셀이 "environment ready"를 출력한 뒤 M5가 `torchrun`에서 4초 만에 `ChildFailedError`로 죽으며 CUDA out-of-memory를 지목했습니다. 아직 그 옛 형태가 보이면 참가자가 낡은 스테이징 `setup_cosmos_env.sh`를 쓰는 중입니다. |
 | M5/M6/M9이 `Local entry not found … offline mode is enabled`로 실패 | 복원된 캐시가 **부분적**입니다. 중단된 `aws s3 sync`가 흔한 원인이고 — **같은 sync를 다시 돌리세요**, 이어서 없거나 크기가 다른 것을 재복사합니다. `sync`가 못 잡는 건 크기는 맞고 내용이 틀린 객체입니다(size+mtime 비교). `check_seeding.sh --source-region <seeded>`가 CRC64 불일치를 보고하면 그 객체만 지우고 다시 sync하세요. |

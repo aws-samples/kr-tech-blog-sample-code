@@ -119,13 +119,13 @@ could never hit:
 3. **`torch_distributed` is GPU/Trainium-only** in the SDK — rejected on CPU
    (`ValueError: ... only for GPU and Trainium`). Fix: use `distribution={"mpi":
    {"processes_per_host": 1}}`.
-4. **exec role write scope is `users/*`** — the estimator's default code upload to
-   the bucket root `<job>/source/...` is denied. Fix: `code_location=
+4. **exec role write scope is `users/<your-profile>/`** — the estimator's default code
+   upload to the bucket root `<job>/source/...` is denied. Fix: `code_location=
    s3://<bucket>/users/<profile>/m12/code`.
 5. **`iam:PassRole` + `sagemaker:CreateTrainingJob` missing** — the exec role was
    built for Studio app management, not training-job submission. Fix: added a
-   scoped `SageMakerTrainingJobs` (av30-m12-* ARN) + self-only `PassRole`
-   (`iam:PassedToService=sagemaker.amazonaws.com`) statement in
+   scoped `SageMakerTrainingJobs` (now `av30-m12-distributed-<own profile>-*`) +
+   self-only `PassRole` (`iam:PassedToService=sagemaker.amazonaws.com`) statement in
    `infra/av30_constructs/sagemaker.py` and deployed.
 6. **MPI rank order ≠ SM_HOSTS order → rendezvous hang.** The first CPU attempt
    derived rank/master from `SM_HOSTS` (sorted), but MPI's rank-0 host was

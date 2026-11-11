@@ -256,18 +256,20 @@ def write_progress_env(s3_client, bucket: str, user_id: str,
     so this lands as ~/.av30-progress.env and the mark-complete cells source
     AV30_API_URL + AV30_PROGRESS_TOKEN from it.
 
-    This used to claim "no new IAM grant is needed: the file holds only this participant's
-    own token — the same trust boundary as their browser session." That reasoning was
-    WRONG. All participants share ONE execution role holding s3:GetObject on
-    .../users/* with no condition (object actions have no s3:prefix condition key, so it
-    cannot be scoped without per-participant roles), so writing the token here put a full
-    impersonation credential — it authorizes the presigned-URL, instance-type and storage
-    routes AS its owner — into a prefix every peer can read.
+    The token is a full impersonation credential: it authorizes the presigned-URL,
+    instance-type and storage routes AS its owner. So the file is only as private as
+    users/<id>/ is. All participants share ONE execution role, and that role used to hold
+    s3:GetObject on .../users/* with no condition, which put the token in a prefix every
+    peer could read. (An earlier version of this docstring also claimed closing that needed
+    per-participant roles; it did not.)
 
-    Mitigated, not eliminated: the LCC DELETES this object right after injecting it into
-    the app environment, so the window is provisioning -> first app launch rather than the
-    whole workshop. The home-directory copy on EFS is what the notebooks actually read
-    afterwards. Closing it fully needs per-participant execution roles.
+    Now closed in IAM: the domain stamps each session with aws:SourceIdentity = the user
+    profile name (= <id>), and the role's S3 grants are users/${aws:SourceIdentity}/*
+    (infra/av30_constructs/sagemaker.py, UserWorkspaceObjectReadWrite). Whether new-Studio
+    sessions really carry that value is confirmed only on a live deployment (ADMIN_GUIDE
+    §8). Kept as defence in depth: the LCC DELETES this object right after injecting it
+    into the app environment, and the notebooks read the home-directory copy on the
+    space's volume afterwards.
 
     Shared because create_user wrote it and bulk_provision did not, so every
     bulk-provisioned participant silently had no progress tracking and their dashboard

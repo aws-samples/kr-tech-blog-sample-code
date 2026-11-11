@@ -327,6 +327,11 @@ runbook — smoke test, bulk provisioning, monitoring, teardown — is in
 - **Compute:** SageMaker Studio Domain with a lifecycle config for auto-setup.
 - **Auth:** Cognito user pool for the admin API, a per-participant token for the participant
   routes, and an optional **WAF IP allowlist** that covers the admin API only.
+- **Participant isolation:** all participants share one SageMaker execution role; each
+  session carries the participant's profile name as `aws:SourceIdentity`, which limits S3
+  to their own `users/<id>/` prefix and M11/M12 to their own pipeline and jobs. Some
+  surfaces stay shared within the cohort (app start/stop, OpenSearch collections, seeing
+  who runs what): see the trust model in [ADMIN_GUIDE §0](docs/en/ADMIN_GUIDE.md).
 - **API:** Lambda-backed REST API for user management, sessions, and progress.
 - **Monitoring:** CloudWatch alarms, SNS notifications, a daily budget alert.
 - **Frontends:** React SPAs on CloudFront (admin dashboard + user pipeline map).

@@ -240,6 +240,11 @@ aws s3 sync scripts/   "s3://av30lab-shared-data-$ACCOUNT-$REGION/notebook-templ
 - **コンピュート:** 自動セットアップ用のライフサイクル設定を持つ SageMaker Studio ドメイン。
 - **認証:** 管理者 API は Cognito ユーザープール、参加者向けルートは参加者ごとのトークン。
   オプションの **WAF IP 許可リスト**は管理者 API にのみ適用されます。
+- **参加者の分離:** 参加者全員が SageMaker の実行ロールを 1 つ共有し、セッションごとに参加者の
+  プロファイル名が `aws:SourceIdentity` として付きます。この値により、S3 は自分の
+  `users/<id>/` プレフィックスに、M11/M12 は自分のパイプラインとジョブに限られます。アプリの
+  起動・停止、OpenSearch コレクション、誰が何を動かしているかの参照など、一部はコホート内で
+  共有されます。信頼モデルは [ADMIN_GUIDE §0](ADMIN_GUIDE.md) を参照してください。
 - **API:** ユーザー管理、セッション、進捗管理のための Lambda ベースの REST API。
 - **モニタリング:** CloudWatch アラーム、SNS 通知、日次の予算アラート。
 - **フロントエンド:** CloudFront 上の React SPA（管理者ダッシュボード + ユーザーパイプラインマップ）。

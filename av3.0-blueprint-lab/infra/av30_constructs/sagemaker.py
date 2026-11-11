@@ -67,7 +67,7 @@ restart-jupyter-server
 
 # JupyterLab bootstrap script. Two jobs on app launch:
 #   1. Sync the participant's notebooks from their S3 workspace prefix into the
-#      JupyterLab EFS home so they appear in the file browser.
+#      JupyterLab home (the space's EBS volume) so they appear in the file browser.
 #   2. Inject config env vars (USER_PROFILE, SHARED_BUCKET, USER_BUCKET, plus
 #      BLUEPRINT_* aliases) so the tutorial notebooks resolve the correct
 #      per-user profile and the real deployed bucket names instead of the
@@ -273,10 +273,31 @@ class SageMakerConstruct(Construct):
         # (scripts/cache_hf_tree.sh or a bucket-to-bucket copy) — never by putting
         # admin keys into a Studio terminal (ADMIN_GUIDE §6.3).
 
-        # S3 object-level read/write on the user-workspace bucket, scoped to the
-        # per-user prefix via the SageMakerUserProfile principal tag when it is
-        # present. Object actions (Get/Put/Delete) carry no s3:prefix context
-        # key, so no condition is attached here.
+        # PER-PARTICIPANT S3 ISOLATION WITH ONE SHARED ROLE: aws:SourceIdentity.
+        #
+        # The domain sets DomainSettings.ExecutionRoleIdentityConfig = USER_PROFILE_NAME
+        # (see the CfnDomain below), so SageMaker stamps every session of this role with
+        # sts:SourceIdentity = the caller's user profile name, which the trust statement
+        # above allows. create_user makes UserProfileName == userId == the S3 prefix, so
+        # ${aws:SourceIdentity} names exactly the caller's own users/<id>/ prefix.
+        #
+        # This replaces two wrong claims that used to sit here: that the object grant was
+        # "scoped via the SageMakerUserProfile principal tag when present" (no condition was
+        # ever attached, so it was users/* for everyone), and that per-user scoping needed
+        # one IAM role per participant. Principal tags never reached the app session; the
+        # source identity is the per-session value that does.
+        #
+        # FAIL-CLOSED by construction. Per the IAM docs, a policy variable whose key is
+        # absent from the request matches nothing, so a session without a source identity
+        # (an app started before the domain setting was applied, or a job the identity did
+        # not propagate to) gets AccessDenied on every key under users/, its own included.
+        # It never falls back to the whole prefix. Whether new-Studio
+        # JupyterLab apps, the LCC, and M11/M12 jobs carry the value is confirmed only by a
+        # live deployment (ADMIN_GUIDE §8).
+        #
+        # Object actions: the resource itself is the scope.
+        # The doubled braces are f-string escapes: the template must carry the literal
+        # policy variable ${aws:SourceIdentity}.
         self._execution_role.add_to_policy(
             iam.PolicyStatement(
                 sid="UserWorkspaceObjectReadWrite",
@@ -287,17 +308,20 @@ class SageMakerConstruct(Construct):
                     "s3:DeleteObject",
                 ],
                 resources=[
-                    f"{user_workspace_bucket.bucket_arn}/users/*",
+                    f"{user_workspace_bucket.bucket_arn}/users/${{aws:SourceIdentity}}/*",
                 ],
             )
         )
 
-        # Bucket-level ListBucket for the notebook-sync LCC (aws s3 sync issues
-        # ListObjectsV2). The JupyterLab app session does NOT carry the
-        # SageMakerUserProfile principal tag, so scoping the s3:prefix condition
-        # to that tag would deny the list. Instead allow listing objects under
-        # any users/ prefix within this one bucket — still isolated to the
-        # workspace bucket, and object access above stays under users/.
+        # ListBucket: the bucket ARN is the resource, so the scope has to be the s3:prefix
+        # condition. Two shapes are deliberately NOT used:
+        #   * StringLikeIfExists: a list with no prefix (the whole bucket) would match.
+        #   * a slash-less "users/${aws:SourceIdentity}" pattern: listing prefix "users/abc"
+        #     returns the key names of users/abcd/... as well.
+        # Every caller in the lab lists with a prefix that starts "users/<own id>/"
+        # (LCC sync, M10 `aws s3 ls`, M11 pre-flight, the SDK's default_bucket_prefix probe
+        # "users/<id>/m11"). HeadBucket and a bare `aws s3 ls s3://<bucket>/` carry no
+        # prefix and are denied, as they already were under the users/* condition.
         self._execution_role.add_to_policy(
             iam.PolicyStatement(
                 sid="UserWorkspaceListBucket",
@@ -306,18 +330,37 @@ class SageMakerConstruct(Construct):
                 resources=[user_workspace_bucket.bucket_arn],
                 conditions={
                     "StringLike": {
-                        "s3:prefix": ["users/*"],
+                        "s3:prefix": ["users/${aws:SourceIdentity}/*"],
                     },
                 },
             )
         )
+
+        # CORRECTIONS TO THE NOTEBOOK-SYNC LCC TEXT (_NOTEBOOK_SYNC_SCRIPT_TEMPLATE), kept
+        # here because the template must not change by a single byte in this revision:
+        #   * "Shrink the token's exposure window" says every participant holds s3:GetObject
+        #     on .../users/* with no condition, so a peer could read
+        #     users/<id>/.av30-progress.env. No longer true: with the two statements above,
+        #     only sessions whose source identity is <id> (plus the admin's own credentials
+        #     and the provisioning Lambdas' roles) can read it. The delete-after-inject step
+        #     stays as defence in depth.
+        #   * "S3 -> EFS home" and "lives on EFS": a JupyterLab space's home is the space's
+        #     EBS volume, not the domain EFS.
+        # Why not just edit the template: its hash is part of the LCC name (_lcc_rev below),
+        # so any byte change rotates the LCC, and every existing space keeps a
+        # DefaultResourceSpec naming the old LCC ARN. Whether Studio's "Run space" still
+        # works in that state is unverified. Fix the text together with a planned rotation.
 
         # Scoped SageMaker permissions (not full AmazonSageMakerFullAccess).
         #
         # EVERY participant shares THIS ONE ROLE — it is the domain's
         # default_user_settings.execution_role and create_user does not override it per
         # profile. So at run time participant A's notebook and participant B's notebook
-        # present an IDENTICAL IAM identity.
+        # present the SAME ROLE ARN. What differs is request context SageMaker adds per
+        # participant: ${sagemaker:UserProfileName} on SageMaker API calls (used below),
+        # and, since the domain sets ExecutionRoleIdentityConfig = USER_PROFILE_NAME, the
+        # session's aws:SourceIdentity on calls to every service (used for S3 above and for
+        # the M11 pipeline and M12 training-job ARNs below).
         #
         # An earlier version of this comment claimed that made per-participant isolation
         # impossible without one IAM role per user profile. THAT WAS WRONG, and the error
@@ -374,6 +417,11 @@ class SageMakerConstruct(Construct):
         #     type the dashboard would refuse. What bounds the cost today is the per-type
         #     Studio quota (2-5 for the heavy types in both deploy regions) and the daily
         #     budget alarm, not this policy.
+        #   * Not scoped by aws:SourceIdentity, so still shared across the cohort:
+        #     processing-job/* (pipeline-generated names carry no profile, so a peer can
+        #     Describe/Stop another's M11 step), aoss:APIAccessAll on collection/* (M4),
+        #     CloudWatch Logs writes on /aws/sagemaker/*, and read of the whole shared-data
+        #     bucket. ADMIN_GUIDE §0 lists these for operators.
 
         _sm_region = cdk.Stack.of(self).region
         _sm_account = cdk.Stack.of(self).account
@@ -503,9 +551,20 @@ class SageMakerConstruct(Construct):
 
         # SageMaker Training Jobs — needed by M12, which submits a real 2-node
         # torch.distributed DDP job from the notebook via the PyTorch estimator.
-        # Scoped to the av30-m12-* job-name prefix so this does not grant blanket
-        # training control. Describe/Stop are needed for estimator.fit(wait=True)
-        # polling and the metrics/cleanup cells.
+        # Scoped to the caller's OWN job names: M12 submits
+        # JOB_NAME = f"av30-m12-distributed-{PROFILE}-{int(time.time())}", and PROFILE is
+        # the user profile name, which is also the session's aws:SourceIdentity. So a
+        # participant can create, describe and stop only jobs named after themselves.
+        # Before this, training-job/av30-m12-* let any participant stop a peer's job.
+        # Describe/Stop are needed for estimator.fit(wait=True) polling and the
+        # metrics/cleanup cells.
+        #
+        # Narrowing, not a strict boundary: the trailing "-*" also matches the jobs of a
+        # profile whose id is <this id>-<more>. create_user ids are <slug>-<6 chars>, so
+        # that needs a participant whose name slugifies to another participant's full id
+        # (e.g. "kim-abc123" and "kim-abc123-q1w2e3"). The pipeline ARNs below have no
+        # such gap. How SageMaker cases names inside ARNs is unverified; create_user ids
+        # are lowercase, so either way they match.
         #
         # The prefix MUST track the notebook's JOB_NAME. The module renumber moved
         # HyperPod from M9 to M12 and the notebook now submits
@@ -526,16 +585,27 @@ class SageMakerConstruct(Construct):
                 ],
                 resources=[
                     f"arn:aws:sagemaker:{cdk.Stack.of(self).region}:"
-                    f"{cdk.Stack.of(self).account}:training-job/av30-m12-*",
+                    f"{cdk.Stack.of(self).account}:training-job/"
+                    "av30-m12-distributed-${aws:SourceIdentity}-*",
                 ],
             )
         )
 
         # SageMaker Pipelines + Processing — needed by M11, which upserts and runs
         # a 3-step SageMaker Pipeline (each step is a ProcessingJob) from the
-        # notebook. Pipelines are scoped to the av30-* name prefix. ProcessingJob
-        # names are SDK-generated (not reliably prefixable), so those actions use
-        # "*" — still limited to the processing-job resource type and this account.
+        # notebook.
+        #
+        # Pipelines are scoped to the caller's OWN pipeline: M11 uses
+        # PIPELINE_NAME = f"av30-data-pipeline-{PROFILE}" (PROFILE = user profile name =
+        # aws:SourceIdentity). The second ARN covers that pipeline's executions
+        # (pipeline/<name>/execution/<id>), which DescribePipelineExecution and the two
+        # List* actions are authorized against. The old pipeline/av30-* let participant A
+        # UpdatePipeline B's pipeline, so B's next run would execute A's step code.
+        #
+        # ProcessingJob names are NOT scoped: the Pipelines service names the step jobs
+        # pipelines-<execution-id>-<step>-<suffix>, with no profile in them, so those
+        # actions keep processing-job/* (this account and region only). A peer can still
+        # Describe/Stop another participant's M11 step job.
         _region = cdk.Stack.of(self).region
         _account = cdk.Stack.of(self).account
         self._execution_role.add_to_policy(
@@ -553,7 +623,10 @@ class SageMakerConstruct(Construct):
                     "sagemaker:ListPipelineParametersForExecution",
                 ],
                 resources=[
-                    f"arn:aws:sagemaker:{_region}:{_account}:pipeline/av30-*",
+                    f"arn:aws:sagemaker:{_region}:{_account}:pipeline/"
+                    "av30-data-pipeline-${aws:SourceIdentity}",
+                    f"arn:aws:sagemaker:{_region}:{_account}:pipeline/"
+                    "av30-data-pipeline-${aws:SourceIdentity}/*",
                 ],
             )
         )
@@ -610,6 +683,10 @@ class SageMakerConstruct(Construct):
         # 3 occurrences in the trace before, 0 after. Dropping the read action is defence
         # in depth, so the next script that echoes something sensitive is not instantly a
         # cohort-wide disclosure.
+        #
+        # The aws:SourceIdentity scoping that isolates the S3 workspace does NOT extend to
+        # this grant: the resource is the whole /aws/sagemaker/* log-group set, shared by
+        # every participant. That is the reason it must stay write-only.
         #
         # DescribeLogStreams is kept: it returns stream NAMES only, not contents, and the
         # platform uses it. The admin dashboard reads log content with its own Lambda roles.
@@ -758,7 +835,7 @@ class SageMakerConstruct(Construct):
             ),
         )
 
-        # JupyterLab lifecycle config: sync notebooks from S3 to the EFS home and
+        # JupyterLab lifecycle config: sync notebooks from S3 to the home volume and
         # inject config env vars on app launch. Both bucket names are baked into
         # the script at synth time; the per-user profile name is resolved at
         # runtime from the app metadata file.
@@ -912,6 +989,27 @@ class SageMakerConstruct(Construct):
             subnet_ids=private_subnet_ids,
             app_network_access_type="PublicInternetOnly",
             default_user_settings=default_user_settings,
+            # STEP 2 of the two-step upgrade (step 1 is sts:SetSourceIdentity in the trust
+            # policy, above). SageMaker sets sts:SourceIdentity = the user profile name on
+            # every session of the execution role; the users/${aws:SourceIdentity}/ S3
+            # scope and the M11/M12 ARNs depend on it. Allowed values: USER_PROFILE_NAME |
+            # DISABLED.
+            #
+            # OPERATIONAL CONSTRAINTS:
+            #   * Per the API reference the setting can change only while no app in the
+            #     domain is InService or Pending, so the first deploy of it needs every
+            #     app stopped. scripts/deploy.sh checks the live domain and refuses
+            #     otherwise.
+            #   * Sessions created before the change carry no source identity and are
+            #     denied on users/ (fail-closed). Participants restart their app.
+            #   * Rolling back is NOT "redeploy the previous commit". Keep the trust
+            #     statement, and deploy an explicit "DISABLED" together with the old S3
+            #     statements, again with all apps stopped.
+            #   * Unverified: whether later deploys that touch this domain (LCC rotation,
+            #     idle_timeout_minutes) resend the setting and so also need apps stopped.
+            domain_settings=sagemaker.CfnDomain.DomainSettingsProperty(
+                execution_role_identity_config="USER_PROFILE_NAME",
+            ),
         )
 
     _IDLE_TIMEOUT_DEFAULT_MINUTES = 90
@@ -935,7 +1033,8 @@ class SageMakerConstruct(Construct):
         JupyterLab app only counts as idle when there are no active Jupyter kernel
         sessions AND no active terminal sessions — so a training cell or a shell job keeps
         the app alive for as long as it runs. M8's LoRA SFT cannot be killed by this.
-        The home directory is on EFS and survives shutdown; relaunching is one click.
+        The home directory is on the space's EBS volume and survives shutdown;
+        relaunching is one click.
 
         Not lowered further than 90 on purpose: relaunching a GPU app takes minutes and,
         in a region where the heavy types have a quota of 2, the freed slot may be taken

@@ -219,9 +219,11 @@ def handler(event, context):
         # B2 progress tracking: write the participant's own progress credentials into
         # their workspace prefix. The notebook-sync LCC already `aws s3 sync`s
         # users/<id>/ to the home dir at app launch, so it lands as
-        # ~/.av30-progress.env with NO new IAM grant (the file holds only this
-        # participant's own token — same trust boundary as their browser session).
-        # The notebook mark-complete cells source AV30_API_URL + AV30_PROGRESS_TOKEN.
+        # ~/.av30-progress.env. The token impersonates its owner on the participant
+        # routes, so this relies on users/<id>/ being readable only by <id>'s own
+        # sessions (the aws:SourceIdentity scope on the shared execution role; see
+        # write_progress_env). The notebook mark-complete cells source AV30_API_URL +
+        # AV30_PROGRESS_TOKEN.
         if write_progress_env(
             s3, USER_BUCKET_NAME, user_id, participant_token,
             os.environ.get("API_URL", ""),

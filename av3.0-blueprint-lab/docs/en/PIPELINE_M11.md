@@ -19,8 +19,8 @@ of its own:
 | Step1 globbed `INPUT_DIR/*.jpg`, but M1 writes only JSON to `m1/` → 0 captions | Step1 reads M1's `selected_scenes.json` (real scene names + descriptions) → grounded captions |
 | 3 steps requested `ml.g5.12xlarge`/`g5.xlarge` (GPU) — processing quota is 0 here | CPU `ml.m5.xlarge` (processing quota available); scripts are pure Python so GPU adds nothing |
 | GPU `pytorch-training` image | CPU sklearn container via `image_uris.retrieve("sklearn", …)` — **no `image_scope`** (sklearn has no `processing` scope; passing it raises `ValueError: Unsupported image scope`) |
-| exec role lacked `CreatePipeline`/`StartPipelineExecution`/`CreateProcessingJob` | added `SageMakerPipelines` (pipeline/av30-*) + `SageMakerProcessingJobs` (processing-job/*) to the CDK exec role |
-| SDK uploads (step code, pipeline def) default to `sagemaker-<region>-<account>` root — outside the role's `users/*` write scope → AccessDenied | `Session`/`PipelineSession(default_bucket=USER_BUCKET, default_bucket_prefix=users/<profile>/m11)` |
+| exec role lacked `CreatePipeline`/`StartPipelineExecution`/`CreateProcessingJob` | added `SageMakerPipelines` (now only the caller's own `pipeline/av30-data-pipeline-<profile>`) + `SageMakerProcessingJobs` (processing-job/*) to the CDK exec role |
+| SDK uploads (step code, pipeline def) default to `sagemaker-<region>-<account>` root — outside the role's write scope (`users/<your-profile>/` only) → AccessDenied | `Session`/`PipelineSession(default_bucket=USER_BUCKET, default_bucket_prefix=users/<profile>/m11)` |
 | cost cells hard-coded GPU rates | real per-step durations from `execution.list_steps()` + CPU rate; GPU shown as conceptual production |
 
 ## Why CPU (and why that's the right call)
@@ -50,7 +50,11 @@ right thing to consume.)
 
 In `infra/av30_constructs/sagemaker.py`, added to the SageMaker execution role:
 - `SageMakerPipelines` — `CreatePipeline`/`UpdatePipeline`/`StartPipelineExecution`/
-  `Describe*`/`ListPipelineExecutionSteps`/…, scoped to `pipeline/av30-*`.
+  `Describe*`/`ListPipelineExecutionSteps`/…, scoped to the caller's own pipeline and
+  its executions: `pipeline/av30-data-pipeline-${aws:SourceIdentity}` (+ `/*`). The
+  source identity is the user profile name, so the notebook's
+  `PIPELINE_NAME = av30-data-pipeline-<profile>` is the only name a participant can
+  create, update or run, and nobody can rewrite another participant's pipeline.
 - `SageMakerProcessingJobs` — `CreateProcessingJob`/`DescribeProcessingJob`/
   `StopProcessingJob`/`AddTags` on `processing-job/*` (SDK auto-names processing
   jobs, so the resource can't be prefix-scoped).

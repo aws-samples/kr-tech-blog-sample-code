@@ -122,13 +122,13 @@ Studio 커널 + 관리형 학습 작업은 로컬 드라이런이 결코 마주�
 3. SDK에서 **`torch_distributed`는 GPU/Trainium 전용**임 — CPU에서 거부됨
    (`ValueError: ... only for GPU and Trainium`). 수정: `distribution={"mpi":
    {"processes_per_host": 1}}` 사용.
-4. **실행 역할 쓰기 범위가 `users/*`임** — estimator의 기본 코드 업로드가 버킷
+4. **실행 역할 쓰기 범위가 `users/<your-profile>/`임** — estimator의 기본 코드 업로드가 버킷
    루트 `<job>/source/...`로 가는데 거부됨. 수정: `code_location=
    s3://<bucket>/users/<profile>/m12/code`.
 5. **`iam:PassRole` + `sagemaker:CreateTrainingJob` 누락** — 실행 역할이 학습
    작업 제출이 아니라 Studio 앱 관리를 위해 만들어졌음. 수정:
    `infra/av30_constructs/sagemaker.py`에 범위가 지정된 `SageMakerTrainingJobs`
-   (av30-m12-* ARN) + 자신 전용 `PassRole`
+   (현재는 `av30-m12-distributed-<자기 프로필>-*`) + 자신 전용 `PassRole`
    (`iam:PassedToService=sagemaker.amazonaws.com`) 구문을 추가하고 배포함.
 6. **MPI rank 순서 ≠ SM_HOSTS 순서 → 랑데부 행(hang).** 첫 CPU 시도는
    `SM_HOSTS`(정렬됨)에서 rank/master를 도출했지만, MPI의 rank-0 호스트는

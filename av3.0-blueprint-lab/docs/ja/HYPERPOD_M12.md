@@ -120,12 +120,13 @@ Studio カーネル + マネージドトレーニングジョブは、ローカ�
 3. **`torch_distributed` は SDK で GPU/Trainium 専用** — CPU では拒否される
    (`ValueError: ... only for GPU and Trainium`)。修正: `distribution={"mpi":
    {"processes_per_host": 1}}` を使う。
-4. **exec ロールの書き込みスコープは `users/*`** — estimator のデフォルトのコードアップロード先
+4. **exec ロールの書き込みスコープは `users/<your-profile>/`** — estimator のデフォルトのコードアップロード先
    であるバケットルート `<job>/source/...` は拒否される。修正: `code_location=
    s3://<bucket>/users/<profile>/m12/code`。
 5. **`iam:PassRole` + `sagemaker:CreateTrainingJob` の欠如** — exec ロールは Studio アプリ
    管理用に構築されており、トレーニングジョブの投入用ではなかった。修正:
-   `infra/av30_constructs/sagemaker.py` にスコープ付きの `SageMakerTrainingJobs` (av30-m12-* ARN)
+   `infra/av30_constructs/sagemaker.py` にスコープ付きの `SageMakerTrainingJobs`
+   (現在は `av30-m12-distributed-<自分のプロファイル>-*`)
    + 自分自身のみの `PassRole` (`iam:PassedToService=sagemaker.amazonaws.com`) ステートメントを
    追加してデプロイした。
 6. **MPI の rank 順 ≠ SM_HOSTS の順 → ランデブーハング。** 最初の CPU 試行では

@@ -16,15 +16,63 @@
 - **1 つの CDK スタック** (`Av30PlatformStack`) → VPC、KMS で暗号化された S3（共有 + ユーザー
   ごとのワークスペース）、DynamoDB、Cognito、WAF、API Gateway + Lambda、2 つの CloudFront ダッシュボード
   （管理者用 + ユーザー用）、そして参加者全員が**1 つの**実行ロール
-  `av30lab-sagemaker-execution-role` を共有する SageMaker Studio ドメイン（ユーザーごとの
-  ロールではありません）。参加者間の分離は、スペースの所有者を
-  `${sagemaker:UserProfileName}` と比較する IAM 条件によって行われます —
-  `infra/av30_constructs/sagemaker.py` の残存リスクの注記を参照してください。
+  `av30lab-sagemaker-execution-role-<region>` を共有する SageMaker Studio ドメイン（ユーザー
+  ごとのロールではありません）。このロールで何が分離され、何が分離されないかは、下の
+  **参加者の分離**にまとめています。
 - **2 つの S3 バケット**（名前は**あなたの**アカウント + リージョンから導出されます。本ガイドの
   例ではリファレンスデプロイであるアカウント `<aws-account-id>` / `us-west-2` を使用しています。
   ご自身の値に置き換えてください — §1.5 を参照）:
   - `av30lab-shared-data-<account>-<region>` — モデル、データセット、ノートブックテンプレート、M10 リファレンス。
   - `av30lab-user-workspace-<account>-<region>` — 参加者ごとに 1 つの `users/<id>/` プレフィックス。
+
+> **参加者の分離（信頼モデル）。** 参加者のノートブック、ターミナル、ジョブはすべてこの
+> 1 つのロールで動きます。参加者を区別する値は 2 つあります。ドメインに
+> `ExecutionRoleIdentityConfig = USER_PROFILE_NAME` が設定されているため、SageMaker はこの
+> ロールのセッションごとに `aws:SourceIdentity` = ユーザープロファイル名（参加者 ID、S3
+> プレフィックスと同じ値）を付けます。また SageMaker API の呼び出しには
+> `${sagemaker:UserProfileName}` が含まれます。これにより、参加者が触れられるのは次の点で
+> 自分のものだけになります。
+> - **S3 ワークスペース。** ワークスペースバケットの読み取り、書き込み、削除、一覧取得は
+>   `users/${aws:SourceIdentity}/` に限られます。他の参加者のノートブックや
+>   `.av30-progress.env`（その人のダッシュボードトークンが入っています）は読めず、他の参加者の
+>   ホームに `.bashrc` や IPython の起動ファイルを仕込むこともできず（アプリは起動のたびに
+>   `users/<id>/` をホームにコピーします）、他の参加者の成果物を消すこともできません。
+>   source identity のないセッションは `users/` 全体が拒否されます（fail-closed）。
+> - **M11 パイプラインと M12 トレーニングジョブ**（`av30-data-pipeline-<id>`、
+>   `av30-m12-distributed-<id>-*`）。
+> - **プライベートスペース。** `UpdateSpace` と Studio 自身の presigned URL は、呼び出した
+>   本人のスペースとプロファイルに限られます。
+>
+> **引き続き共有されるもの。** コホートは互いを攻撃しない人たちだという前提に立ち、次の
+> 場所には、他の参加者に見られたり変えられたりしては困るものを置かないでください。
+> - スペース、アプリ、プロファイルの Describe/List: 誰が何を動かしているかは誰でも見えます。
+> - `*` に対する `CreateApp`/`DeleteApp`: boto3 を使えば他の参加者のアプリを起動・停止
+>   できます（狭められるかどうかは §8 の手順 4b で判断します）。
+> - OpenSearch Serverless: `collection/*` に `aoss:APIAccessAll` が許可されており、M4 の
+>   データアクセスポリシーは共有ロールをプリンシパルにしているため、他の参加者の M4
+>   コレクションを読んだり変更したりできます。
+> - Processing ジョブ（`processing-job/*`）: M11 のステップジョブ名は Pipelines サービスが
+>   プロファイルを含めずに付けるため、他の参加者のステップジョブを参照・停止できます。
+> - トレーニングジョブの例外が 1 つ: `av30-m12-distributed-<id>-*` は、ID が
+>   `<id>-<続き>` のプロファイルにも一致します（例: `kim-abc123` と `kim-abc123-q1w2e3`）。
+> - 共有データバケットは誰でも読め、CloudWatch Logs の `/aws/sagemaker/*` には誰でも
+>   書き込めます（読み出しは誰にもできません）。
+> - M10 セルフラン用の EC2 インスタンスプロファイル（§7）を作成した場合、それは
+>   `users/*/m10/*` に書き込めます。
+> - 参加者トークンには有効期限がなく、ローテーションの手段もありません。再発行するには
+>   ユーザーを削除して作り直してください。
+>
+> 管理者も同じ制限を受けます。Studio アプリからは、管理者自身のプロファイルも自分の
+> プレフィックスにしか触れられません。参加者のプレフィックスは、ワークステーションから
+> 管理者の認証情報で確認してください。
+>
+> これらはすべて、SageMaker が新しい Studio の JupyterLab セッション、ライフサイクル
+> スクリプト、M11/M12 のジョブに実際に source identity を付けることを前提にしています。
+> AWS のドキュメントに記載された仕組みですが、証明できるのは実際のデプロイだけなので、新しい
+> スタックごとに §8 のユーザー間チェックを実行してください。これに合格すれば、§6.3 の前提
+> 条件（「ユーザーワークスペースのバケットがユーザーごとに分離された後」）は、以後に書かれる
+> ファイルについて満たされます。アップグレード前に管理者のプレフィックスへ仕込まれたファイルは
+> そのまま残り、その場合は §6.3 で扱っています。
 
 > **本ガイドの ID に関する注記。** `<aws-account-id>` や `us-west-2` を目にする箇所
 > （バケット名、ARN、クォータの「Current」値、CLI 例）はすべて、リファレンスデプロイの値です。
@@ -299,6 +347,30 @@ M12 と M11 には**キャッシュ不要** — §2b のジョブクォータだ
 > 止めます。拒否のたびに再実行すべき正確なコマンドを出力します。**新しいリージョンでは
 > これらのフラグは一切不要です。**
 > リージョンを**追加**する場合は [ADDING_A_REGION.md](ADDING_A_REGION.md) を参照してください。
+
+> **ユーザーごとの S3 分離（§0）より前にデプロイしたスタックを更新する場合: まずすべての
+> アプリを停止してください。** このバージョンは Studio ドメインの
+> `ExecutionRoleIdentityConfig` を `USER_PROFILE_NAME` に切り替えますが、SageMaker は
+> ドメイン内に実行中のアプリが 1 つもないときにしかこの変更を受け付けません。ライブの
+> ドメインにまだこの設定がない場合、`deploy.sh` はドメインのアプリ一覧を取得し、`Deleted`
+> でも `Failed` でもないアプリが 1 つでもあれば、アプリごとに `delete-app` コマンドを表示して
+> **デプロイを拒否します**。スタック、ドメイン、アプリ一覧のいずれかを取得できない場合も、
+> 推測せずに拒否します。アプリを停止してもホームボリュームと S3 のデータは残り、ドメインは
+> その場で更新されます（domain id は変わりません）。その後:
+> - 参加者はアプリを起動し直します。切り替え前に起動したセッションには source identity が
+>   なく、自分の `users/<id>/` でも `AccessDenied` になります（§13）。
+> - 旧ポリシーのまま既にコホートを運用したスタックでは、どの参加者も他の参加者の
+>   `.av30-progress.env` のトークンをコピーできた可能性があります。気になる場合は、該当
+>   ユーザーを削除して作り直し、トークンを再発行してください。
+> - **以前のコミットを再デプロイしてロールバックしないでください。** trust policy 変更より
+>   前のコミットは `sts:SetSourceIdentity` を外してしまう一方、ドメインは引き続き source
+>   identity を要求するため、アプリとジョブの作成が失敗します。ロールバックは
+>   `execution_role_identity_config="DISABLED"` と旧 S3 ステートメントを明示したコミットで行い、
+>   trust のステートメントは残したまま、すべてのアプリを停止した状態でデプロイしてください。
+> - 未確認の点: 以後ドメインを変更するデプロイ（LCC の変更、
+>   `-c idle_timeout_minutes=...`）のたびに、すべてのアプリを停止する必要があるかどうか。
+>   ガードが確認するのは最初の切り替えだけです。そのようなデプロイがドメインの更新で失敗
+>   したら、アプリを停止して再実行してください。
 
 
 ```bash
@@ -598,7 +670,8 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
 
 ## 8. スモークテスト（Day −1） — 1 ユーザーがエンドツーエンドで動くことを証明する
 
-1. 管理者ダッシュボード → **Add User** → テスト名 + メール → **Provision**。
+1. 管理者ダッシュボード → **Add User** → テスト名 + メール → **Provision**。テストユーザーを
+   もう 1 人（B）作成してください。手順 4c で比較する相手が必要です。
 2. 成功ダイアログから**参加者ダッシュボードリンク**をコピーします（永続的な
    `#userId=&token=` リンク — 5 分間の「Direct workspace URL」**ではありません**）。
 3. そのリンクを新しいブラウザで開く → 12 個のモジュールノード（M1〜M12。M0 は概要ノートブックでノードを持ちません）を持つ Pipeline Map が表示され、
@@ -616,11 +689,36 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
      `infra/av30_constructs/sagemaker.py` の `SageMakerStudioAppLifecycle` 文の注記を参照。
    - **AccessDenied が出る** → このアカウントでは解決されません。`CreateApp` は広いままにし、
      参加者にはダッシュボードのボタンを使わせ続けてください。
+4c. **ユーザーごとの S3 分離を証明する（新しいスタックごとに必須、§0）。** まずライフ
+   サイクルスクリプトのログを確認します。CloudWatch Logs のロググループ
+   `/aws/sagemaker/studio` で、テストユーザーのスペースのストリームのうち名前が
+   `LifecycleConfigOnStart` で終わる最新のものを開きます。`Notebook bootstrap complete` が
+   あり、`WARN: notebook sync failed` や `AccessDenied` が**ない**ことを確認してください。
+   同期に失敗してもアプリは止まらないため、この確認をしないとホームディレクトリが空に
+   見えるだけです。次に、テストユーザーの JupyterLab ターミナル（`$USER_BUCKET` と
+   `$USER_PROFILE` が設定されています）で、2 人目のテストユーザーの ID を `<B-id>` に入れて
+   実行します。
+   ```bash
+   aws s3 ls "s3://$USER_BUCKET/users/$USER_PROFILE/"                  # 成功: 自分のファイル
+   aws s3 ls "s3://$USER_BUCKET/users/<B-id>/"                         # AccessDenied
+   aws s3 cp "s3://$USER_BUCKET/users/<B-id>/.av30-progress.env" -     # 403 / AccessDenied
+   echo probe | aws s3 cp - "s3://$USER_BUCKET/users/<B-id>/probe.txt" # AccessDenied
+   aws s3 rm "s3://$USER_BUCKET/users/<B-id>/M1_Data_Exploration.ipynb" # AccessDenied
+   aws s3 ls "s3://$USER_BUCKET/"                                      # AccessDenied
+   aws sagemaker describe-pipeline --pipeline-name "av30-data-pipeline-<B-id>"  # AccessDenied
+   ```
+   1 行目が成功すること自体が、セッションに正しい source identity が付いている証拠です。
+   source identity がなければ 1 行目も拒否されます。1 行目が拒否された場合は §13 を参照して
+   ください。AccessDenied と書いた行のどれかが成功した場合、このスタックは分離されていない
+   ので、コホートをプロビジョニングしないでください。
 5. **M1**（CPU）をエンドツーエンドで実行し、続いて **M2**（GPU）を実行 — GPU イメージが
    自動選択され、モデルキャッシュが解決されることを確認します。
-6. M12/M11 を実行する場合は、テストユーザーとして各 1 回ずつ実行し、ジョブクォータ（§2b）と
-   IAM が整っていることを確認してください — これらは実際のマネージドジョブを送信します。
-7. テストユーザーを**削除**します（Users タブ → Delete） — アプリ/スペース/プロファイル + S3 を削除します。
+6. テストユーザーとして **M11** と **M12** を 1 回ずつ実行してください。実データが入るよう、
+   M1 と M3 の後に実行します。ジョブクォータ（§2b）と IAM の確認に加え、source identity が
+   マネージドジョブまで届くかを確かめる方法はこれしかありません。届かない場合は送信時では
+   なくジョブの中で、パイプラインのステップ 1 またはトレーニングジョブが S3 の
+   `AccessDenied` で失敗します。
+7. 2 人のテストユーザーを両方とも**削除**します（Users タブ → Delete） — アプリ/スペース/プロファイル + S3 を削除します。
 
 ---
 
@@ -766,7 +864,8 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
 | 症状 | 原因 / 対処 |
 |---|---|
 | `ResourceLimitExceeded: ...Studio JupyterLab Apps... is 0` | GPU アプリクォータが未引き上げ — §2a。 |
-| M12 ジョブが送信時に失敗（`CreateTrainingJob` で `AccessDeniedException`） | 実行ロールの training-job ARN プレフィックスがノートブックの `JOB_NAME` と一致する 必要があります。モジュール再採番で HyperPod が M9→M12 に移動しノートブックは `av30-m12-distributed-*` を送信しますが、その修正より前のデプロイは `av30-m9-*` のみを 許可するため全ての送信が拒否されます。m5.xlarge の**ジョブ**クォータ（§2b）は別の稀な 原因です — まずエラーを確認してください: `AccessDenied` は IAM プレフィックス、`ResourceLimitExceeded` はクォータ。|
+| M12 ジョブが送信時に失敗（`CreateTrainingJob` で `AccessDeniedException`） | 実行ロールが許可するのは `av30-m12-distributed-<自分のプロファイル>-*` という名前のトレーニングジョブだけで（プロファイルはセッションの source identity から来ます）、ノートブックの `JOB_NAME` がこれに一致する必要があります。外れるケースは 2 つです。M9→M12 の再採番より前のデプロイは `av30-m9-*` のみを許可したままです。あるいはカーネルに `USER_PROFILE` がなく、`PROFILE` が `default` にフォールバックして名前に誤ったプロファイルが入っています（ライフサイクルスクリプトが値を設定するよう、アプリを再起動してください）。m5.xlarge の**ジョブ**クォータ（§2b）は別の稀な原因です — まずエラーを確認してください: `AccessDenied` は IAM の名前スコープ、`ResourceLimitExceeded` はクォータ。|
+| ユーザーごとの分離へのアップグレード（§5）後: ホームディレクトリが空、またはノートブックがない、`aws s3 ls s3://$USER_BUCKET/users/$USER_PROFILE/` が `AccessDenied`、あるいは M11/M12 のジョブがジョブ内で S3 の `AccessDenied` により失敗する | セッションに source identity がないため、`users/${aws:SourceIdentity}/` のスコープが何にも一致しません（fail-closed）。順に確認してください。(1) ドメインの切り替え前に起動したアプリです: 停止して起動し直してください。(2) 管理者の認証情報で `aws sagemaker describe-domain --domain-id <id> --query DomainSettings.ExecutionRoleIdentityConfig` が `USER_PROFILE_NAME` を出力し、`aws iam get-role --role-name av30lab-sagemaker-execution-role-<region> --query Role.AssumeRolePolicyDocument` に `sts:SetSourceIdentity` が含まれている必要があります。(3) ライフサイクルスクリプトの `LifecycleConfigOnStart` ログで、同期が拒否されたかどうかを確認します（§8 の手順 4c）。(4) 両方の設定が正しいのに、新しく起動したアプリやジョブが拒否され続ける場合、このアカウントではそのセッション種別に source identity が届いていません。§5 の手順でロールバックしてください。S3 ステートメントを `users/*` に広げないでください。全員の分離が失われます。 |
 | GPU インスタンスで参加者が「No GPU detected」 | CPU イメージが選択されている — Instance Options で再 Apply。 |
 | M5/M6/M9 のセットアップセルが "this region has no usable offline HuggingFace cache and no HF_TOKEN" で停止（exit 2） | このリージョンに `hf-cache/hub/` が未シード（§6.3）。シード後 `./scripts/check_seeding.sh --region <r>`。このメッセージは*修正後*の挙動です — 2026-09-26 より前は同じ条件が沈黙で、セットアップセルが "environment ready" を表示した後、M5 が `torchrun` の中で 4 秒で `ChildFailedError` により停止し CUDA out-of-memory を指していました。まだ古い形が見える場合、参加者は古いステージング済み `setup_cosmos_env.sh` を使っています。 |
 | M5/M6/M9 が `Local entry not found … offline mode is enabled` で失敗 | 復元されたキャッシュが**部分的**です。中断された `aws s3 sync` が典型的な原因で — **同じ sync をもう一度実行してください**。欠けているもの・サイズ違いのものを再コピーして再開します。`sync` が検出できないのはサイズが正しく内容が誤ったオブジェクトです（size+mtime 比較）。`check_seeding.sh --source-region <seeded>` が CRC64 不一致を報告したら、そのオブジェクトだけ削除して再 sync してください。 |

@@ -289,6 +289,11 @@ Dashboard Link**를 열어 파이프라인 맵을 확인하세요. 스모크 테
 - **컴퓨트:** 자동 설정을 위한 라이프사이클 구성이 있는 SageMaker Studio Domain.
 - **인증:** 관리자 API는 Cognito 사용자 풀, 참가자 경로는 참가자별 토큰. 선택적인
   **WAF IP 허용 목록**은 관리자 API에만 적용됩니다.
+- **참가자 격리:** 참가자 전원이 SageMaker 실행 역할 하나를 공유하고, 세션마다 참가자의
+  프로필 이름이 `aws:SourceIdentity`로 붙습니다. 이 값으로 S3는 자기 `users/<id>/`
+  프리픽스로, M11/M12는 자기 파이프라인과 작업으로 제한됩니다. 앱 시작/중지, OpenSearch
+  컬렉션, 누가 무엇을 실행 중인지 보기 등 일부는 코호트 안에서 공유됩니다. 신뢰 모델은
+  [ADMIN_GUIDE §0](ADMIN_GUIDE.md)을 보세요.
 - **API:** 사용자 관리, 세션, 진행 상황을 위한 Lambda 기반 REST API.
 - **모니터링:** CloudWatch 알람, SNS 알림, 일일 예산 경고.
 - **프런트엔드:** CloudFront 상의 React SPA(관리자 대시보드 + 사용자 파이프라인 맵).

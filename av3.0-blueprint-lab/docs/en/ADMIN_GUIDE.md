@@ -16,15 +16,58 @@ order you'll do it. Participants only need their dashboard link (see
 - **One CDK stack** (`Av30PlatformStack`) → VPC, KMS-encrypted S3 (shared + per-user
   workspace), DynamoDB, Cognito, WAF, API Gateway + Lambda, 2 CloudFront dashboards
   (admin + user), and a SageMaker Studio domain whose participants all share ONE
-  execution role, `av30lab-sagemaker-execution-role` (not one role per user). Isolation
-  between participants comes from IAM policy conditions comparing a space's owner against
-  `${sagemaker:UserProfileName}` — see the residual-risk note in
-  `infra/av30_constructs/sagemaker.py`.
+  execution role, `av30lab-sagemaker-execution-role-<region>` (not one role per user).
+  What that role keeps apart, and what it does not, is under **Participant isolation**
+  below.
 - **Two S3 buckets** (names are derived from **your** account + region — the
   examples in this guide use account `<aws-account-id>` / `us-west-2`, the reference
   deployment; substitute your own — see §1.5):
   - `av30lab-shared-data-<account>-<region>` — models, datasets, notebook templates, M10 reference.
   - `av30lab-user-workspace-<account>-<region>` — one `users/<id>/` prefix per participant.
+
+> **Participant isolation (the trust model).** Every participant's notebooks, terminals
+> and jobs run as that one role. Two things tell participants apart: the domain sets
+> `ExecutionRoleIdentityConfig = USER_PROFILE_NAME`, so SageMaker stamps each session of the
+> role with `aws:SourceIdentity` = the user profile name (the same value as the participant
+> id and their S3 prefix), and SageMaker API calls carry `${sagemaker:UserProfileName}`.
+> With those, a participant can reach only their own:
+> - **S3 workspace.** Read, write, delete and list are limited to
+>   `users/${aws:SourceIdentity}/` in the workspace bucket. A participant cannot read
+>   another's notebooks or `.av30-progress.env` (which holds that person's dashboard token),
+>   cannot plant a `.bashrc` or IPython startup file in another's home (the app copies
+>   `users/<id>/` into its home at every start), and cannot delete another's outputs. A
+>   session without a source identity is denied on all of `users/` (fail-closed).
+> - **M11 pipeline and M12 training jobs** (`av30-data-pipeline-<id>`,
+>   `av30-m12-distributed-<id>-*`).
+> - **Private space.** `UpdateSpace` and Studio's own presigned URL are limited to the
+>   caller's own space and profile.
+>
+> **Still shared.** Treat the cohort as people who will not attack each other, and keep
+> nothing in these places that one participant must not see or change:
+> - Describe/List on spaces, apps and profiles: anyone can see who runs what.
+> - `CreateApp`/`DeleteApp` on `*`: with boto3 a participant can start or stop another's
+>   app (§8 step 4b decides whether this can be narrowed).
+> - OpenSearch Serverless: `aoss:APIAccessAll` on `collection/*`, and M4's data-access
+>   policy names the shared role, so one participant can read or change another's M4
+>   collection.
+> - Processing jobs (`processing-job/*`): the Pipelines service names M11's step jobs
+>   without the profile, so a participant can describe or stop another's step job.
+> - Training jobs, in one corner case: `av30-m12-distributed-<id>-*` also matches a profile
+>   whose id is `<id>-<more>`, for example `kim-abc123` and `kim-abc123-q1w2e3`.
+> - The shared-data bucket is readable by all, and `/aws/sagemaker/*` CloudWatch Logs
+>   accept writes from all (nobody can read them back).
+> - The M10 self-run EC2 instance profile (§7), if you create it, can write `users/*/m10/*`.
+> - Participant tokens do not expire and have no rotation; to re-issue one, delete and
+>   re-create the user.
+>
+> Admins are confined too: from a Studio app, your own profile reaches only your own
+> prefix. Inspect participants' prefixes with admin credentials from a workstation.
+>
+> All of this rests on SageMaker actually stamping the source identity on new-Studio
+> JupyterLab sessions, the lifecycle script and the M11/M12 jobs. AWS documents the
+> mechanism, but only a live deployment proves it: run the cross-user check in §8 on every
+> new stack. Once it passes, the "isolated per user" precondition in §6.3 holds for new
+> writes; files planted under your prefix before the upgrade stay, which §6.3 covers.
 
 > **Note on the IDs in this guide.** Everywhere you see `<aws-account-id>` or
 > `us-west-2` (bucket names, ARNs, quota "current" values, CLI examples), those
@@ -312,6 +355,28 @@ Record the outcome here when you run it, so the next admin does not have to re-d
 > unmanaged, or deleting one the stack does own). Each refusal prints the exact command to
 > re-run. A brand-new region needs none of these flags.
 > To stand up an ADDITIONAL region, see [../en/ADDING_A_REGION.md](ADDING_A_REGION.md).
+
+> **Upgrading a stack deployed before per-user S3 isolation (§0): stop every app first.**
+> This version switches the Studio domain's `ExecutionRoleIdentityConfig` to
+> `USER_PROFILE_NAME`, and SageMaker accepts that change only while no app in the domain is
+> running. If the live domain does not have the setting yet, `deploy.sh` lists the domain's
+> apps and **refuses** while any of them is not `Deleted` or `Failed`, printing a
+> `delete-app` command for each. It also refuses when it cannot read the stack, the domain
+> or the app list, rather than guessing. Stopping an app keeps its home volume and S3 data,
+> and the domain is updated in place (same domain id). Then:
+> - Participants start their app again. A session started before the switch has no source
+>   identity and gets `AccessDenied` on its own `users/<id>/` (§13).
+> - If the stack already ran a cohort under the old policy, any participant could have
+>   copied another's `.av30-progress.env` token. If that matters, re-issue tokens by
+>   deleting and re-creating those users.
+> - **Do not roll back by redeploying an older commit.** Commits before the trust-policy
+>   change drop `sts:SetSourceIdentity` while the domain still asks for a source identity,
+>   and app and job creation then fail. Roll back with a commit that sets
+>   `execution_role_identity_config="DISABLED"` and restores the old S3 statements, keep
+>   the trust statement, and deploy it with every app stopped.
+> - Not yet verified: whether later deploys that change the domain (an LCC change,
+>   `-c idle_timeout_minutes=...`) also need every app stopped. The guard checks only the
+>   first switch; if such a deploy fails on the domain update, stop the apps and re-run.
 
 
 ```bash
@@ -615,7 +680,8 @@ provisioning + IAM) and [M10_PARTICIPANT_SSM_RUNBOOK.md](M10_PARTICIPANT_SSM_RUN
 
 ## 8. Smoke test (Day −1) — prove one user works end-to-end
 
-1. Admin Dashboard → **Add User** → test name + email → **Provision**.
+1. Admin Dashboard → **Add User** → test name + email → **Provision**. Provision a
+   second test user too (B): step 4c needs a peer to test against.
 2. Copy the **Participant Dashboard Link** from the success dialog (the durable
    `#userId=&token=` link — **not** the 5-minute "Direct workspace URL").
 3. Open that link in a fresh browser → the Pipeline Map with 12 module nodes renders (M1-M12; M0 is the overview notebook and has no node),
@@ -633,11 +699,34 @@ provisioning + IAM) and [M10_PARTICIPANT_SSM_RUNBOOK.md](M10_PARTICIPANT_SSM_RUN
      `SageMakerStudioAppLifecycle` statement in `infra/av30_constructs/sagemaker.py`.
    - **AccessDenied** → they do not resolve in this account. Leave `CreateApp` broad, and
      keep telling participants to use the dashboard's button.
+4c. **Prove per-user S3 isolation (required on every new stack, §0).** First check the
+   lifecycle script's log: in CloudWatch Logs, log group `/aws/sagemaker/studio`, open the
+   newest stream for the test user's space that ends in `LifecycleConfigOnStart`. It must
+   show `Notebook bootstrap complete` and must **not** show
+   `WARN: notebook sync failed` or `AccessDenied`. A failed sync does not stop the app, so
+   without this check it only looks like an empty home directory. Then, in the test user's
+   JupyterLab terminal (`$USER_BUCKET` and `$USER_PROFILE` are set there), with `<B-id>`
+   the second test user's id:
+   ```bash
+   aws s3 ls "s3://$USER_BUCKET/users/$USER_PROFILE/"                  # works: own files
+   aws s3 ls "s3://$USER_BUCKET/users/<B-id>/"                         # AccessDenied
+   aws s3 cp "s3://$USER_BUCKET/users/<B-id>/.av30-progress.env" -     # 403 / AccessDenied
+   echo probe | aws s3 cp - "s3://$USER_BUCKET/users/<B-id>/probe.txt" # AccessDenied
+   aws s3 rm "s3://$USER_BUCKET/users/<B-id>/M1_Data_Exploration.ipynb" # AccessDenied
+   aws s3 ls "s3://$USER_BUCKET/"                                      # AccessDenied
+   aws sagemaker describe-pipeline --pipeline-name "av30-data-pipeline-<B-id>"  # AccessDenied
+   ```
+   The first line succeeding is itself the proof that the session carries the right source
+   identity: without one, it is denied too. If the first line is denied, see §13. If any
+   line marked AccessDenied succeeds, the stack is not isolated: do not provision the
+   cohort.
 5. Run **M1** (CPU) end-to-end, then **M2** (GPU) — confirms the GPU image is
    auto-selected and the model cache resolves.
-6. If you're running M12/M11, run one of each once as the test user to confirm the
-   job quotas (§2b) and IAM are in place — they submit real managed jobs.
-7. **Delete** the test user (Users tab → Delete) — removes app/space/profile + S3.
+6. Run **M11** and **M12** once each as the test user, after M1 and M3 so they have real
+   input. Besides the job quotas (§2b) and IAM, this is the only check that the source
+   identity reaches the managed jobs: if it does not, the pipeline's step 1 or the
+   training job fails on S3 `AccessDenied` inside the job, not at submission.
+7. **Delete** both test users (Users tab → Delete) — removes app/space/profile + S3.
 
 ---
 
@@ -786,7 +875,8 @@ source-builds `gsplat==1.4.0`.
 | Symptom | Cause / Fix |
 |---|---|
 | `ResourceLimitExceeded: ...Studio JupyterLab Apps... is 0` | GPU app quota not raised — §2a. |
-| M12 job fails at submission (`AccessDeniedException` on `CreateTrainingJob`) | The exec-role's training-job ARN prefix must match the notebook's `JOB_NAME`. The module renumber moved HyperPod M9→M12 and the notebook now submits `av30-m12-distributed-*`; a deployment predating that fix still grants `av30-m9-*` and every submission is denied. The m5.xlarge **job** quota (§2b) is a separate, rarer cause — check the error first: `AccessDenied` = IAM prefix, `ResourceLimitExceeded` = quota. |
+| M12 job fails at submission (`AccessDeniedException` on `CreateTrainingJob`) | The exec role allows only training-job names `av30-m12-distributed-<own profile>-*` (the profile comes from the session's source identity), and the notebook's `JOB_NAME` must match. Two ways to miss: a deployment predating the M9→M12 renumber still grants `av30-m9-*`; or the kernel has no `USER_PROFILE`, so `PROFILE` fell back to `default` and the name carries the wrong profile (restart the app so the lifecycle script sets it). The m5.xlarge **job** quota (§2b) is a separate, rarer cause — check the error first: `AccessDenied` = IAM name scope, `ResourceLimitExceeded` = quota. |
+| After the per-user isolation upgrade (§5): the home directory is empty or notebooks are missing, `aws s3 ls s3://$USER_BUCKET/users/$USER_PROFILE/` returns `AccessDenied`, or an M11/M12 job fails inside on S3 `AccessDenied` | The session carries no source identity, so the `users/${aws:SourceIdentity}/` scope matches nothing (fail-closed). In order: (1) the app was started before the domain switched: stop it and start it again. (2) With admin credentials, `aws sagemaker describe-domain --domain-id <id> --query DomainSettings.ExecutionRoleIdentityConfig` must print `USER_PROFILE_NAME`, and `aws iam get-role --role-name av30lab-sagemaker-execution-role-<region> --query Role.AssumeRolePolicyDocument` must include `sts:SetSourceIdentity`. (3) The lifecycle script's `LifecycleConfigOnStart` log shows whether the sync was denied (§8 step 4c). (4) If both settings are right and a freshly started app, or a job, is still denied, the source identity does not reach that session type in this account: roll back as §5 describes. Do not widen the S3 statement to `users/*`, which removes the isolation for everyone. |
 | Participant "No GPU detected" on a GPU instance | CPU image selected — re-Apply via Instance Options. |
 | M5/M6/M9 setup cell stops with "this region has no usable offline HuggingFace cache and no HF_TOKEN" (exit 2) | `hf-cache/hub/` not seeded in **this** region (§6.3). Seed it, then `./scripts/check_seeding.sh --region <r>`. This message is the *fixed* behaviour — before 2026-09-26 the same condition was silent: setup printed "environment ready", then M5 died four seconds into `torchrun` with a `ChildFailedError` that named CUDA out-of-memory. If you still see that older shape, the participant is running a stale staged copy of `setup_cosmos_env.sh`. |
 | M5/M6/M9 fails with `Local entry not found … offline mode is enabled` | The restored cache is **partial**. An interrupted `aws s3 sync` is the usual cause — **re-run the same sync**, it resumes and re-copies anything missing or size-mismatched. What `sync` cannot detect is a destination object that is the *right size with wrong content*, because it compares size+mtime rather than checksums; if `check_seeding.sh --source-region <seeded>` reports a CRC64 mismatch, delete that one object and re-sync. |
