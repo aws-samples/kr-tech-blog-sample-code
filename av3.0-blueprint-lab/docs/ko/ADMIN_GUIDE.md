@@ -589,6 +589,22 @@ PARTICIPANT_GUIDE가 서술하는 선택적 개념 + 데이터 준비 데모로 
   호스트를 종료합니다. 끝에 수동 HF/NGC 키 폐기 체크리스트를 출력합니다.
 - **단일 사용자를 인터랙티브하게 삭제:** Admin Dashboard → Users → **Delete**
   (한 번의 작업으로 동일한 의존성 순서).
+- **삭제하거나 비활성화한 참가자가 바로 차단되지는 않습니다.** Delete를 누르거나
+  `av30-sessions-v2` 테이블에서 사용자의 `status`를 `active`가 아닌 값으로 바꾸면 참가자의
+  대시보드 토큰이 폐기됩니다. 다만 API Gateway가 token authorizer의 판정을 **최대 60초**
+  캐시하므로, 그동안은 그 토큰으로 참가자 route를 계속 호출할 수 있습니다. Open Workspace,
+  인스턴스 변경, 스토리지 확장은 핸들러가 `status`를 직접 확인하므로 즉시 거부됩니다.
+  토큰을 바로 끊어야 한다면 삭제 직후 stage의 authorizer 캐시를 비우세요.
+
+  ```bash
+  API_ID=$(aws cloudformation describe-stacks --stack-name Av30BlueprintLabStack --region "$AWS_REGION" \
+    --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | cut -d/ -f3 | cut -d. -f1)
+  aws apigateway flush-stage-authorizers-cache --rest-api-id "$API_ID" --stage-name prod --region "$AWS_REGION"
+  ```
+
+  캐시는 모든 토큰에 대해 한꺼번에 비워지지만, 다른 참가자는 다음 요청에서 authorizer를
+  한 번 더 거칠 뿐입니다. 이미 열려 있는 Studio 브라우저 세션은 이 캐시를 거치지 않습니다.
+  그 세션은 Delete가 app, space, user profile을 지우면서 끝납니다.
 - **스택 티어다운**(플랫폼이 임시라면): `scripts/teardown.sh
   --yes --destroy`, 또는 `cd infra && npx cdk destroy`. shared-data 버킷은
   RETAIN임에 유의하세요 — 이 버킷과 캐시된 모델은 destroy를 견디고 살아남으며 수동으로 비워야 합니다.

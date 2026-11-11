@@ -605,6 +605,24 @@ source-builds `gsplat==1.4.0`.
   hosts. It prints a manual HF/NGC key-revocation checklist at the end.
 - **Delete a single user interactively:** Admin Dashboard → Users → **Delete**
   (same dependency order in one action).
+- **A deleted or disabled participant is not cut off instantly.** Delete, or setting
+  the user's `status` in the `av30-sessions-v2` table to anything other than `active`,
+  revokes their dashboard token, but API Gateway caches the token authorizer's answer
+  for up to **60 seconds**. Inside that window the token still reaches the participant
+  routes. Open Workspace, instance changes and storage expansion check `status`
+  themselves and are refused at once. To cut the token off immediately, flush the
+  stage's authorizer cache right after the delete:
+
+  ```bash
+  API_ID=$(aws cloudformation describe-stacks --stack-name Av30BlueprintLabStack --region "$AWS_REGION" \
+    --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | cut -d/ -f3 | cut -d. -f1)
+  aws apigateway flush-stage-authorizers-cache --rest-api-id "$API_ID" --stage-name prod --region "$AWS_REGION"
+  ```
+
+  The flush clears every cached token, which only costs the other participants one
+  extra authorizer call on their next request. A Studio browser session that is
+  already open does not go through this cache; Delete ends it by removing the app,
+  space and user profile.
 - **Tear down the stack** (if the platform is temporary): `scripts/teardown.sh
   --yes --destroy`, or `cd infra && npx cdk destroy`. Note the shared-data bucket
   is RETAIN — it and its cached models survive a destroy and must be emptied by hand.

@@ -160,3 +160,30 @@ def require_own_user(event: dict, user_id: str) -> None:
         )
     if caller_id != user_id:
         raise ApiError(403, "Token not authorized for this userId")
+
+
+def require_active_user(item: dict) -> None:
+    """Reject a participant whose session row is no longer status == "active".
+
+    token_authorizer applies the same rule, but API Gateway caches its Allow per
+    token for results_cache_ttl (60 s, infra/av30_constructs/api.py). For that long
+    after an admin disables a participant, or after delete_user marks the row
+    "deleting", the old token still reaches every token route. The three routes
+    whose side effects matter in that window call this on the row they just read,
+    before doing anything else:
+        POST  /presigned-url/{userId}      -> would mint a fresh Studio URL
+        PATCH /sessions/{id}/instance-type -> would delete and rebuild the app,
+                                             racing delete_user's teardown
+        PATCH /sessions/{id}/storage       -> same, plus an EBS resize
+    A missing status is treated as inactive, exactly as the authorizer treats it.
+    """
+    status = item.get("status")
+    if status != "active":
+        raise ApiError(
+            403,
+            "This participant account is not active",
+            details=(
+                f"status={status!r}. The workshop admin has disabled or is deleting "
+                "this account, so nothing was changed."
+            ),
+        )

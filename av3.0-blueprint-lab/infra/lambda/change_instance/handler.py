@@ -46,7 +46,7 @@ from config import (
     wait_for_app_deleted,
     wait_for_space_in_service,
 )
-from errors import ApiError, api_handler, require_own_user
+from errors import ApiError, api_handler, require_active_user, require_own_user
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -126,6 +126,11 @@ def _http_handler(event, context):
 
     if not item:
         raise ApiError(404, f"User not found: {user_id}")
+
+    # Before safe_delete_app below: a disabled or "deleting" user still passes the
+    # gateway for the authorizer's cache window, and rebuilding their app then would
+    # race delete_user's teardown. See require_active_user.
+    require_active_user(item)
 
     current_module = item.get("currentModule")
     previous_type = item.get("instanceType", "ml.t3.medium")

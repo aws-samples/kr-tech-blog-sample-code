@@ -586,6 +586,23 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
   終了します。最後に手動の HF/NGC キー無効化チェックリストを出力します。
 - **単一ユーザーを対話的に削除:** 管理者ダッシュボード → Users → **Delete**
   （1 アクションで同じ依存順序）。
+- **削除・無効化した参加者もすぐには遮断されません。** Delete を実行するか、
+  `av30-sessions-v2` テーブルでユーザーの `status` を `active` 以外に変更すると、参加者の
+  ダッシュボードトークンは無効になります。ただし API Gateway は token authorizer の判定を
+  **最大 60 秒**キャッシュするため、その間はそのトークンで参加者向けのルートを呼び出せて
+  しまいます。Open Workspace、インスタンス変更、ストレージ拡張はハンドラー側で `status` を
+  確認するので、即座に拒否されます。すぐに遮断したい場合は、削除の直後に stage の
+  authorizer キャッシュをフラッシュしてください。
+
+  ```bash
+  API_ID=$(aws cloudformation describe-stacks --stack-name Av30BlueprintLabStack --region "$AWS_REGION" \
+    --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | cut -d/ -f3 | cut -d. -f1)
+  aws apigateway flush-stage-authorizers-cache --rest-api-id "$API_ID" --stage-name prod --region "$AWS_REGION"
+  ```
+
+  フラッシュはすべてのトークンが対象ですが、他の参加者は次のリクエストで authorizer が
+  もう一度呼ばれるだけです。すでに開いている Studio のブラウザセッションはこのキャッシュを
+  通りません。そのセッションは、Delete が app・space・user profile を削除した時点で終了します。
 - **スタックのティアダウン**（プラットフォームが一時的な場合）: `scripts/teardown.sh
   --yes --destroy`、または `cd infra && npx cdk destroy`。共有データバケットは RETAIN で
   あることに注意してください — バケットとキャッシュされたモデルは destroy を生き延びるため、

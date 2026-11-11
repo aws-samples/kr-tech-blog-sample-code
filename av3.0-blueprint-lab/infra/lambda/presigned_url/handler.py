@@ -16,7 +16,7 @@ import boto3
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 
 from config import PRESIGNED_URL_EXPIRY, SAGEMAKER_DOMAIN_ID, SESSIONS_TABLE_NAME
-from errors import ApiError, api_handler, require_own_user
+from errors import ApiError, api_handler, require_active_user, require_own_user
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -52,8 +52,9 @@ def handler(event, context):
 
     user_item = response["Item"]
 
-    if user_item.get("status") == "deleted":
-        raise ApiError(410, f"User has been deleted: {user_id}")
+    # Not just "deleted" (a value nothing writes): a disabled or "deleting" user must
+    # not get a Studio URL during the token authorizer's cache window either.
+    require_active_user(user_item)
 
     # Generate new presigned URL.
     #

@@ -141,6 +141,17 @@ class ApiConstruct(Construct):
         )
 
         # --- Authorizers ---
+        # Changing either authorizer (e.g. its cache TTL) only reaches the live stage
+        # through a NEW Deployment. That relies on the CDK feature flag
+        # "@aws-cdk/aws-apigateway:authorizerChangeDeploymentLogicalId" in cdk.json, which
+        # folds authorizer props into the Deployment's logical id. Without it CFN updates
+        # the Authorizer resource and the stage keeps serving the old configuration.
+        #
+        # The admin cache stays at 5 minutes on purpose. The admin SPA sends a Cognito ID
+        # token, a signed JWT that is checked for signature and expiry and stays valid for
+        # its own lifetime (1 hour by default). Disabling an admin in Cognito stops new
+        # tokens, not the one already issued, so that lifetime, not this cache, is what
+        # bounds a removed admin's access. A shorter TTL here would not shorten it.
         cognito_authorizer = apigw.CognitoUserPoolsAuthorizer(
             self,
             "CognitoAuthorizer",
@@ -159,13 +170,20 @@ class ApiConstruct(Construct):
         )
         sessions_table.grant_read_data(token_authorizer_fn)
 
+        # Participant cache: 60 seconds, not the 5-minute default. API Gateway caches the
+        # authorizer's Allow policy per token for this long, so after an admin disables or
+        # deletes a participant (status != "active") the token keeps passing the gateway
+        # until the cached entry expires. The routes that cost money or hand out a Studio
+        # URL (presigned_url, change_instance, expand_storage) re-read status themselves
+        # and refuse at once. For an immediate cut-off everywhere, flush the cache:
+        # `aws apigateway flush-stage-authorizers-cache` (see ADMIN_GUIDE section 12).
         token_authorizer = apigw.TokenAuthorizer(
             self,
             "TokenAuthorizer",
             handler=token_authorizer_fn,
             authorizer_name="av30-token-authorizer",
             identity_source="method.request.header.X-Api-Key",
-            results_cache_ttl=Duration.minutes(5),
+            results_cache_ttl=Duration.seconds(60),
         )
 
         # --- Shared environment variables for business Lambdas ---

@@ -34,8 +34,9 @@ appeared once a real workshop instance was up: the more expensive the resource, 
 more likely the delete looks broken.
 
 `status = "deleting"` is load-bearing beyond display: token_authorizer requires
-`status == "active"`, so writing it revokes the participant's dashboard token the
-moment teardown starts.
+`status == "active"`, so writing it revokes the participant's dashboard token once
+the authorizer's cached Allow expires (up to 60 s). presigned_url, change_instance
+and expand_storage re-read status and refuse from the moment it is written.
 """
 
 import json

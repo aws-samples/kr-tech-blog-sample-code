@@ -31,7 +31,7 @@ from config import (
     DEFAULT_SPACE_STORAGE_GB,
 )
 
-from errors import ApiError, api_handler, require_own_user
+from errors import ApiError, api_handler, require_active_user, require_own_user
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -108,6 +108,10 @@ def _http_handler(event, context):
 
     if not item:
         raise ApiError(404, f"User not found: {user_id}")
+
+    # Before describe_space / safe_delete_app below, for the same reason as
+    # change_instance. See require_active_user.
+    require_active_user(item)
 
     space_name = item.get("spaceName", f"{user_id}-space")
     # Preserve the user's current instance type when recreating the app, so a

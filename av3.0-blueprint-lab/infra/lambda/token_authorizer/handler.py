@@ -46,8 +46,9 @@ def generate_policy(principal_id: str, effect: str, resource: str, context: dict
 def handler(event, context):
     """Lambda authorizer handler.
 
-    Reads x-api-key header, queries DynamoDB GSI (token-index),
-    checks token validity and expiry, returns IAM allow/deny policy.
+    Reads x-api-key header, queries DynamoDB GSI (token-index), and returns
+    an IAM Allow policy if the token exists and the user is active. Anything
+    else raises "Unauthorized" (401); there is no expiry check and no Deny.
 
     Note: This handler does NOT use the @api_handler decorator because
     Lambda authorizers must return IAM policy documents, not HTTP responses.
@@ -109,12 +110,20 @@ def handler(event, context):
         # participant who hadn't opened their workspace in 8h got a 403 Deny.
         # A participant token is valid iff it exists in the table and the user is
         # active; revoke access by setting status != "active" (or delete_user).
+        # Revocation is NOT instant at the gateway: the Allow below is cached per
+        # token (results_cache_ttl, 60 s in api.py), so a revoked token keeps
+        # passing for up to that long unless the stage's authorizer cache is flushed.
 
         # Token is valid — allow access
         logger.info(f"Authorized user: {user_id}")
 
-        # Use wildcard resource to allow caching across methods
-        # Replace specific method/path with wildcard
+        # Stage-wide resource (<api-id>/<stage>/*), not this request's methodArn.
+        # API Gateway caches this policy per token and evaluates the CACHED policy
+        # against every later request with that token, whatever its method or path.
+        # A policy scoped to the first methodArn would 403 the participant's next,
+        # different call for the rest of the TTL. The cost of stage-wide: the
+        # gateway proves only "some active participant", never which one, so every
+        # {userId} route must call require_own_user (shared/errors.py).
         resource_arn_parts = method_arn.split(":")
         api_gateway_arn = ":".join(resource_arn_parts[:5])
         api_parts = resource_arn_parts[5].split("/")
