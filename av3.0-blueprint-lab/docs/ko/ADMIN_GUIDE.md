@@ -159,13 +159,44 @@ Service Quotas 콘솔에서 "**Studio JupyterLab Apps running on**"을 검색하
 **사용자 대시보드의 Instance Options**가 제공하는 타입(권장 + 대안) 그대로이고, API도 이
 목록을 강제합니다. `cdk synth`가 `web/user/src/data/pipeline-config.ts`에서 목록을 읽어 이
 리전이 판매하는 타입만 남기고, `change_instance`는 그 밖의 타입을 API로 직접 호출하더라도
-실행 중인 앱을 건드리기 전에 400으로 거부합니다. 목록을 바꾸려면 이 파일을 고친 뒤 스택을
-다시 배포하세요. 쿼터 **코드는 리전과 무관하지만**(us-west-2 / ap-northeast-2 / eu-west-1에서
+실행 중인 앱을 건드리기 전에 400으로 거부합니다. Studio 안에서도 실행 역할이 같은 목록을
+적용합니다(아래 참고). 목록을 바꾸려면 이 파일을 고친 뒤 스택을 다시 배포하세요. 쿼터 **코드는 리전과 무관하지만**(us-west-2 / ap-northeast-2 / eu-west-1에서
 동일함을 확인), **값은 그렇지 않으며** 어떤 타입에 쿼터가 존재하는지조차 리전마다 다릅니다.
 
-> **이 상한은 대시보드의 API에만 적용되고, Studio 자체 화면에는 적용되지 않습니다.** 참가자
-> 실행 역할은 Studio 안에서 직접 앱을 시작할 수 있고, 그 경로에서는 목록 밖 타입을 쿼터만이
-> 막습니다. 제공할 생각이 없는 타입은 쿼터를 요청하지 마세요(p4d 행 참고).
+> **Studio에서도 같은 목록이 적용됩니다.** 참가자 실행 역할에는 명시적 Deny
+> `DenyNonParticipantInstanceTypes`가 있습니다. `sagemaker:CreateApp`과
+> `sagemaker:UpdateSpace`에서 요청한 `sagemaker:InstanceTypes`에 이 목록(과 JupyterServer
+> 앱의 인스턴스 타입인 `system`) 밖의 값이 하나라도 있으면 거부합니다. synth가 API와 같은
+> 목록으로 만들기 때문에, Studio의 **Run space**나 노트북의 boto3로 `ml.p5.48xlarge`를
+> 요청해도 `AccessDenied`가 납니다. 이 Deny는 도메인의 모든 Studio 세션에 걸리며, 관리자
+> 자신의 프로필도 예외가 아닙니다. API의 Lambda와 워크스테이션의 관리자 자격 증명(예:
+> `scripts/grab_gpu_instance.py`)에는 영향이 없습니다. 배포 전부터 다른 타입으로 실행 중이던
+> 앱은 그대로 계속 돕니다.
+>
+> **아직 실배포로 확인하지 못했습니다.** 이 Deny는 인스턴스 타입이 들어 있는 요청에만
+> 적용됩니다. AWS 문서는 두 액션 모두에 이 키가 있다고 적고 있지만, 스페이스의
+> `DefaultResourceSpec`만 바꾸는 `UpdateSpace`나 `ResourceSpec` 없이 보낸 `CreateApp`(스페이스
+> 기본값을 씀)에서도 SageMaker가 이 키를 채우는지는 문서에 없습니다. 둘 다 채우지 않는다면
+> "기본값을 바꾼 뒤 ResourceSpec 없이 시작"하는 방법으로 여전히 우회할 수 있고, 그때는 다시
+> 쿼터만이 그 타입을 막습니다. 아래 점검이 스택에서 통과할 때까지는, 제공할 생각이 없는 타입의
+> 쿼터를 요청하지 마세요(p4d 행 참고). 점검은 §8 7단계(그 스페이스를 어차피 지웁니다) 직전에,
+> §8 테스트 사용자의 JupyterLab 터미널에서 실행합니다. 1번 점검이 아무것도 띄우지 않도록 앱은
+> 켜 둔 채로 두세요. `ml.c5.large`는 목록에 없는 저렴한 타입입니다.
+> ```bash
+> DOMAIN_ID=$(python3 -c "import json;print(json.load(open('/opt/ml/metadata/resource-metadata.json'))['DomainId'])")
+> SPACE="$USER_PROFILE-space"
+> # 1. AccessDenied가 나와야 합니다. ResourceInUse가 나오면 Deny가 적용되지 않은 것입니다(아무것도 뜨지 않음).
+> aws sagemaker create-app --domain-id "$DOMAIN_ID" --space-name "$SPACE" \
+>   --app-type JupyterLab --app-name default --resource-spec InstanceType=ml.c5.large
+> # 2. AccessDenied가 나와야 합니다. 다른 결과라면 이 요청에서는 키가 채워지지 않은 것입니다.
+> aws sagemaker update-space --domain-id "$DOMAIN_ID" --space-name "$SPACE" \
+>   --space-settings '{"JupyterLabAppSettings":{"DefaultResourceSpec":{"InstanceType":"ml.c5.large"}}}'
+> ```
+> 이어서 허용된 경로가 그대로 동작하는지 확인합니다. 목록에 있는 타입으로 Studio의
+> **Run space**(§8 4b단계), 그리고 Studio 스페이스 페이지에서 스토리지 변경입니다. 둘 중
+> 하나라도 *explicit deny*로 실패하면 `infra/av30_constructs/sagemaker.py`에서
+> `DenyNonParticipantInstanceTypes` 문장을 지우고 다시 배포하세요. API의 상한은 이 문장과
+> 무관하게 동작합니다.
 
 **GPU 주력: `ml.g5.12xlarge`(4× A10G, 96 GB).** 대시보드가 이제 M2, M3와 무거운 네 모듈
 (M5, M6, M8, M9)에 권장하는 타입이며, 근거는 모두 실측입니다. `ml.g6.24xlarge`와 기하 구조가
@@ -214,7 +245,8 @@ M7의 novel-view 렌더는 `rc=1`로 끝나 **프레임 0개**를 냈습니다 �
 > 타입입니다. `change_instance`가 400으로 거부하므로 대시보드를 위해 쿼터를 받을 필요는
 > 없습니다. g7e는 네이티브 해상도로 가는 가장 저렴한 경로(96 GB 카드 1장, 약 $4.20/시간)이지만
 > ap-northeast-2에서는 Studio용으로 판매되지 않고 이 랩에서 실행해 본 모듈도 없어서 목록에
-> 넣지 않았습니다. 이 타입들의 쿼터는 위에서 말한 Studio 경로 때문에 여전히 의미가 있습니다.
+> 넣지 않았습니다. Studio에서도 이 타입들은 거부됩니다(위 참고). 점검 결과 Deny가 닿지 않는
+> 경로가 있다면, 그 경로에서는 쿼터가 마지막 방어선입니다.
 
 방 규모 산정: 각 모듈의 **권장** 인스턴스를 동시 참가자 수 이상으로 요청하고,
 사람들을 유도할 한두 개의 폴백에 대해서는 표에 표시된 최소치 이상을 요청하세요(용량
@@ -668,6 +700,8 @@ aws s3 sync scripts/   s3://<shared>/notebook-templates/scripts/ --region "$AWS_
    테스트 사용자로 Studio **자체**를 엽니다(딥링크가 아니라 Studio 콘솔). 스페이스 페이지에서
    **Run space**, 그다음 **Open JupyterLab**을 클릭하고, `sagemaker:UpdateSpace` /
    `sagemaker:CreatePresignedDomainUrl`에 대한 `AccessDenied`가 나는지 기록합니다.
+   메시지에 *explicit deny*가 들어 있다면 다른 문제입니다. 인스턴스 타입 Deny(§2a)에
+   걸린 것이므로, 폼이 어떤 타입을 보냈는지 확인하세요.
    - **AccessDenied 없음** → `${sagemaker:DomainId}` / `${sagemaker:UserProfileName}`
      정책 변수가 런타임에 해석됩니다. 따라서 `CreateApp`/`DeleteApp`을 `resources=["*"]`에서
      같은 소유자 조건으로 좁힐 수 있습니다. `infra/av30_constructs/sagemaker.py`의

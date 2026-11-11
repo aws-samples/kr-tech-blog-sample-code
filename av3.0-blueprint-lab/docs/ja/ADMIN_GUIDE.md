@@ -161,14 +161,47 @@ Service Quotas コンソールで「**Studio JupyterLab Apps running on**」を�
 **ユーザーダッシュボードの Instance Options** が提示するタイプ（推奨 + 代替）そのもので、API も
 この一覧を強制します。`cdk synth` が `web/user/src/data/pipeline-config.ts` から一覧を読み取って
 このリージョンで販売されているタイプだけを残し、`change_instance` はそれ以外のタイプを、API が
-直接呼び出された場合でも、実行中のアプリに触れる前に 400 で拒否します。一覧を変えるには、この
-ファイルを編集してスタックを再デプロイしてください。
+直接呼び出された場合でも、実行中のアプリに触れる前に 400 で拒否します。Studio の中でも、実行
+ロールが同じ一覧を適用します（下記）。一覧を変えるには、このファイルを編集してスタックを再デプロイ
+してください。
 クォータ**コードはリージョンに依存しません**（us-west-2 / ap-northeast-2 / eu-west-1 で同一と確認済み）。
 しかし**値は依存します**し、そもそもどのタイプにクォータが存在するかもリージョンごとに異なります。
 
-> **この上限が効くのはダッシュボードの API だけで、Studio 自体の操作には効きません。** 参加者の
-> 実行ロールは Studio の中から直接アプリを起動でき、その経路では一覧外のタイプを止めるのは
-> クォータだけです。提供するつもりのないタイプのクォータは申請しないでください（p4d の行を参照）。
+> **Studio でも同じ一覧が適用されます。** 参加者の実行ロールには明示的な Deny
+> `DenyNonParticipantInstanceTypes` があり、`sagemaker:CreateApp` と `sagemaker:UpdateSpace`
+> で要求された `sagemaker:InstanceTypes` に、この一覧（と JupyterServer アプリのインスタンス
+> タイプである `system`）以外の値が 1 つでも含まれていれば拒否します。synth が API と同じ一覧から
+> 作るため、Studio の **Run space** やノートブックの boto3 で `ml.p5.48xlarge` を要求しても
+> `AccessDenied` になります。この Deny はドメイン内のすべての Studio セッションに効き、管理者
+> 自身のプロファイルも例外ではありません。API の Lambda と、ワークステーション上の管理者認証情報
+> （例: `scripts/grab_gpu_instance.py`）には影響しません。デプロイ前から別のタイプで動いていた
+> アプリは、そのまま動き続けます。
+>
+> **実デプロイでの確認はまだです。** この Deny が効くのは、インスタンスタイプを含むリクエスト
+> だけです。AWS のドキュメントは両アクションにこのキーがあると記載していますが、スペースの
+> `DefaultResourceSpec` だけを変える `UpdateSpace` や、`ResourceSpec` なしで送った `CreateApp`
+> （スペースのデフォルトを使う）でも SageMaker がこのキーを埋めるかどうかは書かれていません。
+> どちらも埋めないなら「デフォルトを変えてから ResourceSpec なしで起動する」方法で今も回避でき、
+> その場合そのタイプを止めるのは再びクォータだけです。下の確認がスタックで通るまでは、提供する
+> つもりのないタイプのクォータは申請しないでください（p4d の行を参照）。確認は §8 の手順 7
+> （そのスペースはどのみち削除されます）の直前に、§8 のテストユーザーの JupyterLab ターミナルで
+> 実行します。確認 1 で何も起動しないよう、アプリは動かしたままにしてください。`ml.c5.large` は
+> 一覧にない安価なタイプです。
+> ```bash
+> DOMAIN_ID=$(python3 -c "import json;print(json.load(open('/opt/ml/metadata/resource-metadata.json'))['DomainId'])")
+> SPACE="$USER_PROFILE-space"
+> # 1. AccessDenied になるはずです。ResourceInUse なら Deny は効いていません（何も起動しません）。
+> aws sagemaker create-app --domain-id "$DOMAIN_ID" --space-name "$SPACE" \
+>   --app-type JupyterLab --app-name default --resource-spec InstanceType=ml.c5.large
+> # 2. AccessDenied になるはずです。それ以外の結果なら、このリクエストではキーが埋められていません。
+> aws sagemaker update-space --domain-id "$DOMAIN_ID" --space-name "$SPACE" \
+>   --space-settings '{"JupyterLabAppSettings":{"DefaultResourceSpec":{"InstanceType":"ml.c5.large"}}}'
+> ```
+> 続いて、許可された経路が引き続き動くことを確認します。一覧にあるタイプでの Studio の
+> **Run space**（§8 の手順 4b）と、Studio のスペースページからのストレージ変更です。どちらかが
+> *explicit deny* で失敗したら、`infra/av30_constructs/sagemaker.py` から
+> `DenyNonParticipantInstanceTypes` 文を削除して再デプロイしてください。API の上限はこの文が
+> なくても動作します。
 
 **GPU 主力機: `ml.g5.12xlarge`（4× A10G、96 GB）。** ダッシュボードが現在 M2、M3 と重量級の
 4 モジュール（M5、M6、M8、M9）に推奨するタイプで、根拠はすべて実測です。`ml.g6.24xlarge` と
@@ -218,7 +251,8 @@ ap-northeast-2 は 5 対 **0**）、そしてラボが捕捉した合格実行�
 > タイプ。`change_instance` が 400 で拒否するため、ダッシュボードのためにクォータを取る必要は
 > ありません。g7e はネイティブ解像度への最も安価な経路（96 GB カード 1 枚、約 $4.20/時）ですが、
 > ap-northeast-2 では Studio 向けに販売されておらず、このラボで実行したモジュールもないため一覧に
-> 入れていません。これらのクォータは、上で述べた Studio 経由の経路があるため引き続き意味を持ちます。
+> 入れていません。Studio でもこれらのタイプは拒否されます（上記）。確認の結果、Deny が届かない
+> 経路があれば、その経路ではクォータが最後の歯止めです。
 
 部屋のサイジング: 各モジュールの**推奨**インスタンスを同時参加者数以上で申請し、案内するつもりの
 1〜2 個のフォールバックについては、少なくとも表示された最小値を申請してください（容量エラーが
@@ -682,7 +716,9 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
    実行中の状態で、テストユーザーとして Studio **自体**を開きます（ディープリンクではなく
    Studio コンソール）。スペースのページで **Run space**、続いて **Open JupyterLab** を
    クリックし、`sagemaker:UpdateSpace` / `sagemaker:CreatePresignedDomainUrl` に対する
-   `AccessDenied` が出るかを記録します。
+   `AccessDenied` が出るかを記録します。メッセージに *explicit deny* とある場合は別の問題です。
+   インスタンスタイプの Deny（§2a）によるものなので、フォームがどのタイプを送ったかを確認して
+   ください。
    - **AccessDenied なし** → `${sagemaker:DomainId}` / `${sagemaker:UserProfileName}`
      のポリシー変数が実行時に解決されます。したがって `CreateApp`/`DeleteApp` を
      `resources=["*"]` から同じ所有者条件へ狭められます。

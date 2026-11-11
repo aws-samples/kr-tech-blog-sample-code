@@ -74,6 +74,11 @@ def _participant_instance_types(region_rates: dict) -> list[str]:
     us-west-2, ml.p5.48xlarge at $63.30/hr among them — while the UI showed 17, so a direct
     API call could pick any of them. The parser is shared with scripts/check_quotas.py and
     raises ValueError (failing synth) on anything it cannot read as a literal list.
+
+    Two consumers in this stack, both fed this one value: the Lambdas'
+    PARTICIPANT_INSTANCE_TYPES (api.py) and the execution role's
+    DenyNonParticipantInstanceTypes statement (sagemaker.py), which applies the same cap to
+    apps started from Studio itself.
     """
     import importlib.util
     from pathlib import Path
@@ -155,6 +160,9 @@ class Av30BlueprintLabStack(cdk.Stack):
             # image that does not exist. Resolved from the shared table instead.
             sagemaker_image_arn=self.node.try_get_context("sagemaker_image_arn")
             or first_party_image_arn(self.region, "jupyter-server-3"),
+            # The same list the Lambdas get (api.py below), so the execution role's
+            # instance-type Deny and change_instance cannot disagree.
+            participant_instance_types=participant_instance_types,
         )
 
         # Dashboard layer: Admin and User dashboards. Neither CloudFront distribution

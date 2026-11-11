@@ -159,15 +159,46 @@ below is exactly the set the **user dashboard's Instance Options** offers (recom
 alternatives), and the API enforces it: `cdk synth` reads the list from
 `web/user/src/data/pipeline-config.ts` and keeps the types this region sells, and
 `change_instance` refuses any other type with a 400 before touching the running app, even
-when the API is called directly. To change the list, edit that file and redeploy the stack.
+when the API is called directly. The execution role applies the same list inside Studio
+(below). To change the list, edit that file and redeploy the stack.
 Quota **codes are region-independent** (verified identical across us-west-2 /
 ap-northeast-2 / eu-west-1); the **values are not**, and neither is which types have a
 quota at all.
 
-> **The cap covers the dashboard's API, not Studio's own controls.** The participant
-> execution role can still start an app from inside Studio, and there a type outside the
-> list is stopped only by its quota. Do not request quota for a type you do not mean to
-> offer (see the p4d row).
+> **Studio enforces the same list.** The participant execution role has an explicit Deny,
+> `DenyNonParticipantInstanceTypes`, on `sagemaker:CreateApp` and `sagemaker:UpdateSpace`
+> when the requested `sagemaker:InstanceTypes` include anything outside this list (plus
+> `system`, the instance type of a JupyterServer app). Synth builds it from the same list as
+> the API, so Studio's own **Run space**, or boto3 in a notebook, gets `AccessDenied` for
+> `ml.p5.48xlarge` as well. It binds every Studio session in the domain, admins' own
+> profiles included. The API's Lambdas and admin credentials on a workstation (for example
+> `scripts/grab_gpu_instance.py`) are not affected. An app that was already running on
+> another type before the deploy keeps running.
+>
+> **Not yet proven live.** The Deny applies only to a request that carries an instance type.
+> AWS documents the key for both actions, but not whether SageMaker fills it in for an
+> `UpdateSpace` that changes only the space's `DefaultResourceSpec`, or for a `CreateApp`
+> sent without `ResourceSpec` (which uses the space's default). If neither is filled in,
+> "change the default, then start with no ResourceSpec" still gets around it, and the type
+> is again stopped only by its quota. Until the probes below pass on your stack, do not
+> request quota for a type you do not mean to offer (see the p4d row). Run them in the §8
+> test user's JupyterLab terminal just before §8 step 7, which deletes that space anyway.
+> Keep the app running, so probe 1 cannot start anything. `ml.c5.large` is a cheap type
+> that is not on the list:
+> ```bash
+> DOMAIN_ID=$(python3 -c "import json;print(json.load(open('/opt/ml/metadata/resource-metadata.json'))['DomainId'])")
+> SPACE="$USER_PROFILE-space"
+> # 1. Expect AccessDenied. ResourceInUse means the Deny did not apply (nothing starts).
+> aws sagemaker create-app --domain-id "$DOMAIN_ID" --space-name "$SPACE" \
+>   --app-type JupyterLab --app-name default --resource-spec InstanceType=ml.c5.large
+> # 2. Expect AccessDenied. Any other result means the key is not filled in here.
+> aws sagemaker update-space --domain-id "$DOMAIN_ID" --space-name "$SPACE" \
+>   --space-settings '{"JupyterLabAppSettings":{"DefaultResourceSpec":{"InstanceType":"ml.c5.large"}}}'
+> ```
+> Then confirm the allowed paths still work: Studio's **Run space** on a listed type (§8
+> step 4b), and a storage change from Studio's space page. If either fails with an
+> *explicit deny*, delete the `DenyNonParticipantInstanceTypes` statement from
+> `infra/av30_constructs/sagemaker.py` and redeploy. The API's cap does not depend on it.
 
 **GPU workhorse: `ml.g5.12xlarge` (4× A10G, 96 GB).** It is what the dashboard now
 recommends for M2, M3 and the four heavy modules (M5, M6, M8, M9), for reasons that are
@@ -219,7 +250,8 @@ below before requesting quota for it.
 > from the table. `change_instance` rejects them with a 400, so the dashboard needs no quota
 > for them. g7e would be the cheapest native-resolution path (one 96 GB card at ~$4.20/hr),
 > but it is not sold for Studio in ap-northeast-2 and no module has been run on it in this
-> lab, so it is not on the list. Their quotas still matter for the Studio path above.
+> lab, so it is not on the list. Studio refuses them too (above); their quota remains the
+> backstop on any path the probes show the Deny does not reach.
 
 Sizing the room: request the **recommended** instance for each module at ≥ the
 number of concurrent participants, and at least the minimum shown for the one or
@@ -692,7 +724,9 @@ provisioning + IAM) and [M10_PARTICIPANT_SSM_RUNBOOK.md](M10_PARTICIPANT_SSM_RUN
    running, open Studio *itself* as the test user — the Studio console, not the deep link —
    go to the space page and click **Run space**, then **Open JupyterLab**. Record whether
    either returns `AccessDenied` on `sagemaker:UpdateSpace` /
-   `sagemaker:CreatePresignedDomainUrl`.
+   `sagemaker:CreatePresignedDomainUrl`. An `AccessDenied` that says *explicit deny* is a
+   different finding: it comes from the instance-type Deny (§2a), so check which type the
+   form sent.
    - **No AccessDenied** → the `${sagemaker:DomainId}` / `${sagemaker:UserProfileName}`
      policy variables resolve live, so `CreateApp`/`DeleteApp` can be narrowed from
      `resources=["*"]` to the same owner condition. See the note on the

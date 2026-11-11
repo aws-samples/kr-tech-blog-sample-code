@@ -217,8 +217,21 @@ class SageMakerConstruct(Construct):
         shared_data_bucket: s3.Bucket,
         user_workspace_bucket: s3.Bucket,
         sagemaker_image_arn: str,
+        participant_instance_types: list[str],
     ) -> None:
         super().__init__(scope, construct_id)
+
+        # The instance types the execution role may start a Studio app on: the SAME list the
+        # Lambdas get as PARTICIPANT_INSTANCE_TYPES (resolved once at synth by
+        # _participant_instance_types in stacks/av30_stack.py). Refuse at synth what would
+        # make the Deny below wrong: an empty list (every app refused but "system"), or a
+        # value with an IAM wildcard (StringNotLike would treat "*" or "?" as a pattern and
+        # let other types through).
+        if not participant_instance_types:
+            raise ValueError("participant_instance_types is empty; refusing to synth")
+        _bad = [t for t in participant_instance_types if "*" in t or "?" in t]
+        if _bad:
+            raise ValueError(f"participant_instance_types holds wildcard values: {_bad}")
 
         # Execution role for SageMaker Studio users.
         # REGION SUFFIX IS REQUIRED: IAM is a global, account-scoped namespace, so
@@ -413,10 +426,10 @@ class SageMakerConstruct(Construct):
         #   * CreateApp/DeleteApp is still resources=["*"] with no owner condition — see
         #     the long note on that statement for why it is staged rather than scoped now.
         #     Until it is tightened, a participant who runs boto3 in their notebook can
-        #     start or stop an app on any space in this domain, and can ask for an instance
-        #     type the dashboard would refuse. What bounds the cost today is the per-type
-        #     Studio quota (2-5 for the heavy types in both deploy regions) and the daily
-        #     budget alarm, not this policy.
+        #     start or stop an app on any space in this domain. The instance type is capped
+        #     separately, by DenyNonParticipantInstanceTypes below, to the dashboard's list;
+        #     how far that Deny reaches is itself only confirmed live (see its note). Past
+        #     it, the per-type Studio quota and the daily budget alarm still bound the cost.
         #   * Not scoped by aws:SourceIdentity, so still shared across the cohort:
         #     processing-job/* (pipeline-generated names carry no profile, so a peer can
         #     Describe/Stop another's M11 step), aoss:APIAccessAll on collection/* (M4),
@@ -533,6 +546,50 @@ class SageMakerConstruct(Construct):
                 actions=["sagemaker:CreateSpace", "sagemaker:UpdateSpace"],
                 resources=[f"arn:aws:sagemaker:{_sm_region}:{_sm_account}:space/*"],
                 conditions={"StringEquals": {"sagemaker:RemoteAccess": "ENABLED"}},
+            )
+        )
+
+        # Explicit DENY on any Studio app instance type outside the participant list, so
+        # Studio's own controls ("Run space", or boto3 in a notebook) cannot start what
+        # change_instance refuses. Without it, SageMakerStudioAppLifecycle (CreateApp on *)
+        # and SageMakerOwnPrivateSpaceUpdate let a participant put their space on, say,
+        # ml.p5.48xlarge ($63.30/hr in us-west-2), stopped only by its quota.
+        #
+        # Shape: AWS's documented guardrail for Studio instance types. sagemaker:InstanceTypes
+        # is an ArrayOfString key that the Service Authorization Reference lists for both
+        # CreateApp and UpdateSpace. ForAnyValue:StringNotLike is true when any requested type
+        # matches none of the values, so one off-list type is enough to deny. "system" is the
+        # instance type of a JupyterServer app, which has no ml.* type.
+        #
+        # What it does NOT cover, or covers only if SageMaker populates the key — UNVERIFIED
+        # until a live deployment (ADMIN_GUIDE §2a has the probes):
+        #   * a request that carries no instance type. ForAnyValue over an absent key is
+        #     false, so the Deny does not apply. That is what keeps a storage-only
+        #     UpdateSpace working, and it is also the gap: whether SageMaker fills the key
+        #     from SpaceSettings...DefaultResourceSpec.InstanceType on UpdateSpace, and from
+        #     the space's default on a CreateApp sent without ResourceSpec, is not
+        #     documented. If neither is filled, "set the space default, then CreateApp with
+        #     no ResourceSpec" still gets around it.
+        #   * an app already running on an off-list type keeps running.
+        #   * training and processing jobs (M11/M12): different actions, out of scope.
+        #
+        # Who it binds: only this role, so every Studio session in the domain, admins'
+        # profiles included. The API Lambdas (change_instance, expand_storage) call
+        # CreateApp/UpdateSpace with their own roles and are unaffected, and so is an
+        # operator running scripts/grab_gpu_instance.py with admin credentials from a
+        # workstation. Run from a Studio terminal, that script now gets AccessDenied on any
+        # off-list type, which is the point.
+        self._execution_role.add_to_policy(
+            iam.PolicyStatement(
+                sid="DenyNonParticipantInstanceTypes",
+                effect=iam.Effect.DENY,
+                actions=["sagemaker:CreateApp", "sagemaker:UpdateSpace"],
+                resources=["*"],
+                conditions={
+                    "ForAnyValue:StringNotLike": {
+                        "sagemaker:InstanceTypes": [*participant_instance_types, "system"],
+                    },
+                },
             )
         )
 

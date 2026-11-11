@@ -221,7 +221,8 @@ class ApiConstruct(Construct):
             # The participant instance cap: the dashboard's types that this region sells,
             # resolved at synth (see _participant_instance_types in stacks/av30_stack.py).
             # change_instance and expand_storage refuse anything outside it; config.py
-            # treats a missing value as an empty set, so every type is refused.
+            # treats a missing value as an empty set, so every type is refused. The same
+            # list is the execution role's DenyNonParticipantInstanceTypes (sagemaker.py).
             "PARTICIPANT_INSTANCE_TYPES": ",".join(participant_instance_types),
             # B2 progress tracking: create_user writes this + the participant
             # token into users/<id>/.av30-progress.env so the notebook-sync LCC
