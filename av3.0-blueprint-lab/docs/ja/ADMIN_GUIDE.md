@@ -152,7 +152,7 @@ ap-northeast-2 は 5 対 **0**）、そしてラボが捕捉した合格実行�
 | ml.t3.large | L-2733D4D5 | 30 | ≥0 | CPU 代替 |
 | ml.t3.xlarge | L-61F9C762 | 30 | ≥0 | CPU 代替（M1） |
 | ml.m5.large | L-3BDCD216 | 11 | ≥0 | CPU 代替 |
-| ml.m5.xlarge | L-77B8159A | 11 | ≥0 | CPU 代替（M12） |
+| ml.m5.xlarge | L-77B8159A | 11 | ≥0 | CPU 代替（M4） |
 | ml.g5.xlarge | L-988CE6C5 | 5 | ≥5 | M7（Nerfstudio）に**推奨** |
 | ml.g5.2xlarge | L-F73C7DB9 | 5 | ≥0 | M7 代替 |
 | ml.g5.4xlarge | L-81940D85 | 5 | ≥0 | M7 代替 |

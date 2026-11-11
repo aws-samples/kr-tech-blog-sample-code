@@ -158,7 +158,7 @@ below before requesting quota for it.
 | ml.t3.large | L-2733D4D5 | 30 | ≥0 | CPU alternative |
 | ml.t3.xlarge | L-61F9C762 | 30 | ≥0 | CPU alternative (M1) |
 | ml.m5.large | L-3BDCD216 | 11 | ≥0 | CPU alternative |
-| ml.m5.xlarge | L-77B8159A | 11 | ≥0 | CPU alternative (M12) |
+| ml.m5.xlarge | L-77B8159A | 11 | ≥0 | CPU alternative (M4) |
 | ml.g5.xlarge | L-988CE6C5 | 5 | ≥5 | **Recommended** for M7 (Nerfstudio) |
 | ml.g5.2xlarge | L-F73C7DB9 | 5 | ≥0 | M7 alternative |
 | ml.g5.4xlarge | L-81940D85 | 5 | ≥0 | M7 alternative |
