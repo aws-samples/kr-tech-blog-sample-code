@@ -444,14 +444,9 @@ aws s3 sync scripts/   s3://<shared>/notebook-templates/scripts/ --region "$AWS_
 이미 프로비저닝된 참가자는 JupyterLab 터미널에서 다시 동기화할 수 있습니다:
 `aws s3 cp s3://<shared>/notebook-templates/<NB>.ipynb ~/`.
 
-> **`scripts/patch_notebooks.py`에 관한 참고:** 이전 부트스트랩에서 사용하던 수동
-> in-place `.ipynb` 트랜스포머입니다. **어떤 자동화(배포, CDK,
-> 프로비저닝)에도 연결되어 있지 않습니다** — 리포의 `notebooks/*.ipynb`가 유일한
-> 진실 공급원입니다. 이제 모든 모듈 항목이 `[]`(no-op)이며, 노트북이 기대 패턴에서
-> 벗어나면 도구가 **하드 페일**하므로, 패치되지 않은 노트북을 조용히 배포하는 일은
-> 절대 없습니다. 평소에는 실행할 일이 없습니다 — 노트북을 직접 편집하고
-> §6.5를 통해 다시 동기화하세요. 그 노트북들이 의존하는 모듈 간 S3 계약은
-> [DATA_CONTRACT.md](DATA_CONTRACT.md)에 있습니다.
+> **노트북 수정:** 리포의 `notebooks/*.ipynb`가 유일한 기준이므로 노트북을 직접 고친 뒤
+> §6.5로 다시 동기화하면 되며, 노트북들이 의존하는 모듈 간 S3 계약은
+> [DATA_CONTRACT.md](DATA_CONTRACT.md)에 정리되어 있습니다.
 
 ---
 

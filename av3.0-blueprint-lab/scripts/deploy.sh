@@ -503,7 +503,7 @@ if [ -n "${SHARED_BUCKET:-}" ]; then
     #
     # That list could only match names directly under scripts/, so it left
     # scripts/__pycache__/ behind. Measured 2026-09-27 in ap-northeast-2: the .pyc of
-    # grab_gpu_instance.py, patch_notebooks.py and renumber_modules.py were still
+    # three admin-only scripts (grab_gpu_instance.py among them) were still
     # published after their sources had been removed. .pyc decompiles, so removing only
     # the sources did not actually un-publish the tooling. A deny-list also leaks every
     # future admin script by default, which is how those got there in the first place.

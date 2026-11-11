@@ -15,9 +15,7 @@ repository itself does not agree on whether this cell is expected to work.
 | `docs/en/ADMIN_GUIDE.md` | "**M7 now trains** — the `splatfacto` cell works after a one-time gsplat CUDA build." |
 | `docs/en/PARTICIPANT_GUIDE.md` | M7 is "known-limited"; "Don't be surprised if that last cell fails." |
 
-Both notebook claims were introduced in the **same commit** (`7260cf8`), so the history
-cannot arbitrate between them. The ADMIN_GUIDE's optimistic line is *older* than the
-script it credits.
+The ADMIN_GUIDE's optimistic line is *older* than the script it credits.
 
 **The execution record now settles half of it.**
 `examples/notebooks-with-outputs.tar.gz` holds a full 9-of-9-cell M7 run on **4x A10G**

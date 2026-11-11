@@ -457,14 +457,9 @@ a notebook or script** — otherwise participants get the old version. Participa
 already provisioned can re-sync from a JupyterLab terminal:
 `aws s3 cp s3://<shared>/notebook-templates/<NB>.ipynb ~/`.
 
-> **Note on `scripts/patch_notebooks.py`:** a manual, in-place `.ipynb` transformer
-> from an earlier bootstrap. It is **NOT wired into any automation** (deploy, CDK,
-> or provisioning) — the repo `notebooks/*.ipynb` are the single source of truth.
-> Every module entry is now `[]` (a no-op); the tool **hard-fails** if a notebook
-> ever drifts from its expected patterns, so it can never silently ship an
-> unpatched notebook. You normally never run it — edit the notebook directly and
-> re-sync via §6.5. The cross-module S3 contract those notebooks rely on is in
-> [DATA_CONTRACT.md](DATA_CONTRACT.md).
+> **Editing notebooks:** the repo's `notebooks/*.ipynb` are the single source of truth —
+> edit them directly and re-sync via §6.5; the cross-module S3 contract they rely on is
+> in [DATA_CONTRACT.md](DATA_CONTRACT.md).
 
 ---
 
