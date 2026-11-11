@@ -130,6 +130,15 @@ class Av30BlueprintLabStack(cdk.Stack):
             or first_party_image_arn(self.region, "jupyter-server-3"),
         )
 
+        # Dashboard layer: Admin and User dashboards. Neither CloudFront distribution
+        # has a WebACL; the only WAF is the REGIONAL one on the API stage below.
+        # Region-suffixed like the data buckets: S3 names are globally unique, so an
+        # account-only name collides the moment this stack is deployed to a second
+        # region. These are control-plane resources and will move to the control-plane
+        # stack, where only one copy exists — the suffix is harmless there and
+        # prevents a collision during the transition. scripts/deploy.sh reads both
+        # names from the AdminBucketName / UserBucketName stack outputs, so nothing
+        # hardcodes them.
         admin_dashboard = DashboardConstruct(
             self,
             "AdminDashboard",
@@ -142,7 +151,8 @@ class Av30BlueprintLabStack(cdk.Stack):
             bucket_name=f"av30lab-user-dashboard-{cdk.Aws.ACCOUNT_ID}-{cdk.Aws.REGION}",
         )
 
-        # Auth layer: Cognito User Pool + hosted UI + WAF WebACL with IP allowlist.
+        # Auth layer: Cognito User Pool + hosted UI + optional WAF WebACL that
+        # IP-restricts the admin API routes.
         # Declared AFTER the dashboards because the user-pool client's callback and
         # logout URLs must be the admin SPA's own origin. The dependency is one-way —
         # DashboardConstruct takes only a bucket name and never references Cognito — so
@@ -178,8 +188,10 @@ class Av30BlueprintLabStack(cdk.Stack):
             notebook_lifecycle_config_arn=sagemaker_domain.notebook_lifecycle_config_arn,
         )
 
-        # Attach WAF (REGIONAL) to API Gateway stage for IP allowlist enforcement
-        # Only created when admin_ip_allowlist is set to specific IPs (not 0.0.0.0/0)
+        # Attach WAF (REGIONAL) to the API Gateway stage. Only created when
+        # admin_ip_allowlist is set to specific IPs (not 0.0.0.0/0). The association
+        # covers every route; the WebACL's own rules keep the participant token routes
+        # open to any IP and restrict the rest to the allowlist (see auth.py).
         if auth.waf_enabled:
             wafv2.CfnWebACLAssociation(
                 self,
@@ -187,15 +199,6 @@ class Av30BlueprintLabStack(cdk.Stack):
                 resource_arn=f"arn:aws:apigateway:{cdk.Aws.REGION}::/restapis/{api.api.rest_api_id}/stages/{api.api.deployment_stage.stage_name}",
                 web_acl_arn=auth.web_acl_arn,
             )
-
-        # Dashboard layer: Admin and User dashboards (WAF is on API Gateway, not CloudFront)
-        # Region-suffixed like the data buckets: S3 names are globally unique, so an
-        # account-only name collides the moment this stack is deployed to a second
-        # region. These are control-plane resources and will move to the control-plane
-        # stack, where only one copy exists — the suffix is harmless there and
-        # prevents a collision during the transition. scripts/deploy.sh reads both
-        # names from the AdminBucketName / UserBucketName stack outputs, so nothing
-        # hardcodes them.
 
         # Stack outputs for cross-stack references and operational visibility
         cdk.CfnOutput(self, "VpcId", value=network.vpc.vpc_id)

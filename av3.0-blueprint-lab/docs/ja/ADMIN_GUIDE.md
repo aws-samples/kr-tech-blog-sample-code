@@ -304,24 +304,24 @@ M12 と M11 には**キャッシュ不要** — §2b のジョブクォータだ
 
 
 ```bash
-# Required env
-export ADMIN_EMAIL="you@example.com"       # becomes the Cognito admin + SNS alert target
-export REGION="us-west-2"                  # YOUR chosen region (§1.5) — passed explicitly below
-export AWS_REGION="$REGION"                # the seeding scripts in §6 read this
-export HF_TOKEN="hf_..."                    # for the caching steps in §6
-# Optional: lock the admin dashboard to your IP
-export ADMIN_IP_ALLOWLIST="203.0.113.0/24" # default 0.0.0.0/0
+# 必須の環境変数
+export ADMIN_EMAIL="you@example.com"       # Cognito 管理者アカウント兼 SNS アラートの送信先
+export REGION="us-west-2"                  # 自分で選んだリージョン（§1.5）。以下のコマンドに明示的に渡す
+export AWS_REGION="$REGION"                # §6 のシーディングスクリプトが参照
+export HF_TOKEN="hf_..."                    # §6 のキャッシュ手順で使用
+# 任意: 管理者 API を自分の IP/CIDR に制限（参加者向けルートは開いたまま）
+export ADMIN_IP_ALLOWLIST="203.0.113.0/24" # デフォルト 0.0.0.0/0 = WAF なし
 
-# One-time CDK bootstrap (per account+region)
+# CDK のブートストラップ（アカウント + リージョンごとに 1 回）
 cd infra && source .venv/bin/activate && pip install -r requirements.txt
 npx cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/$REGION
 cd ..
 
-# Generate this region's instance rate table (REQUIRED — the Lambdas raise at import
-# without it rather than quoting another region's prices)
+# このリージョンのインスタンス料金表を生成（必須 — ないと Lambda は別リージョンの価格を
+# 表示する代わりに import 時に例外を送出します）
 ./scripts/refresh_instance_rates.py --region "$REGION" --merge
 
-# Deploy stack + build/upload both dashboards (~25 min). Region is explicit.
+# スタックをデプロイし、両ダッシュボードをビルド/アップロード（約 25 分）。リージョンは明示指定。
 ./scripts/deploy.sh --region "$REGION"
 ```
 
@@ -329,6 +329,21 @@ cd ..
 （env 変数**ではありません** — `deploy.sh` をスキップして手動で `cdk deploy` を実行する場合は、
 `--context admin_email=...` を渡す必要があります。さもないと SNS 予算アラートがプレースホルダーに
 戻ります）。最後に**管理者ダッシュボード URL** と **API エンドポイント**を出力します。
+
+**`ADMIN_IP_ALLOWLIST` が制限する範囲。** 指定すると API Gateway のステージに WAF WebACL が
+関連付けられ、リスト外の IP からの**管理者 API** 呼び出しをブロックします。参加者向けルート
+（`/presigned-url/{userId}`、`/sessions/{id}/instance-type|storage|progress|app-status`、
+`/modules/{id}/instance-options`）はどの IP からでも許可されます。参加者ダッシュボードは各参加者の
+ブラウザで動き、ノートブックは SageMaker マネージドの egress から進捗を送信するためです。
+もちろん、これらのルートも参加者トークンがなければ呼び出せません。2 つの CloudFront
+ディストリビューションには WAF がないため、リスト外の IP からでも管理者ダッシュボードと Cognito の
+サインイン画面は開きます。ただしデータの呼び出しはすべて **"Failed to fetch"** で失敗し、
+ブラウザの Network タブでは `OPTIONS` プリフライトが **403** になります。管理者の呼び出しは常に `Authorization` と
+JSON の `Content-Type` を送るため、ブラウザが毎回プリフライトを行うからです。対処は自分の IP を
+リストに追加することです。**参加者や SageMaker の IP レンジは追加しないでください。** 追加する
+必要はなく、追加するとそのアドレスから管理者 API への経路が開くだけです。以後のデプロイでも
+同じ値を export してください。この値なしで `deploy.sh` を実行すると `0.0.0.0/0` に戻り、WAF が
+削除されます。
 
 **管理者ログインを作成**します（ユーザー名はメールでなければなりません — Cognito はメールを
 サインインエイリアスとして使用します）:

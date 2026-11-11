@@ -320,8 +320,8 @@ export ADMIN_EMAIL="you@example.com"       # becomes the Cognito admin + SNS ale
 export REGION="us-west-2"                  # YOUR chosen region (§1.5) — passed explicitly below
 export AWS_REGION="$REGION"                # the seeding scripts in §6 read this
 export HF_TOKEN="hf_..."                    # for the caching steps in §6
-# Optional: lock the admin dashboard to your IP
-export ADMIN_IP_ALLOWLIST="203.0.113.0/24" # default 0.0.0.0/0
+# Optional: restrict the admin API to your IP/CIDR (participant routes stay open)
+export ADMIN_IP_ALLOWLIST="203.0.113.0/24" # default 0.0.0.0/0 = no WAF
 
 # One-time CDK bootstrap (per account+region)
 cd infra && source .venv/bin/activate && pip install -r requirements.txt
@@ -342,6 +342,20 @@ pass `--context admin_email=...` — omitting it does not fail, it silently repl
 email with `placeholder@example.com` and **deletes the real subscription**, including a
 confirmed one. It prints the **Admin Dashboard URL** and **API endpoint** at the end, plus a
 GPU-quota pre-flight and a warning if the account has no account-wide budget.
+
+**What `ADMIN_IP_ALLOWLIST` restricts.** It attaches a WAF WebACL to the API Gateway stage
+that blocks the **admin API** for any IP outside the list. The participant routes
+(`/presigned-url/{userId}`, `/sessions/{id}/instance-type|storage|progress|app-status`,
+`/modules/{id}/instance-options`) are allowed from any IP, because the participant dashboard
+runs in each participant's browser and the notebooks report progress from SageMaker-managed
+egress. Those routes still require the participant's token. Neither CloudFront distribution
+has a WAF, so from an IP outside the list the admin dashboard and the Cognito sign-in page
+still load, but every data call fails with **"Failed to fetch"**. In the browser's Network
+tab the `OPTIONS` preflight shows **403**: every admin call sends `Authorization` and a JSON
+`Content-Type`, so the browser always preflights. The fix is to add your own IP. **Do not add
+participant or SageMaker IP ranges**: they need nothing, and listing them only opens the
+admin API's network path to those addresses. Export the same value on every later deploy;
+running `deploy.sh` without it falls back to `0.0.0.0/0` and removes the WAF.
 
 **Create the admin login** (username must be the email — Cognito uses email as the
 sign-in alias):

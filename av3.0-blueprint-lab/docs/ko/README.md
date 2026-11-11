@@ -175,8 +175,10 @@ export ADMIN_EMAIL="<admin-email>"           # 예: you@example.com
 export REGION="us-west-2"                     # 배포할 단 하나의 리전
 export AWS_REGION="$REGION"                   # 아래 시딩 스크립트가 사용
 export HF_TOKEN="hf_..."                      # 관리자 Hugging Face 읽기 토큰
-# 선택 사항이지만 권장: 관리자 대시보드 접근을 특정 IP/CIDR로 제한
-export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # 기본값 0.0.0.0/0 = WAF 개방
+# 선택 사항이지만 권장: 관리자 API를 특정 IP/CIDR로 제한. 참가자 경로는 어느 IP에서든
+# 열려 있으므로(토큰 인증) 참가자나 SageMaker IP는 넣지 마세요. 목록 밖에서는
+# 관리자 페이지는 열리지만 데이터 호출이 실패합니다("Failed to fetch").
+export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # 기본값 0.0.0.0/0 = WAF 없음
 # Cognito 호스티드 UI 접두사: 리전 안에서 모든 계정을 통틀어 고유하며, 기본값
 # "av30lab-admin"은 us-west-2 / ap-northeast-2에서 이미 사용 중입니다. 자신만의 값을 쓰고,
 # 이 스택을 이후에 다시 배포할 때도 같은 값을 export하세요.
@@ -281,7 +283,8 @@ Dashboard Link**를 열어 파이프라인 맵을 확인하세요. 스모크 테
   도메인을 `VpcOnly`로 바꿀 때 `-c vpc_interface_endpoints=true`로 켜세요.
 - **스토리지:** KMS 암호화 S3(공유 데이터 + 사용자별 워크스페이스); 사전 캐싱된 모델.
 - **컴퓨트:** 자동 설정을 위한 라이프사이클 구성이 있는 SageMaker Studio Domain.
-- **인증:** 관리자 플레인용 선택적 **WAF IP 허용 목록**이 있는 Cognito 사용자 풀.
+- **인증:** 관리자 API는 Cognito 사용자 풀, 참가자 경로는 참가자별 토큰. 선택적인
+  **WAF IP 허용 목록**은 관리자 API에만 적용됩니다.
 - **API:** 사용자 관리, 세션, 진행 상황을 위한 Lambda 기반 REST API.
 - **모니터링:** CloudWatch 알람, SNS 알림, 일일 예산 경고.
 - **프런트엔드:** CloudFront 상의 React SPA(관리자 대시보드 + 사용자 파이프라인 맵).

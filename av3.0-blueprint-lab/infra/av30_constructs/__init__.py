@@ -1,9 +1,9 @@
 """Shared constants for the lab's CDK constructs.
 
 Values here are ones that MUST be identical in two places that cannot see each other:
-the CloudFormation resource that creates something, and the Lambda environment that later
-reasons about it. Duplicating such a value as two literals is how the storage display came
-to disagree with the actual volume — the domain created 5 GB while
+the CloudFormation resource that creates something, and the Lambda environment (or the WAF
+rule) that later reasons about it. Duplicating such a value as two literals is how the
+storage display came to disagree with the actual volume — the domain created 5 GB while
 `expand_storage` assumed 5 and `pipeline-config.ts` displayed 20/50/100/200.
 """
 
@@ -40,3 +40,41 @@ DEFAULT_SPACE_STORAGE_GB = 200
 # defence in depth for a Lambda invoked without the env var, NOT a second source of truth —
 # api.py injects this value, and this file is where the number changes.
 SMD_IMAGE_VERSION_ALIAS = "4.2.1"
+
+# API Gateway stage name. api.py uses it for the stage and for the API_URL env var, and the
+# WAF rule below matches it as an optional path prefix.
+API_STAGE_NAME = "prod"
+
+# Raw URI paths of the participant (token-authorizer) routes, for the WAF rule in auth.py.
+#
+# With admin_ip_allowlist set, the WebACL is attached to the WHOLE stage and its default
+# action is Block, so an IP rule alone also blocks every participant: the dashboard runs in
+# their browser and the notebooks POST progress from SageMaker-managed egress, neither from
+# an admin IP. A second Allow rule lets these paths through from any IP. They still need a
+# valid participant token, which the token authorizer checks after WAF. Everything else,
+# including any route added later, stays IP-restricted unless it is added here (fail closed).
+#
+# Must match exactly the token-auth routes in api.py, and nothing else:
+#   /presigned-url/{userId}
+#   /sessions/{id}/instance-type | storage | progress | app-status
+#   /modules/{id}/instance-options
+# Method-agnostic on purpose: the browser's OPTIONS preflight on these paths must pass too.
+#
+# Written against the RAW path, because auth.py applies TextTransformation NONE:
+#   * "/+" because both SPAs join the ApiUrl output (which ends in "/prod/") with a path
+#     that starts with "/", so real requests look like /prod//sessions/... .
+#   * The stage prefix is optional, so the rule holds whether or not WAF sees it.
+#   * NO URL_DECODE or NORMALIZE_PATH. API Gateway keeps "%2F" inside a single {param}, so
+#     it routes DELETE /prod/users/..%2Fpresigned-url%2Fx to DELETE /users/{id}, while a WAF
+#     that decodes and resolves ".." would see /prod/presigned-url/x, a participant path.
+#     The segment class has no "%" and no ".", so a raw path this matches cannot route
+#     anywhere else in API Gateway.
+#   * Non-capturing groups only: WAF regex does not support capturing subexpressions.
+# A participant id is a SageMaker user-profile name, so [A-Za-z0-9-] covers every valid
+# one; module ids are the m01-... slugs in web/user/src/data/pipeline-config.ts.
+_SEG = "[A-Za-z0-9-]+"
+PARTICIPANT_ROUTE_REGEX = (
+    rf"^(?:/+{API_STAGE_NAME})?/+(?:presigned-url/+{_SEG}"
+    rf"|sessions/+{_SEG}/+(?:instance-type|storage|progress|app-status)"
+    rf"|modules/+{_SEG}/+instance-options)/*$"
+)

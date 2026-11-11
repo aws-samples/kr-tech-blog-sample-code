@@ -1,6 +1,7 @@
 """AV 3.0 Blueprint Lab - Auth Construct.
 
-Cognito User Pool (admin-only), User Pool Client, WAF WebACL with IP allowlist.
+Cognito User Pool (admin-only), User Pool Client, and an optional WAF WebACL that
+IP-restricts the admin API routes.
 """
 
 from constructs import Construct
@@ -11,15 +12,19 @@ from aws_cdk import (
     aws_wafv2 as wafv2,
 )
 
+from av30_constructs import PARTICIPANT_ROUTE_REGEX
+
 
 class AuthConstruct(Construct):
-    """Authentication and WAF protection for admin dashboard.
+    """Admin authentication (Cognito) and the optional admin-API IP allowlist (WAF).
 
     Attributes:
         user_pool: Cognito User Pool with strict password policy (admin-only).
         user_pool_client: App client for admin dashboard SPA.
-        web_acl_arn: ARN of the WAF WebACL (REGIONAL scope — it attaches to API Gateway,
-            not CloudFront) with IP allowlist, or None when the allowlist is 0.0.0.0/0.
+        web_acl_arn: ARN of the WAF WebACL (REGIONAL scope — it attaches to the API
+            Gateway stage, not to either CloudFront distribution), or None when the
+            allowlist is 0.0.0.0/0. It IP-restricts the admin routes only; participant
+            token routes pass from any IP.
     """
 
     def __init__(
@@ -137,9 +142,17 @@ class AuthConstruct(Construct):
                 ),
             )
 
-        # WAF IP allowlist from context parameter (comma-separated CIDRs)
-        # Scope is REGIONAL — attached to API Gateway (not CloudFront).
+        # Admin-API IP allowlist from context parameter (comma-separated CIDRs).
+        # Scope is REGIONAL: attached to the API Gateway stage in av30_stack.py, never to a
+        # CloudFront distribution, so both dashboards and the Cognito sign-in page still
+        # load from any IP. What it restricts is the admin API calls.
         # If "0.0.0.0/0" (allow all) → skip WAF entirely (WAF IP Set rejects /0 notation)
+        #
+        # The association covers every route on the stage, so the WebACL itself separates
+        # them: default Block, priority 0 allows the admin IPs to anything, priority 1
+        # allows the participant token routes from any IP (see PARTICIPANT_ROUTE_REGEX for
+        # the path rules and why there is no text transformation). Anything else from a
+        # non-admin IP is blocked, including a route added later and not listed there.
         admin_ip_allowlist = self.node.try_get_context("admin_ip_allowlist") or "0.0.0.0/0"
         self._waf_enabled = admin_ip_allowlist.strip() != "0.0.0.0/0"
 
@@ -179,6 +192,31 @@ class AuthConstruct(Construct):
                         statement=wafv2.CfnWebACL.StatementProperty(
                             ip_set_reference_statement=wafv2.CfnWebACL.IPSetReferenceStatementProperty(
                                 arn=self._ip_set.attr_arn,
+                            ),
+                        ),
+                    ),
+                    wafv2.CfnWebACL.RuleProperty(
+                        name="AllowParticipantRoutes",
+                        priority=1,
+                        action=wafv2.CfnWebACL.RuleActionProperty(allow={}),
+                        visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
+                            cloud_watch_metrics_enabled=True,
+                            metric_name="av30lab-allow-participant-routes",
+                            sampled_requests_enabled=True,
+                        ),
+                        statement=wafv2.CfnWebACL.StatementProperty(
+                            regex_match_statement=wafv2.CfnWebACL.RegexMatchStatementProperty(
+                                regex_string=PARTICIPANT_ROUTE_REGEX,
+                                field_to_match=wafv2.CfnWebACL.FieldToMatchProperty(
+                                    uri_path={},
+                                ),
+                                # NONE, not URL_DECODE: see PARTICIPANT_ROUTE_REGEX.
+                                text_transformations=[
+                                    wafv2.CfnWebACL.TextTransformationProperty(
+                                        priority=0,
+                                        type="NONE",
+                                    ),
+                                ],
                             ),
                         ),
                     ),

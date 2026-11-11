@@ -137,8 +137,10 @@ export ADMIN_EMAIL="<admin-email>"           # 例: you@example.com
 export REGION="us-west-2"                     # デプロイ先の唯一のリージョン
 export AWS_REGION="$REGION"                   # 下のシーディングスクリプトが使用                 # デフォルト。「リージョンの選択」を参照
 export HF_TOKEN="hf_..."                      # 管理者の Hugging Face 読み取りトークン
-# 任意だが推奨: 管理者ダッシュボードへのアクセスを自分の IP/CIDR に制限する
-export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # デフォルト 0.0.0.0/0 = WAF は全開放
+# 任意だが推奨: 管理者 API を自分の IP/CIDR に制限する。参加者向けルートはどの IP からも
+# 開いたまま（トークン認証）なので、参加者や SageMaker の IP は入れないこと。リスト外からは
+# 管理者ページは開くが、データの呼び出しが失敗する（"Failed to fetch"）。
+export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # デフォルト 0.0.0.0/0 = WAF なし
 # Cognito ホスト UI プレフィックス: リージョン内で全アカウントを通じて一意で、既定の
 # "av30lab-admin" は us-west-2 / ap-northeast-2 で既に使用中です。独自の値を使い、
 # このスタックを以後デプロイする際も同じ値を export してください。
@@ -235,7 +237,8 @@ aws s3 sync scripts/   "s3://av30lab-shared-data-$ACCOUNT-$REGION/notebook-templ
   切り替える場合は `-c vpc_interface_endpoints=true` で有効化してください。
 - **ストレージ:** KMS 暗号化 S3（共有データ + ユーザーごとのワークスペース）、事前キャッシュされたモデル。
 - **コンピュート:** 自動セットアップ用のライフサイクル設定を持つ SageMaker Studio ドメイン。
-- **認証:** 管理プレーン用のオプションの **WAF IP 許可リスト**を備えた Cognito ユーザープール。
+- **認証:** 管理者 API は Cognito ユーザープール、参加者向けルートは参加者ごとのトークン。
+  オプションの **WAF IP 許可リスト**は管理者 API にのみ適用されます。
 - **API:** ユーザー管理、セッション、進捗管理のための Lambda ベースの REST API。
 - **モニタリング:** CloudWatch アラーム、SNS 通知、日次の予算アラート。
 - **フロントエンド:** CloudFront 上の React SPA（管理者ダッシュボード + ユーザーパイプラインマップ）。

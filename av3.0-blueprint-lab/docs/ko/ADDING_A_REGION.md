@@ -216,7 +216,7 @@ grep -c "\"$R\":" infra/lambda/shared/instance_rates.py  # 1 이 나와야 함
 ```bash
 export EXPECTED_ACCOUNT_ID=$ACCOUNT
 export ADMIN_EMAIL=you@example.com
-export ADMIN_IP_ALLOWLIST=1.2.3.4/32          # omit to allow all
+export ADMIN_IP_ALLOWLIST=1.2.3.4/32          # 관리자 API에만 적용, 생략 시 WAF 없음
 ./scripts/deploy.sh --region $R
 ```
 

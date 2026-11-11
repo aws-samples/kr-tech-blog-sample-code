@@ -9,7 +9,11 @@ from pathlib import Path
 
 from constructs import Construct
 
-from av30_constructs import DEFAULT_SPACE_STORAGE_GB, SMD_IMAGE_VERSION_ALIAS
+from av30_constructs import (
+    API_STAGE_NAME,
+    DEFAULT_SPACE_STORAGE_GB,
+    SMD_IMAGE_VERSION_ALIAS,
+)
 
 import aws_cdk as cdk
 from aws_cdk import (
@@ -97,7 +101,7 @@ class ApiConstruct(Construct):
             rest_api_name="av30-api",
             description="AV 3.0 Blueprint Lab API",
             deploy_options=apigw.StageOptions(
-                stage_name="prod",
+                stage_name=API_STAGE_NAME,
                 throttling_rate_limit=50,
                 throttling_burst_limit=100,
                 logging_level=apigw.MethodLoggingLevel.INFO,
@@ -216,14 +220,14 @@ class ApiConstruct(Construct):
             # B2 progress tracking: create_user writes this + the participant
             # token into users/<id>/.av30-progress.env so the notebook-sync LCC
             # can source it and the notebooks can POST module completion.
-            # Build the invoke URL from rest_api_id + the fixed "prod" stage
+            # Build the invoke URL from rest_api_id + the fixed API_STAGE_NAME stage
             # instead of self._api.url: .url depends on the Deployment/Stage,
             # which depends on every method -> every business Lambda, so feeding
             # it back into shared_env creates a circular dependency. rest_api_id
             # is a property of the RestApi resource alone (no Deployment dep).
             "API_URL": (
                 f"https://{self._api.rest_api_id}.execute-api."
-                f"{stack.region}.amazonaws.com/prod/"
+                f"{stack.region}.amazonaws.com/{API_STAGE_NAME}/"
             ),
         }
 
@@ -483,6 +487,10 @@ class ApiConstruct(Construct):
         )
 
         # --- API Gateway route wiring ---
+        # Adding, renaming or removing a Token-auth route? Update PARTICIPANT_ROUTE_REGEX in
+        # av30_constructs/__init__.py in the same change. With admin_ip_allowlist set, the
+        # WAF lets only those paths through from non-admin IPs, so a Token-auth route the
+        # regex misses is blocked for every participant.
         # /users
         users_resource = self._api.root.add_resource("users")
         users_resource.add_method(

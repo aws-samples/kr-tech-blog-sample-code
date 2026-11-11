@@ -184,8 +184,10 @@ export ADMIN_EMAIL="<admin-email>"           # e.g. you@example.com
 export REGION="us-west-2"                     # the ONE region to deploy to
 export AWS_REGION="$REGION"                   # used by the seeding scripts below
 export HF_TOKEN="hf_..."                      # admin Hugging Face read token
-# Optional but recommended: restrict admin-dashboard access to your IP/CIDR
-export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # default 0.0.0.0/0 = WAF open
+# Optional but recommended: restrict the ADMIN API to your IP/CIDR. Participant routes
+# stay open to any IP (token auth); do not add participant or SageMaker IPs here.
+# Outside the list the admin page still loads but its data calls fail ("Failed to fetch").
+export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # default 0.0.0.0/0 = no WAF
 # Cognito hosted-UI prefix: unique per region across ALL accounts, and the default
 # "av30lab-admin" is already taken in us-west-2 / ap-northeast-2. Use your own, and
 # keep exporting the same value on every later deploy of this stack.
@@ -289,7 +291,8 @@ runbook — smoke test, bulk provisioning, monitoring, teardown — is in
   if you switch the domain to `VpcOnly`.
 - **Storage:** KMS-encrypted S3 (shared data + per-user workspaces); pre-cached models.
 - **Compute:** SageMaker Studio Domain with a lifecycle config for auto-setup.
-- **Auth:** Cognito user pool with an optional **WAF IP allowlist** for the admin plane.
+- **Auth:** Cognito user pool for the admin API, a per-participant token for the participant
+  routes, and an optional **WAF IP allowlist** that covers the admin API only.
 - **API:** Lambda-backed REST API for user management, sessions, and progress.
 - **Monitoring:** CloudWatch alarms, SNS notifications, a daily budget alert.
 - **Frontends:** React SPAs on CloudFront (admin dashboard + user pipeline map).

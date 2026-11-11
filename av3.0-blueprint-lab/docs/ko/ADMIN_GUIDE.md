@@ -306,24 +306,24 @@ aws service-quotas request-service-quota-increase \
 
 
 ```bash
-# Required env
-export ADMIN_EMAIL="you@example.com"       # becomes the Cognito admin + SNS alert target
-export REGION="us-west-2"                  # YOUR chosen region (§1.5) — passed explicitly below
-export AWS_REGION="$REGION"                # the seeding scripts in §6 read this
-export HF_TOKEN="hf_..."                    # for the caching steps in §6
-# Optional: lock the admin dashboard to your IP
-export ADMIN_IP_ALLOWLIST="203.0.113.0/24" # default 0.0.0.0/0
+# 필수 환경 변수
+export ADMIN_EMAIL="you@example.com"       # Cognito 관리자 계정이자 SNS 알림 수신 주소
+export REGION="us-west-2"                  # 직접 고른 리전(§1.5). 아래 명령에 명시적으로 넘깁니다
+export AWS_REGION="$REGION"                # §6의 시딩 스크립트가 읽습니다
+export HF_TOKEN="hf_..."                    # §6의 캐싱 단계에서 사용
+# 선택: 관리자 API를 내 IP/CIDR로 제한(참가자 경로는 그대로 열려 있음)
+export ADMIN_IP_ALLOWLIST="203.0.113.0/24" # 기본값 0.0.0.0/0 = WAF 없음
 
-# One-time CDK bootstrap (per account+region)
+# CDK 부트스트랩(계정 + 리전당 1회)
 cd infra && source .venv/bin/activate && pip install -r requirements.txt
 npx cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/$REGION
 cd ..
 
-# Generate this region's instance rate table (REQUIRED — the Lambdas raise at import
-# without it rather than quoting another region's prices)
+# 이 리전의 인스턴스 요금표 생성(필수 — 없으면 Lambda가 다른 리전 가격을 보여 주는 대신
+# import 시점에 예외를 던집니다)
 ./scripts/refresh_instance_rates.py --region "$REGION" --merge
 
-# Deploy stack + build/upload both dashboards (~25 min). Region is explicit.
+# 스택 배포 + 두 대시보드 빌드/업로드(~25분). 리전은 명시적으로 지정합니다.
 ./scripts/deploy.sh --region "$REGION"
 ```
 
@@ -331,6 +331,20 @@ cd ..
 (**env 변수가 아님** — `deploy.sh`를 건너뛰고 `cdk deploy`를 직접 실행한다면
 `--context admin_email=...`를 반드시 전달해야 하며, 그렇지 않으면 SNS 예산 경보가
 플레이스홀더로 되돌아갑니다). 끝에서 **Admin Dashboard URL**과 **API endpoint**를 출력합니다.
+
+**`ADMIN_IP_ALLOWLIST`가 막는 범위.** 이 값을 지정하면 API Gateway 스테이지에 WAF WebACL이
+붙고, 목록 밖 IP에서 오는 **관리자 API** 호출을 차단합니다. 참가자 경로
+(`/presigned-url/{userId}`, `/sessions/{id}/instance-type|storage|progress|app-status`,
+`/modules/{id}/instance-options`)는 어느 IP에서든 허용됩니다. 참가자 대시보드는 각 참가자의
+브라우저에서 돌고, 노트북은 SageMaker가 관리하는 egress로 진행 상황을 보내기 때문입니다.
+물론 이 경로들도 참가자 토큰이 있어야 호출됩니다. 두 CloudFront 배포에는 WAF가 없으므로, 목록 밖
+IP에서도 관리자 대시보드와 Cognito 로그인 화면은 열립니다. 다만 데이터 호출은 모두
+**"Failed to fetch"**로 실패하고, 브라우저 Network 탭에서 `OPTIONS` preflight가 **403**으로
+보입니다. 관리자 호출은 항상 `Authorization`과 JSON `Content-Type`을 보내므로 브라우저가
+매번 preflight를 하기 때문입니다. 해결하려면 내 IP를 목록에 추가하세요. **참가자나 SageMaker
+IP 대역은 넣지 마세요.** 넣을 필요도 없고, 넣으면 그 주소들에서 관리자 API로 가는 길만 열립니다.
+이후 배포할 때도 같은 값을 export하세요. 이 값 없이 `deploy.sh`를 실행하면 `0.0.0.0/0`으로
+돌아가 WAF가 삭제됩니다.
 
 **관리자 로그인 생성**(사용자 이름은 이메일이어야 함 — Cognito가 이메일을
 로그인 별칭으로 사용):

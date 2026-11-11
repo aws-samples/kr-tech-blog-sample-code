@@ -232,7 +232,7 @@ codes.
 ```bash
 export EXPECTED_ACCOUNT_ID=$ACCOUNT
 export ADMIN_EMAIL=you@example.com
-export ADMIN_IP_ALLOWLIST=1.2.3.4/32          # omit to allow all
+export ADMIN_IP_ALLOWLIST=1.2.3.4/32          # admin API only; omit = no WAF
 ./scripts/deploy.sh --region $R
 ```
 

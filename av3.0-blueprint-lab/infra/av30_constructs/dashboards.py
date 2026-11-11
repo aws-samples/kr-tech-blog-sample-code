@@ -1,7 +1,8 @@
 """AV 3.0 Blueprint Lab - Dashboard Construct.
 
 S3-hosted SPA served via CloudFront with optional WAF protection.
-Reusable: instantiated for admin (with WAF) and user (without WAF) dashboards.
+Reusable: instantiated for the admin and user dashboards. Neither passes web_acl_arn: the
+admin IP allowlist is a REGIONAL WebACL on the API Gateway stage (auth.py), not on CloudFront.
 """
 
 from constructs import Construct
