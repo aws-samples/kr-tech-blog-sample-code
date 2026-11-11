@@ -128,10 +128,13 @@ M5/M6의 `examples/inference.py`는 런타임에 Hugging Face 자체 캐시를 �
 참가자에게 HF 계정 + 토큰 + 라이선스 승인을 면제하기 위해, 우리는 한 번
 캐시하고 오프라인으로 실행합니다:
 
-- **관리자(한 번):** 관리자 HF 토큰(라이선스 수락됨)이 있는 GPU 앱에서 M5 + M6를
-  실행한 다음, `aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/`.
-  (단순한 `hf download` 대신) 모듈을 실행하면 cosmos가 필요로 하는 모든 리비전 +
-  사이드 파일(Wan2.1 VAE, Reason1.1, Guardrail1, …)이 트리에 있음을 보장합니다.
+- **관리자(리전당 한 번), 관리자 워크스테이션에서:** 첫 리전은 `scripts/cache_hf_tree.sh`,
+  그 뒤의 리전은 버킷 간 `aws s3 sync`로 채웁니다([ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3).
+  스크립트가 읽는 `scripts/hf_cache_manifest.tsv`는 모듈을 실제로 실행해 만든 트리에서
+  생성한 것이라, cosmos가 필요로 하는 모든 리비전 + 사이드 파일(Wan2.1 VAE, Reason1.1,
+  Guardrail1, …)이 들어 있습니다. GPU 앱에서 캐시를 올리지 마세요. 모든 참가자의 커널이
+  `hf-cache/`의 내용을 로드하므로, 모든 참가자가 함께 쓰는 실행 역할은 의도적으로 여기에
+  쓸 수 없습니다.
 - **참가자 설정:** `setup_cosmos_env.sh`가 `hf-cache/hub/`를 `$HF_HOME/hub`로
   다시 `aws s3 sync`하고, 생성된 `cosmos_env.sh` / `cosmos_predict_env.sh`는
   **그 캐시가 있을 때만** **`HF_HUB_OFFLINE=1`**(+ `TRANSFORMERS_OFFLINE=1`)을

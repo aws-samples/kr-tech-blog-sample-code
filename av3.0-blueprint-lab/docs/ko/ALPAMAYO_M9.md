@@ -110,6 +110,9 @@ alpamayo`)가 추가되었습니다. 공유 프리앰블(버킷 해석 + `$HF_HO
 `<clip>_pred.npy`, `<clip>_gt.npy`, `<clip>_cot.txt`, 그리고 `metrics.json`
 (클립당 minADE). 각 `.pt`를 `weights_only=False`로 로드합니다(torch 2.8은
 기본값이 `True`인데, 이는 딕셔너리의 `int`/`str` 항목을 거부합니다).
+이 방식은 파일을 unpickle하므로 그 안의 코드가 실행됩니다. 그래서 클립은 관리자 자격
+증명으로만 쓸 수 있는 `hf-cache/alpamayo-demo/`에서만 가져와야 합니다
+(아래 *관리자 일회성 설정* 참고).
 
 `scripts/alpamayo_save_clip.py`는 그러한 `.pt` 파일을 생성하는 관리자 전용
 동반 스크립트입니다(온라인, 토큰 사용).
@@ -137,8 +140,36 @@ alpamayo`)가 추가되었습니다. 공유 프리앰블(버킷 해석 + `$HF_HO
 
 ## 관리자 일회성 설정
 
-관리자 `HF_TOKEN`(`Alpamayo-1.5-10B`, 그 `Cosmos-Reason2-8B` 백본, 그리고
-`PhysicalAI-Autonomous-Vehicles`에 대한 라이선스 수락됨)이 있는 GPU 앱에서:
+참가자가 M9을 실행하기 전에 공유 버킷에 두 가지가 있어야 합니다. `hf-cache/hub/` 아래의 Alpamayo
+가중치와 `Cosmos-Reason2-8B` 백본, 그리고 `hf-cache/alpamayo-demo/` 아래의 데모 클립입니다.
+**둘 다 관리자 워크스테이션에서 관리자 자격 증명으로 올리고, Studio 앱에서는 절대 올리지 않습니다.**
+모든 참가자가 함께 쓰는 실행 역할은 의도적으로 공유 버킷에 전혀 쓸 수 없습니다. 모든 M9 커널이
+데모 클립을 unpickle하므로, 클립을 바꿔치기할 수 있는 참가자는 다른 모든 참가자의 권한으로 코드를
+실행할 수 있기 때문입니다([ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3).
+
+**가중치.** 첫 리전은 `scripts/cache_hf_tree.sh`, 그 뒤의 리전은 버킷 간 복사로 채웁니다(README
+step 6b). 고정된 매니페스트(`scripts/hf_cache_manifest.tsv`)에는 `nvidia/Alpamayo-1.5-10B`와
+`nvidia/Cosmos-Reason2-8B`가 들어 있습니다. 매니페스트에는 두 저장소의 `.no_exist` 마커도 기록되어
+있어야 합니다. 온라인 로드로만 생기는 0바이트 파일인데, 이것이 없으면 `check_seeding.sh`가 두 저장소의
+객체 수가 모자란다고(15/16, 17/22) 보고하고 실패합니다. 복사를 하면 마커도 함께 옮겨집니다. 매니페스트에
+기록된 마커가 없는 첫 리전이라면, 아래의 추론 실행이 GPU 앱에서 마커를 만들고, ADMIN_GUIDE §6.3의
+절차로 워크스테이션에서 기록하고 올립니다. 마커가 없을 때 M9이 오프라인에서 실제로 실패하는지는 아직
+시험하지 않았습니다.
+
+**데모 클립.** `a1_5` venv와 게이트된 `PhysicalAI-Autonomous-Vehicles` 데이터셋(온라인)이 필요해서
+GPU 앱에서 만들고, 게시는 워크스테이션에서 합니다. 시딩된 리전에서 `hf-cache/`를 복사했다면 클립은
+이미 들어 있으므로, 다시 게시하는 경우가 아니면 이 단계는 건너뛰세요(ADMIN_GUIDE §6.3).
+
+**전제 조건.** 클립은 참가자 프로필이 하나도 없을 때, 또는 사용자 워크스페이스 버킷이 사용자별로
+격리된 뒤에만 만드세요. 그 전에는 어떤 참가자든 `users/<your-profile>/`에 쓸 수 있고, 앱은 시작할
+때마다 이 프리픽스를 홈 디렉터리로 복사합니다. 그러면 누군가 심어 둔 `.bashrc`나 IPython 시작 파일,
+바꿔치기한 스크립트가 `.pt`와 그에 대해 출력되는 sha256을 모두 좌우할 수 있고, 여러분의 `HF_TOKEN`도 볼
+수 있습니다. 이미 워크숍을 한 차례 운영한 스택이라면 먼저 참가자 프로필을 삭제하고, 새로 만든 본인
+프로필을 쓰세요(ADMIN_GUIDE §6.3).
+
+본인 프로필의 GPU 앱에서, 관리자 `HF_TOKEN`
+(`Alpamayo-1.5-10B`, 그 `Cosmos-Reason2-8B` 백본, 그리고 `PhysicalAI-Autonomous-Vehicles`에 대한
+라이선스 수락됨)으로:
 
 ```bash
 export HF_TOKEN=hf_xxx
@@ -146,28 +177,32 @@ bash scripts/setup_cosmos_env.sh alpamayo          # build the a1_5 venv (online
 source /mnt/sagemaker-nvme/cosmos-work/alpamayo_env.sh
 unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE          # data prep MUST be online
 
-# For each demo clip: save the data dict, run one inference to fill the HF cache.
+# For each demo clip: save the data dict. It prints the sha256 — copy it by hand.
 python scripts/alpamayo_save_clip.py --clip 030c760c-ae38-49aa-9ad8-f5650a545d26 \
     --t0-us 5100000 --out /mnt/sagemaker-nvme/m6_work/clips
+# 새 클립으로 추론을 한 번 실행: 게시 전에 클립을 확인하고, .no_exist 마커도 만듭니다.
+# 매니페스트에 기록된 마커가 없을 때만 필수이고, 그 밖에는 선택입니다(가중치 참고).
 python scripts/alpamayo_infer.py \
     --clips /mnt/sagemaker-nvme/m6_work/clips/030c760c-ae38-49aa-9ad8-f5650a545d26.pt \
     --out /mnt/sagemaker-nvme/m6_work/out
+# 마커가 필요할 때만: staging으로 옮깁니다(빈 파일이고, 쓰이는 것은 이름뿐입니다).
+aws s3 sync /mnt/sagemaker-nvme/hf/hub "s3://$USER_BUCKET/users/$USER_PROFILE/staging/hub-markers/" \
+    --exclude '*' --include '*/.no_exist/*' --exclude '*/snapshots/*'
 
-# Publish: add Alpamayo + Reason2 to the shared HF cache, and upload the .pt(s).
-aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/ --only-show-errors
-aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-...pt s3://<shared>/hf-cache/alpamayo-demo/
+# Move the .pt off the app: your own workspace prefix (or Download it instead).
+aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-ae38-49aa-9ad8-f5650a545d26.pt \
+    "s3://$USER_BUCKET/users/$USER_PROFILE/staging/"
 ```
 
-두 관리자 업로드 모두 `hf-cache/*`를 대상으로 하는데, 이는 SageMaker 실행
-역할이 공유 버킷에서 **쓰기** 할 수 있는 유일한 프리픽스입니다 — 따라서 전체
-시퀀스가 GPU 앱 터미널에서 곧바로 실행됩니다(관리자 워크스테이션 불필요, IAM
-변경 불필요). 참가자는 공유 버킷 전체를 읽으므로, `hf-cache/hub/` 트리와
+그다음 관리자 워크스테이션에서 파일의 sha256이 옮겨 적은 값과 같은지 확인하고,
+`s3://<shared>/hf-cache/alpamayo-demo/`에 업로드한 뒤 staging 사본을 지웁니다. 마커를 staging에
+올렸다면 같은 단계에서 기록하고 업로드합니다. 정확한 명령은 ADMIN_GUIDE §6.3의 3단계에 있습니다.
+참가자는 공유 버킷 전체를 읽으므로, `hf-cache/hub/` 트리와
 `hf-cache/alpamayo-demo/*.pt` 둘 다 가져올 수 있습니다.
 
 > **노트북 + 스크립트 스테이징**(`aws s3 sync notebooks/ scripts/ →
-> notebook-templates/`)은 예외입니다: `notebook-templates/*`는 실행 역할에게
-> 읽기 전용이므로, 그 한 단계는 관리자 워크스테이션(또는 공유 버킷에 쓰기
-> 권한이 있는 자격 증명)에서 실행하세요.
+> notebook-templates/`)도 공유 버킷에 쓰는 다른 모든 작업과 마찬가지로 관리자
+> 워크스테이션에서 실행합니다.
 
 ## 검증된 실행(레퍼런스 배포 예시: 계정 <aws-account-id>)
 

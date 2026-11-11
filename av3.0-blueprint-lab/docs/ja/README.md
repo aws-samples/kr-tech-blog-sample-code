@@ -40,7 +40,7 @@
 
 デプロイする前に、このラボが何を生成するのか見てみたいですか？
 
-**実行済みノートブックの結果。** [`examples/notebooks-with-outputs.tar.gz`](https://github.com/aws-samples/kr-tech-blog-sample-code/raw/main/av3.0-blueprint-lab/examples/notebooks-with-outputs.tar.gz) には、13 個のモジュールノートブック（M0–M12）すべてが `ap-northeast-2` の `ml.g5.12xlarge` での一気通貫の実行後の**出力セル付き**で含まれています — グラフ 11 点、再生可能な H.264 埋め込み動画 3 点（M5・M6・M10）、メトリクス、ログ。すべてのコードセルに実行番号があり、エラー出力は 1 つもありません。ダウンロードして任意の Jupyter ビューアーで開けば、**インストールも実行もせずに**各モジュールの実際の結果を確認できます。実行時点のヘルパースクリプト 8 本も `scripts/` に同梱されています。（AWS アカウント ID は `<aws-account-id>` に置換し、取得した出力の他の内容は書き換えていません。）
+**実行済みノートブックの結果。** [`examples/notebooks-with-outputs.tar.gz`](https://github.com/aws-samples/kr-tech-blog-sample-code/raw/main/av3.0-blueprint-lab/examples/notebooks-with-outputs.tar.gz) には、13 個のモジュールノートブック（M0–M12）すべてが `ap-northeast-2` の `ml.g5.12xlarge` での一気通貫の実行後の**出力セル付き**で含まれています — グラフ 11 点、再生可能な H.264 埋め込み動画 3 点（M5・M6・M10）、メトリクス、ログ。すべてのコードセルに実行番号があり、エラー出力は 1 つもありません。ダウンロードして任意の Jupyter ビューアーで開けば、**インストールも実行もせずに**各モジュールの実際の結果を確認できます。実行時点のヘルパースクリプト 8 本も `scripts/` に同梱されています。（AWS アカウント ID は `<aws-account-id>` に置換し、取得した出力の他の内容は書き換えていません。）記録として保存したものなので、同梱のスクリプトとノートブックのコメントは、`hf-cache/` を管理者の認証情報でしか書き込めないようにする前のものです。これを使ってシードや公開をしないでください（このリポジトリの `scripts/` と [ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3 を使ってください）。
 
 ```bash
 curl -L -O https://github.com/aws-samples/kr-tech-blog-sample-code/raw/main/av3.0-blueprint-lab/examples/notebooks-with-outputs.tar.gz
@@ -190,7 +190,8 @@ aws s3 sync "s3://av30lab-shared-data-$ACCOUNT-$SEEDED/m10-reference/" \
 #  GPU もノートブック実行も不要、スクラッチ約 65 GiB と 30〜60 分:
 AWS_REGION="$REGION" HF_TOKEN="$HF_TOKEN" ./scripts/cache_hf_tree.sh
 #     トークンなしで取得内容を確認:  ./scripts/cache_hf_tree.sh --dry-run
-#     M9 は追加でデモクリップが必要です — ADMIN_GUIDE.md §6.3。
+#     M9 は追加でデモクリップが必要です。マニフェストにまだ記録されていなければ .no_exist マーカーも
+#     必要です（このとき 6c が M9 の 2 つのリポジトリのオブジェクト数不足を報告します） — ADMIN_GUIDE.md §6.3。
 #
 # 6c. 検証 — 参加者を作成する前に必ず exit 0 になること。6b を飛ばすと
 #     M5/M6/M9/M10 が動かないリージョンができ、他のすべての検査は緑のままです。

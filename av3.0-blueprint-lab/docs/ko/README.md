@@ -63,6 +63,9 @@
 내려받아 아무 Jupyter 뷰어에서 열면 **설치하거나 실행하지 않고도** 각 모듈의 실제 결과를
 볼 수 있습니다. 실행 당시의 헬퍼 스크립트 8개도 `scripts/` 에 함께 들어 있습니다.
 (AWS 계정 ID는 `<aws-account-id>`로 치환했고, 캡처된 출력의 다른 내용은 고치지 않았습니다.)
+기록용 보관본이므로, 안에 든 스크립트와 노트북 주석은 `hf-cache/`를 관리자 자격 증명으로만 쓸 수 있게
+바꾸기 전의 것입니다. 이것으로 시딩하거나 무언가를 게시하지 마세요(이 저장소의 `scripts/`와
+[ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3을 쓰세요).
 
 ```bash
 curl -L -O https://github.com/aws-samples/kr-tech-blog-sample-code/raw/main/av3.0-blueprint-lab/examples/notebooks-with-outputs.tar.gz
@@ -233,7 +236,8 @@ aws s3 sync "s3://av30lab-shared-data-$ACCOUNT-$SEEDED/m10-reference/" \
 #  GPU도 노트북 실행도 필요 없고, 스크래치 약 65 GiB와 30~60분이 필요합니다:
 AWS_REGION="$REGION" HF_TOKEN="$HF_TOKEN" ./scripts/cache_hf_tree.sh
 #     토큰 없이 무엇을 받을지 미리 보기:  ./scripts/cache_hf_tree.sh --dry-run
-#     M9은 추가로 데모 클립이 필요합니다 — ADMIN_GUIDE.md §6.3.
+#     M9은 추가로 데모 클립이 필요하고, 매니페스트에 아직 기록되지 않았다면 .no_exist 마커도
+#     필요합니다(이때 6c가 M9 저장소 두 개의 객체 수 부족을 보고합니다) — ADMIN_GUIDE.md §6.3.
 #
 # 6c. 검증 — 참가자를 만들기 전에 반드시 exit 0 이어야 합니다. 6b를 건너뛰면
 #     M5/M6/M9/M10이 실행되지 않는 리전이 만들어지는데, 다른 모든 검사는 초록색입니다.

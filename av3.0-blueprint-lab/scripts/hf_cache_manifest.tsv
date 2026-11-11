@@ -14,8 +14,11 @@
 #
 # Regenerate after the upstream pins move:
 #   aws s3 ls s3://<shared>/hf-cache/hub/ --recursive | scripts/cache_hf_tree.sh --regenerate
+# Record only the .no_exist markers (file rows untouched; see cache_hf_tree.sh):
+#   aws s3 ls s3://<shared>/hf-cache/hub/ --recursive | scripts/cache_hf_tree.sh --record-markers
 #
 # Format: <repo>\t<revision>\t<file>
+#     and no_exist\t<repo>\t<revision>\t<file> for a 0-byte .no_exist marker.
 # 164 files, 12 (repo, revision) pairs, 61.17 GiB of snapshot payload.
 
 Qwen/Qwen3-VL-2B-Instruct	89644892e4d85e24eaac8bacfd4f463576704203	chat_template.json

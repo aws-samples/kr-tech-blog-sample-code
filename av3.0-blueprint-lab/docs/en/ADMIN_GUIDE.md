@@ -390,11 +390,10 @@ pip install huggingface_hub && hf auth login --token "$HF_TOKEN"
 
 > **`cache_models.sh` does NOT build `hf-cache/hub/`** — use `scripts/cache_hf_tree.sh`.
 > Until 2026-09-26 nothing in this repo produced the tree at all: every `hf-cache`
-> reference in `scripts/` read *from* S3 and never wrote to it, so the only recipe was the
-> manual ritual below. `cache_models.sh` is not a substitute: it
-> writes a different prefix (`model-cache/`) in a different layout (flat
-> `hf download --local-dir`, not `models--org--name/snapshots/<sha>/…`). The tree exists
-> only because someone performed the ritual below once, by hand.
+> reference in `scripts/` read *from* S3 and never wrote to it, so the only recipe was a
+> manual ritual on a GPU app (now retired — see the warning below). `cache_models.sh` is
+> not a substitute: it writes a different prefix (`model-cache/`) in a different layout
+> (flat `hf download --local-dir`, not `models--org--name/snapshots/<sha>/…`).
 >
 > Consequences, both of which have bitten:
 > * **For a new region, copy it — do not rebuild it.** `aws s3 sync` bucket-to-bucket from a
@@ -405,22 +404,141 @@ pip install huggingface_hub && hf auth login --token "$HF_TOKEN"
 >   `tokenizer.pth` blob. A green `cache_models.sh` run proves nothing about this prefix.
 
 M5/M6/M9 load gated checkpoints through HF's **own cache layout** at runtime
-(M9 also pulls a hidden Cosmos-Reason2-8B backbone). The robust way to populate it:
-**run M5, M6, and M9 once each on a GPU JupyterLab app** with your admin token,
-then sync the cache tree:
+(M9 also pulls a hidden Cosmos-Reason2-8B backbone). `setup_cosmos_env.sh` restores
+`hf-cache/hub/` into `HF_HOME` and sets `HF_HUB_OFFLINE=1`, so participants run offline
+with no token. Seed it **from your admin workstation, with admin credentials**:
 ```bash
-aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/ --only-show-errors
+# Region #2 onward: copy byte-exact from a region that already works (README step 6b).
+aws s3 sync s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/ \
+            s3://<shared>/hf-cache/ --source-region <seeded-region> --region "$AWS_REGION"
+# First region: build the tree from the pinned manifest (no GPU, ~65 GiB scratch).
+AWS_REGION="$AWS_REGION" HF_TOKEN=hf_... ./scripts/cache_hf_tree.sh
+./scripts/check_seeding.sh --region "$AWS_REGION"
 ```
-`setup_cosmos_env.sh` restores this into `HF_HOME` and sets `HF_HUB_OFFLINE=1`, so
-participants run offline with no token. **M9 also needs a demo clip** (its dataset
-can't be read offline):
+
+**`.no_exist` markers (M9).** `check_seeding.sh` also counts a few 0-byte
+`models--*/.no_exist/<revision>/<file>` files under `Alpamayo-1.5-10B` and
+`Cosmos-Reason2-8B`. HuggingFace writes one when an *online* load finds that a file does
+not exist upstream. A download never creates them, so `cache_hf_tree.sh` creates only the
+ones `scripts/hf_cache_manifest.tsv` records as `no_exist` rows. A bucket-to-bucket copy
+brings them along. If the manifest records none, a tree built by `cache_hf_tree.sh` alone
+shows 15/16 and 17/22 objects for those two repos, and the check fails. Whether M9
+actually fails offline without them has not been tested, so the check keeps counting
+them. Record them once, then upload only the markers (no token, no download):
 ```bash
-source /mnt/sagemaker-nvme/cosmos-work/alpamayo_env.sh
-unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE   # this save must be online
-python scripts/alpamayo_save_clip.py --clip 030c760c-ae38-49aa-9ad8-f5650a545d26 \
-  --t0-us 5100000 --out /mnt/sagemaker-nvme/m6_work/clips
-aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-*.pt s3://<shared>/hf-cache/alpamayo-demo/
+# From a tree that has them, e.g. a region seeded by the old GPU-app procedure (read-only):
+aws s3 ls s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/hub/ --recursive \
+  --region <seeded-region> | ./scripts/cache_hf_tree.sh --record-markers
+AWS_REGION="$AWS_REGION" ./scripts/cache_hf_tree.sh --markers-only
 ```
+With no such tree, an online M9 run on your GPU app writes them: see steps 1 and 3 of
+the clip procedure below. `--record-markers` reads key names only, never object contents.
+It refuses a marker that is not empty or that would hide a file the manifest downloads,
+and it skips revisions the manifest does not pin. Keep the updated manifest (commit it
+in your copy of the repo), so the next first region gets the markers from
+`cache_hf_tree.sh` directly.
+
+> **Never write `hf-cache/` from a Studio terminal, and never paste admin AWS keys into
+> one.** Earlier versions of this guide synced the cache up from a GPU JupyterLab app,
+> which needed the SageMaker execution role to write `hf-cache/*`. That role is shared by
+> every participant, and every participant's kernel loads this prefix: M9 opens
+> `hf-cache/alpamayo-demo/*.pt` with `torch.load(weights_only=False)`, which unpickles the
+> file and so runs any code in it. One participant could therefore run code as every
+> other participant. The write grant is gone, so from a Studio app `aws s3 cp`/`sync` to
+> `hf-cache/` now fails with `AccessDenied`, by design. Working around that with admin
+> keys in the terminal is worse: the app's home directory is synced from
+> `users/<profile>/` in S3 at every start, so a `.bashrc` planted there would capture them.
+
+> **Upgrading a stack deployed before this change.** Until now every participant could
+> write `hf-cache/*`, so do not trust that prefix until you have audited it. Do the audit
+> before you rely on it, and before you use the region as the source of a copy: a copy
+> carries any replaced object into the new region, and `check_seeding.sh --source-region`
+> cannot notice, because it only compares the two regions with each other. The shared
+> bucket is versioned, so a read-only listing shows every write. Use read-only
+> credentials:
+> ```bash
+> # Noncurrent versions and delete markers: each one is a write after the first upload.
+> aws s3api list-object-versions --bucket <shared> --prefix hf-cache/ --region <r> \
+>   --query 'Versions[?IsLatest==`false`].[LastModified,Key]' --output text
+> aws s3api list-object-versions --bucket <shared> --prefix hf-cache/ --region <r> \
+>   --query 'DeleteMarkers[].[LastModified,Key]' --output text      # "None" = no deletes
+> # Current versions, newest first: anything after your original seed needs a look.
+> aws s3api list-object-versions --bucket <shared> --prefix hf-cache/ --region <r> \
+>   --query 'Versions[?IsLatest].[LastModified,Key]' --output text | sort -r | head -20
+> ```
+> Investigate every hit. The pickle-format files matter most, because loading one runs
+> code: `alpamayo-demo/*.pt`, and in the hub tree Cosmos-Transfer2.5 and
+> Cosmos-Predict2.5's `*_ema_bf16.pt`, Predict2.5's `tokenizer.pth`, and Guardrail1's
+> `safety_filter.pt` and `Resnet50_Final.pth`. Whatever the audit shows, produce and
+> publish `alpamayo-demo/*.pt` again by the procedure below instead of inheriting it.
+> Deleting object versions is destructive: get separate approval before you do it.
+
+**M9 also needs a demo clip.** Its dataset can't be read offline, and the clip has to be
+produced inside the `a1_5` venv on a GPU. So the GPU app *produces* the clip and your
+workstation *publishes* it. Do this before you provision participants (§9). If you
+copied `hf-cache/` from a seeded region, the clip came with it (`check_seeding.sh`
+confirms it), so skip steps 1-3 unless you are publishing it again. Do that once if the
+source region was deployed before this change (see the upgrade note above).
+
+**Before you start, make sure no participant can write to your workspace.** Produce the
+clip only before any participant profile exists, or once the user-workspace bucket is
+isolated per user. Until then the execution role every participant shares can write every
+`users/<profile>/` prefix, and your app copies `users/<your-profile>/` into its home
+directory at every start. A planted `.bashrc`, IPython startup file or replaced
+`scripts/alpamayo_save_clip.py` would then control both the `.pt` and the sha256 printed
+for it, and would see the `HF_TOKEN` you export. The hash only proves that the file did
+not change after it left the app. On a stack that already ran a cohort, delete the
+participants' profiles first and use a fresh user profile of your own: files planted
+under your old prefix stay there, and a new space under the same profile still copies
+that prefix.
+
+1. On a GPU JupyterLab app of your own profile, with an `HF_TOKEN` whose account has
+   accepted the licenses (§3):
+   ```bash
+   export HF_TOKEN=hf_...
+   bash scripts/setup_cosmos_env.sh alpamayo     # build the a1_5 venv
+   source /mnt/sagemaker-nvme/cosmos-work/alpamayo_env.sh
+   unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE     # this save must be online
+   python scripts/alpamayo_save_clip.py --clip 030c760c-ae38-49aa-9ad8-f5650a545d26 \
+     --t0-us 5100000 --out /mnt/sagemaker-nvme/m6_work/clips
+   ```
+   The script ends by printing `sha256  <hash>  030c760c-….pt`. **Copy that hash by hand
+   into your own notes.** Do not save it as a file in S3 next to the clip, where it could
+   be replaced together with the clip.
+
+   *Only if you need the `.no_exist` markers (see above):* in the same terminal, run one
+   inference online, then stage the markers it wrote. They are empty files, and only
+   their names are used.
+   ```bash
+   python scripts/alpamayo_infer.py \
+     --clips /mnt/sagemaker-nvme/m6_work/clips/030c760c-ae38-49aa-9ad8-f5650a545d26.pt \
+     --out /mnt/sagemaker-nvme/m6_work/out
+   aws s3 sync /mnt/sagemaker-nvme/hf/hub "s3://$USER_BUCKET/users/$USER_PROFILE/staging/hub-markers/" \
+     --exclude '*' --include '*/.no_exist/*' --exclude '*/snapshots/*'
+   ```
+2. Move the `.pt` off the app, either way:
+   * `cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-*.pt ~/`, then right-click it in the
+     JupyterLab file browser and choose **Download**; or
+   * `aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-*.pt "s3://$USER_BUCKET/users/$USER_PROFILE/staging/"`
+     (your own workspace prefix: the role can write there, but not to `hf-cache/`).
+3. On your admin workstation, with admin credentials:
+   ```bash
+   CLIP=030c760c-ae38-49aa-9ad8-f5650a545d26.pt
+   USERB=av30lab-user-workspace-<account>-$AWS_REGION
+   aws s3 cp "s3://$USERB/users/<your-profile>/staging/$CLIP" . --region "$AWS_REGION"   # skip if downloaded
+   shasum -a 256 "$CLIP"       # MUST equal the hash from step 1 (Linux: sha256sum "$CLIP")
+   aws s3 cp "$CLIP" "s3://<shared>/hf-cache/alpamayo-demo/" --region "$AWS_REGION"
+   aws s3 rm "s3://$USERB/users/<your-profile>/staging/$CLIP" --region "$AWS_REGION"
+   # Only if you staged .no_exist markers in step 1:
+   aws s3 ls "s3://$USERB/users/<your-profile>/staging/hub-markers/" --recursive \
+     --region "$AWS_REGION" | ./scripts/cache_hf_tree.sh --record-markers
+   AWS_REGION="$AWS_REGION" ./scripts/cache_hf_tree.sh --markers-only
+   aws s3 rm "s3://$USERB/users/<your-profile>/staging/hub-markers/" --recursive --region "$AWS_REGION"
+   ./scripts/check_seeding.sh --region "$AWS_REGION"
+   ```
+   If the hash does not match, the file changed after it left the app. Do not upload it;
+   produce it again.
+
 Full sequence: [COSMOS_M5_M6.md](COSMOS_M5_M6.md), [ALPAMAYO_M9.md](ALPAMAYO_M9.md).
 
 ### 6.4 M10 AlpaSim reference eval (only if running M10)
@@ -674,6 +792,7 @@ source-builds `gsplat==1.4.0`.
 | M5/M6/M9 fails with `Local entry not found … offline mode is enabled` | The restored cache is **partial**. An interrupted `aws s3 sync` is the usual cause — **re-run the same sync**, it resumes and re-copies anything missing or size-mismatched. What `sync` cannot detect is a destination object that is the *right size with wrong content*, because it compares size+mtime rather than checksums; if `check_seeding.sh --source-region <seeded>` reports a CRC64 mismatch, delete that one object and re-sync. |
 | M7 training cell fails on gsplat | Re-run M7 cell 3 (`scripts/setup_gsplat_env.sh`) — the CUDA build is per-session and resets on app restart. §11. |
 | M9 fails to load its clip | demo `.pt` not uploaded to `hf-cache/alpamayo-demo/` (§6.3). |
+| `aws s3 cp`/`sync` to `hf-cache/` from a Studio terminal fails with `AccessDenied` | Expected: the execution role every participant shares has no write on the shared bucket, on purpose (§6.3). Seed or publish from your admin workstation; do not paste admin keys into the Studio terminal. |
 | M10 notebook shows nothing (cell-4 raises "No M10 AlpaSim results found in S3") | `m10-reference/` reference eval not run (§6.4). |
 | M10 shows metrics and plots but the **video** is blank | **Not a missing bundle — do NOT re-run §6.4.** The codec: AlpaSim's renderer writes MPEG-4 Part 2, which Chrome/Firefox/Edge cannot decode. cell-7 prints the codec it found. Fix by replacing that one object with an H.264 version — no GPU host needed: `aws s3 cp s3://$SHARED_BUCKET/m10-reference/eval/eval.mp4 .` then `ffmpeg -i eval.mp4 -vf scale=1280:-2 -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an eval_h264.mp4` and copy it back over `m10-reference/eval/eval.mp4`. `scripts/alpasim_ec2_setup.sh` now transcodes at upload time, so a bundle produced after that change is already H.264. |
 | M4's search demo ranks the **same caption several times**, and its index cell prints `403 authorization_exception` on delete | The collection's data-access policy predates the **`aoss:DeleteIndex`** grant, so M4 cannot clear its index — and because AOSS rejects a caller-supplied document `_id`, every `index()` INSERTS. Each re-run therefore adds another full copy (measured: 24 → 48 → 72 → 96 → 120 documents for 24 captions). The participant role cannot fix the policy: `aoss:UpdateAccessPolicy` is deliberately not granted, because on `collection/*` it would let one participant reach another's collection. With admin creds delete BOTH the collection and its data policy — a surviving policy is the old one — then have the participant Run All, and M4 recreates them with the grant: `aws opensearchserverless list-collections --region $REGION --query 'collectionSummaries[?starts_with(name,\`av30-semantic-\`)].[id,name]' --output text`, then `aws opensearchserverless delete-collection --id <id> --region $REGION` and `aws opensearchserverless delete-access-policy --name <name>-access --type data --region $REGION`. |

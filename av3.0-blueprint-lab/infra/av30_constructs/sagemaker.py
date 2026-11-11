@@ -262,39 +262,16 @@ class SageMakerConstruct(Construct):
             )
         )
 
-        # S3 WRITE access on the shared-data bucket, scoped to the hf-cache/
-        # prefix ONLY. The admin populates the M5/M6 offline HuggingFace cache
-        # (hf-cache/hub/) by syncing the checkpoints cosmos actually downloaded
-        # on a GPU app — but the SageMaker execution role is otherwise read-only
-        # on this bucket. Scoping the write to hf-cache/* lets that one-time
-        # upload run from a notebook terminal without granting write to the rest
-        # of the shared bucket (model-cache, datasets, notebook-templates).
-        self._execution_role.add_to_policy(
-            iam.PolicyStatement(
-                sid="SharedDataHfCacheWrite",
-                effect=iam.Effect.ALLOW,
-                # PutObject ONLY — deliberately no s3:DeleteObject.
-                #
-                # Put is load-bearing: ADMIN_GUIDE §6.3's seeding ritual runs
-                # `aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/` and
-                # `aws s3 cp ... hf-cache/alpamayo-demo/` from a GPU JupyterLab terminal,
-                # i.e. under THIS role. Neither command deletes (sync only deletes with
-                # --delete), so Delete was never needed for it.
-                #
-                # Delete is removed because the prefix stopped being scratch space: it now
-                # holds the 115 GiB / 481-object offline cache that M5, M6 and M9 all read.
-                # With Delete granted, ONE participant running
-                # `aws s3 rm --recursive s3://<shared>/hf-cache/` takes the whole cohort
-                # down — recovery is versioned but only per version-id, and neither bucket
-                # has a lifecycle configuration. Rebuilding costs ~$2.5 and ~1 hour.
-                actions=[
-                    "s3:PutObject",
-                ],
-                resources=[
-                    f"{shared_data_bucket.bucket_arn}/hf-cache/*",
-                ],
-            )
-        )
+        # NO WRITE anywhere on the shared-data bucket — deliberately, and do not add
+        # one back "just for hf-cache/". Every participant runs as this one role, and
+        # every participant's kernel loads hf-cache/: M5/M6/M9 restore hf-cache/hub/
+        # as their HF_HOME, and M9 opens hf-cache/alpamayo-demo/*.pt with
+        # torch.load(weights_only=False), which unpickles and so runs code. A write
+        # grant here lets participant A run code as participant B, which also
+        # defeats any per-user isolation of the user-workspace bucket below.
+        # The admin seeds hf-cache/ from a workstation with admin credentials
+        # (scripts/cache_hf_tree.sh or a bucket-to-bucket copy) — never by putting
+        # admin keys into a Studio terminal (ADMIN_GUIDE §6.3).
 
         # S3 object-level read/write on the user-workspace bucket, scoped to the
         # per-user prefix via the SageMakerUserProfile principal tag when it is

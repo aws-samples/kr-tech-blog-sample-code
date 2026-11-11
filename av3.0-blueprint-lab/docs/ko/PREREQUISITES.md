@@ -60,25 +60,35 @@ M5/M6/M9은 런타임에 Hugging Face 자체 캐시 레이아웃을 통해 게�
 `s3://<shared>/hf-cache/hub/`에 스테이징하며; `setup_cosmos_env.sh`가 이를
 `HF_HOME`으로 복원하고 `HF_HUB_OFFLINE=1`을 설정합니다.
 
-이 캐시를 채우는 가장 확실한 방법(각 모델이 필요로 하는 모든 리비전 + 사이드
-파일이 존재함을 보장)은 **관리자 HF 토큰으로 GPU 인스턴스에서 M5, M6, M9을 각각
-한 번씩 실행**한 다음, 결과 캐시를 sync하는 것입니다:
+이 캐시는 **관리자 워크스테이션에서 관리자 자격 증명으로** 채웁니다. Studio 앱에서는 채우지 않습니다
+(아래 참고). 다음 중 하나를 쓰세요:
 
 ```bash
-# On a GPU JupyterLab app, after M5 + M6 + M9 have each run once successfully:
-aws s3 sync /mnt/sagemaker-nvme/hf/hub \
-  s3://<shared-bucket>/hf-cache/hub/ --only-show-errors
+# First region: build the tree from the pinned manifest (no GPU, no notebook run).
+AWS_REGION=<region> HF_TOKEN=hf_... ./scripts/cache_hf_tree.sh
+# Any later region: copy byte-exact from a region that already works.
+aws s3 sync s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/ \
+  s3://<shared-bucket>/hf-cache/ --source-region <seeded-region> --region <region>
 ```
 
-그 후에는 참가자에게 토큰이 필요하지 않습니다: `setup_cosmos_env.sh`가 S3 캐시를
+매니페스트(`scripts/hf_cache_manifest.tsv`)는 정상 동작하는 트리에서 생성한 것이라, 각 모델에
+필요한 리비전과 사이드 파일이 모두 들어 있습니다. 예외는 온라인 로드로만 생기는 M9 저장소의 0바이트
+`.no_exist` 마커입니다. 매니페스트에 기록되기 전까지는 아래 검사가 두 저장소의 객체 수가 모자란다고
+보고합니다([ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3). `./scripts/check_seeding.sh --region <region>`으로
+확인하세요. 그 후에는 참가자에게 토큰이 필요하지 않습니다: `setup_cosmos_env.sh`가 S3 캐시를
 발견하여 복원하고 오프라인으로 실행합니다.
 
 > **M9에는 데모 클립도 필요합니다.** M9의 `PhysicalAI-Autonomous-Vehicles`
-> 데이터셋은 오프라인으로 읽을 수 없으므로, 관리자가 데모 클립을 한 번 미리
-> 저장하여(`scripts/alpamayo_save_clip.py`)
-> `s3://<shared>/hf-cache/alpamayo-demo/`에 업로드합니다(`hf-cache/` 아래에 두어
-> exec 역할의 쓰기 범위로 GPU 앱 터미널에서 업로드되도록). 전체 일회성 절차는
-> [ALPAMAYO_M9.md](ALPAMAYO_M9.md)를 참조하세요.
+> 데이터셋은 오프라인으로 읽을 수 없으므로, 관리자가 GPU 앱에서 데모 클립을 한 번
+> 미리 저장하고(`scripts/alpamayo_save_clip.py`) sha256을 확인한 뒤, **관리자
+> 워크스테이션에서** `s3://<shared>/hf-cache/alpamayo-demo/`에 업로드합니다. 정확한
+> 절차는 [ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3을 참조하세요.
+>
+> **Studio 앱에서 올리지 않는 이유:** SageMaker 실행 역할은 모든 참가자가 함께 쓰며,
+> 의도적으로 공유 버킷에 쓸 수 없게 되어 있습니다. M9은 데모 클립을 unpickle하므로
+> (`torch.load(weights_only=False)`), `hf-cache/`에 쓸 수 있는 역할이 있으면 참가자 한
+> 명이 다른 모든 참가자의 권한으로 코드를 실행할 수 있습니다. 이를 피하려고 관리자
+> 키를 Studio 터미널에 붙여넣지 마세요.
 
 ### C. AlpaSim 폐루프 레퍼런스 평가 — M10 (`m10-reference/`)
 M10은 실제 AlpaSim 시뮬레이터로 Alpamayo 정책을 **폐루프** 평가합니다. 이

@@ -65,7 +65,10 @@ execution count and none produced an error output. Download and open them in any
 Jupyter viewer to see each module's actual results **without installing or running
 anything**. The eight helper scripts are bundled under `scripts/` as they were at run
 time. (The AWS account id was replaced with `<aws-account-id>`; nothing else in the
-captured outputs was rewritten.)
+captured outputs was rewritten.) Because it is a record, its scripts and notebook comments
+predate the change that made `hf-cache/` writable only with admin credentials: never use
+them to seed or publish anything (use this repo's `scripts/` and
+[ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3).
 
 ```bash
 curl -L -O https://github.com/aws-samples/kr-tech-blog-sample-code/raw/main/av3.0-blueprint-lab/examples/notebooks-with-outputs.tar.gz
@@ -240,7 +243,8 @@ aws s3 sync "s3://av30lab-shared-data-$ACCOUNT-$SEEDED/m10-reference/" \
 #  IF this is your FIRST region (nothing to copy from) — builds the tree from the pinned
 #  manifest. No GPU, no notebook run; ~65 GiB scratch, 30-60 min:
 AWS_REGION="$REGION" HF_TOKEN="$HF_TOKEN" ./scripts/cache_hf_tree.sh
-#     M9 additionally needs its demo clip — ADMIN_GUIDE.md §6.3.
+#     M9 additionally needs its demo clip, plus its .no_exist markers if the manifest
+#     records none yet (6c then reports two M9 repos short) — ADMIN_GUIDE.md §6.3.
 #
 # 6c. VERIFY — must exit 0 BEFORE provisioning anyone. Skipping 6b ships a region
 #     where M5/M6/M9/M10 cannot run, and every other check stays green.

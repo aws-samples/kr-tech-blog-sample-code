@@ -109,6 +109,9 @@ writes plain artifacts the notebook kernel can read without torch:
 `<clip>_pred.npy`, `<clip>_gt.npy`, `<clip>_cot.txt`, and `metrics.json`
 (minADE per clip). It loads each `.pt` with `weights_only=False` (torch 2.8
 defaults to `True`, which would reject the `int`/`str` entries in the dict).
+That unpickles the file and runs any code in it, so the clips must come only from
+`hf-cache/alpamayo-demo/`, which only admin credentials can write (see
+*Admin one-time setup* below).
 
 `scripts/alpamayo_save_clip.py` is the admin-only companion that produces those
 `.pt` files (online, with a token).
@@ -136,7 +139,38 @@ uncomment the other staged clips to run all.
 
 ## Admin one-time setup
 
-On a GPU app with an admin `HF_TOKEN` (licenses accepted for
+Two things must be in the shared bucket before anyone runs M9: the Alpamayo weights
+(plus the `Cosmos-Reason2-8B` backbone) under `hf-cache/hub/`, and the demo clip(s)
+under `hf-cache/alpamayo-demo/`. **Both are written from the admin workstation with
+admin credentials, never from a Studio app.** The execution role every participant
+shares cannot write the shared bucket at all, on purpose: every M9 kernel unpickles the
+demo clip, so a participant who could replace it could run code as every other
+participant ([ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3).
+
+**Weights.** `scripts/cache_hf_tree.sh` for the first region, a bucket-to-bucket copy
+for every later one (README step 6b). The pinned manifest
+(`scripts/hf_cache_manifest.tsv`) lists `nvidia/Alpamayo-1.5-10B` and
+`nvidia/Cosmos-Reason2-8B`. It must also record their `.no_exist` markers, 0-byte files
+that only an online load creates; without them `check_seeding.sh` reports the two repos
+short (15/16 and 17/22) and fails. A copy brings the markers along. For a first region
+whose manifest records none, the inference run below writes them on the GPU app, and
+ADMIN_GUIDE §6.3 records and uploads them from the workstation. Whether M9 actually fails
+offline without them has not been tested.
+
+**Demo clip.** Produced on a GPU app, because it needs the `a1_5` venv and the gated
+`PhysicalAI-Autonomous-Vehicles` dataset online; published from the workstation. If you
+copied `hf-cache/` from a seeded region, the clip is already there: skip this unless you
+are publishing it again (ADMIN_GUIDE §6.3).
+
+**Precondition.** Produce the clip only before any participant profile exists, or once
+the user-workspace bucket is isolated per user. Until then any participant can write
+`users/<your-profile>/`, which your app copies into its home directory at every start. A
+planted `.bashrc`, IPython startup file or replaced script could then control both the
+`.pt` and the sha256 printed for it, and would see your `HF_TOKEN`. On a stack that
+already ran a workshop, delete the participants' profiles first and use a fresh profile
+of your own (ADMIN_GUIDE §6.3).
+
+On a GPU app of your own profile, with an admin `HF_TOKEN` (licenses accepted for
 `Alpamayo-1.5-10B`, its `Cosmos-Reason2-8B` backbone, and
 `PhysicalAI-Autonomous-Vehicles`):
 
@@ -146,28 +180,32 @@ bash scripts/setup_cosmos_env.sh alpamayo          # build the a1_5 venv (online
 source /mnt/sagemaker-nvme/cosmos-work/alpamayo_env.sh
 unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE          # data prep MUST be online
 
-# For each demo clip: save the data dict, run one inference to fill the HF cache.
+# For each demo clip: save the data dict. It prints the sha256 — copy it by hand.
 python scripts/alpamayo_save_clip.py --clip 030c760c-ae38-49aa-9ad8-f5650a545d26 \
     --t0-us 5100000 --out /mnt/sagemaker-nvme/m6_work/clips
+# One inference on the fresh clip: it checks the clip before you publish it, and writes
+# the .no_exist markers. Optional, unless the manifest records no markers (see Weights).
 python scripts/alpamayo_infer.py \
     --clips /mnt/sagemaker-nvme/m6_work/clips/030c760c-ae38-49aa-9ad8-f5650a545d26.pt \
     --out /mnt/sagemaker-nvme/m6_work/out
+# Only if you need the markers: stage them (empty files; only their names are used).
+aws s3 sync /mnt/sagemaker-nvme/hf/hub "s3://$USER_BUCKET/users/$USER_PROFILE/staging/hub-markers/" \
+    --exclude '*' --include '*/.no_exist/*' --exclude '*/snapshots/*'
 
-# Publish: add Alpamayo + Reason2 to the shared HF cache, and upload the .pt(s).
-aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/ --only-show-errors
-aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-...pt s3://<shared>/hf-cache/alpamayo-demo/
+# Move the .pt off the app: your own workspace prefix (or Download it instead).
+aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-ae38-49aa-9ad8-f5650a545d26.pt \
+    "s3://$USER_BUCKET/users/$USER_PROFILE/staging/"
 ```
 
-Both admin uploads target `hf-cache/*`, which is the one prefix the SageMaker
-execution role can **write** on the shared bucket — so the whole sequence runs
-straight from the GPU app terminal (no admin workstation, no IAM change).
-Participants read all of the shared bucket, so they can pull both the
-`hf-cache/hub/` tree and `hf-cache/alpamayo-demo/*.pt`.
+Then, on the admin workstation: check the file's sha256 against the one you copied,
+upload it to `s3://<shared>/hf-cache/alpamayo-demo/`, and delete the staging copy. If you
+staged markers, record and upload them in the same step. The exact commands are step 3
+of ADMIN_GUIDE §6.3. Participants read all of the shared bucket, so they can pull both
+the `hf-cache/hub/` tree and `hf-cache/alpamayo-demo/*.pt`.
 
 > The **notebook + scripts staging** (`aws s3 sync notebooks/ scripts/ →
-> notebook-templates/`) is the exception: `notebook-templates/*` is read-only for
-> the execution role, so run that one step from the admin workstation (or any
-> credentials with write to the shared bucket).
+> notebook-templates/`) also runs from the admin workstation, like every other write
+> to the shared bucket.
 
 ## Verified runs (reference deploy example: account <aws-account-id>)
 

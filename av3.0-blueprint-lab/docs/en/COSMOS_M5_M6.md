@@ -126,10 +126,14 @@ Face's own cache at runtime (`checkpoint_db` → `uvx hf download`). To spare ev
 participant an HF account + token + license approvals, we cache once and run
 offline:
 
-- **Admin (once):** run M5 + M6 on a GPU app with an admin HF token (licenses
-  accepted), then `aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/`.
-  Running the modules (vs a bare `hf download`) guarantees every revision + side
-  file cosmos needs (Wan2.1 VAE, Reason1.1, Guardrail1, …) is in the tree.
+- **Admin (once per region), from the admin workstation:** `scripts/cache_hf_tree.sh`
+  for the first region, a bucket-to-bucket `aws s3 sync` for every later one
+  ([ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3). The script reads
+  `scripts/hf_cache_manifest.tsv`, which was generated from a tree built by actually
+  running the modules, so every revision + side file cosmos needs (Wan2.1 VAE,
+  Reason1.1, Guardrail1, …) is in it. Do not sync the cache up from a GPU app: the
+  execution role every participant shares cannot write `hf-cache/`, on purpose,
+  because every participant's kernel loads what is there.
 - **Participant setup:** `setup_cosmos_env.sh` `aws s3 sync`s `hf-cache/hub/` back
   into `$HF_HOME/hub`, and the generated `cosmos_env.sh` / `cosmos_predict_env.sh`
   export **`HF_HUB_OFFLINE=1`** (+ `TRANSFORMERS_OFFLINE=1`) **only when that

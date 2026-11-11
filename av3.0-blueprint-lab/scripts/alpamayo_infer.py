@@ -238,8 +238,13 @@ def main():
 
     results = []
     for pt in a.clips:
-        # Trusted admin-produced file; torch 2.8 defaults weights_only=True which
-        # would reject the int/str entries in the dict, so load with False.
+        # weights_only=False is required: torch 2.8 defaults to True, which rejects
+        # the int/str entries in the dict. It also means this UNPICKLES the file and
+        # runs any code embedded in it, so pass only the admin-published demo clips.
+        # They are trustworthy because hf-cache/ is writable only with admin
+        # credentials (the shared execution role has no write on the shared bucket;
+        # ADMIN_GUIDE §6.3). Never point --clips at a .pt that a participant or a
+        # shared role could have written.
         data = torch.load(pt, weights_only=False)
         clip_id = str(data.get("clip_id") or os.path.splitext(os.path.basename(pt))[0])
         print(f"=== {clip_id} ===", flush=True)

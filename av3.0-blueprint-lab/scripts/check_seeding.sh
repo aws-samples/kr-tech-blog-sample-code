@@ -93,6 +93,7 @@ echo ""
 
 FAILED=0
 WARNED=0
+M9_SHORT=0
 
 # key_count <prefix> -> integer
 #
@@ -172,6 +173,11 @@ echo "--- hf-cache tree shape (what the runtime globs actually test) ---"
 # A count below the expectation is a hard FAIL. A count ABOVE it is only a warning: the
 # upstream repos legitimately gain files over time, and this must not become a gate that
 # fires on a newer, perfectly good cache.
+#
+# The counts include the 0-byte .no_exist/<sha>/<file> markers an online load leaves behind
+# (blobs + snapshot files + refs/main came to 15 and 17 for the two M9 repos; 2c9d6d2).
+# cache_hf_tree.sh creates only the markers its manifest records. Do NOT lower 16 and 22 to
+# fit a tree without markers until an offline M9 run on such a tree has been seen to pass.
 for entry in \
     "models--nvidia--Cosmos-Transfer2.5-2B|2|M5" \
     "models--nvidia--Cosmos-Predict2.5-2B|4|M5, M6" \
@@ -188,6 +194,7 @@ do
         printf "  [ FAIL ] %-38s %s/%s objects — INCOMPLETE -> breaks %s\n" \
             "$repo" "$n" "$want" "$mods"
         FAILED=$((FAILED + 1))
+        case "$repo" in *Alpamayo-1.5-10B|*Cosmos-Reason2-8B) M9_SHORT=1 ;; esac
     elif [ "${n:-0}" -gt "$want" ]; then
         printf "  [ warn ] %-38s %s objects (expected %s — upstream may have grown)\n" \
             "$repo" "$n" "$want"
@@ -308,6 +315,13 @@ echo "No seeded region to copy from? Build the tree instead (admin HF_TOKEN requ
 echo "no GPU, ~30-60 min):"
 echo "  AWS_REGION=${REGION} HF_TOKEN=hf_... ./scripts/cache_hf_tree.sh"
 echo ""
+if [ "$M9_SHORT" -eq 1 ]; then
+    echo "Alpamayo-1.5-10B / Cosmos-Reason2-8B short on a tree built by cache_hf_tree.sh? The"
+    echo "gap is .no_exist markers its manifest does not record yet. Record them, then run"
+    echo "  AWS_REGION=${REGION} ./scripts/cache_hf_tree.sh --markers-only"
+    echo "(docs/en/ADMIN_GUIDE.md §6.3)."
+    echo ""
+fi
 echo "cache_models.sh does NOT produce this prefix: it writes model-cache/ only, in a flat"
 echo "layout rather than the HuggingFace offline cache tree. A clean run of it is not"
 echo "evidence that this check will pass."

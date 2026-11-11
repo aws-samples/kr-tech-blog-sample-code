@@ -72,7 +72,10 @@ execution count and none produced an error output. Download and open them in any
 Jupyter viewer to see each module's actual results **without installing or running
 anything**. The eight helper scripts are bundled under `scripts/` as they were at run
 time. (The AWS account id was replaced with `<aws-account-id>`; nothing else in the
-captured outputs was rewritten.)
+captured outputs was rewritten.) Because it is a record, its scripts and notebook comments
+predate the change that made `hf-cache/` writable only with admin credentials: never use
+them to seed or publish anything (use this repo's `scripts/` and
+[docs/en/ADMIN_GUIDE.md](docs/en/ADMIN_GUIDE.md) §6.3).
 
 ```bash
 curl -L -O https://github.com/aws-samples/kr-tech-blog-sample-code/raw/main/av3.0-blueprint-lab/examples/notebooks-with-outputs.tar.gz
@@ -252,7 +255,8 @@ aws s3 sync "s3://av30lab-shared-data-$ACCOUNT-$SEEDED/m10-reference/" \
 #  This is what Step 2b's license acceptance and the HF_TOKEN above are for:
 AWS_REGION="$REGION" HF_TOKEN="$HF_TOKEN" ./scripts/cache_hf_tree.sh
 #     Preview what it would fetch, without a token:  ./scripts/cache_hf_tree.sh --dry-run
-#     M9 additionally needs its demo clip — docs/en/ADMIN_GUIDE.md §6.3.
+#     M9 additionally needs its demo clip, plus its .no_exist markers if the manifest
+#     records none yet (6c then reports two M9 repos short) — docs/en/ADMIN_GUIDE.md §6.3.
 #
 # 6c. VERIFY — do not infer. Must exit 0 BEFORE you provision any participant.
 ./scripts/check_seeding.sh --region "$REGION"        # add --source-region "$SEEDED" to compare checksums

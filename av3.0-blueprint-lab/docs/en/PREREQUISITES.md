@@ -59,25 +59,35 @@ backbone). To make that work **without a participant token**, the admin stages
 the **HF cache tree** to `s3://<shared>/hf-cache/hub/`; `setup_cosmos_env.sh`
 restores it into `HF_HOME` and sets `HF_HUB_OFFLINE=1`.
 
-The most reliable way to populate this cache (guarantees every revision +
-side-file each model needs is present) is to **run M5, M6 and M9 once on a GPU
-instance with your admin HF token**, then sync the resulting cache:
+Populate it **from your admin workstation, with admin credentials** — never from a
+Studio app (see the note below). Either:
 
 ```bash
-# On a GPU JupyterLab app, after M5 + M6 + M9 have each run once successfully:
-aws s3 sync /mnt/sagemaker-nvme/hf/hub \
-  s3://<shared-bucket>/hf-cache/hub/ --only-show-errors
+# First region: build the tree from the pinned manifest (no GPU, no notebook run).
+AWS_REGION=<region> HF_TOKEN=hf_... ./scripts/cache_hf_tree.sh
+# Any later region: copy byte-exact from a region that already works.
+aws s3 sync s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/ \
+  s3://<shared-bucket>/hf-cache/ --source-region <seeded-region> --region <region>
 ```
 
-After that, participants need no token: `setup_cosmos_env.sh` sees the S3 cache,
-restores it, and runs offline.
+The manifest (`scripts/hf_cache_manifest.tsv`) is generated from a known-good tree, so
+it carries every revision and side file each model needs. The one gap is the M9 repos'
+0-byte `.no_exist` markers, which only an online load creates: until the manifest records
+them, the check below reports those two repos short ([ADMIN_GUIDE.md](ADMIN_GUIDE.md)
+§6.3). Verify with `./scripts/check_seeding.sh --region <region>`. After that, participants need no token:
+`setup_cosmos_env.sh` sees the S3 cache, restores it, and runs offline.
 
 > **M9 also needs a demo clip.** M9's `PhysicalAI-Autonomous-Vehicles` dataset
 > cannot be read offline, so the admin pre-saves a demo clip once
-> (`scripts/alpamayo_save_clip.py`) and uploads it to
-> `s3://<shared>/hf-cache/alpamayo-demo/` (under `hf-cache/` so it uploads from
-> the GPU app terminal with the exec role's write scope). See
-> [ALPAMAYO_M9.md](ALPAMAYO_M9.md) for the full one-time sequence.
+> (`scripts/alpamayo_save_clip.py`, on a GPU app), checks its sha256, and uploads it
+> to `s3://<shared>/hf-cache/alpamayo-demo/` **from the admin workstation**. See
+> [ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3 for the exact steps.
+>
+> **Why never from a Studio app:** the SageMaker execution role is shared by every
+> participant and cannot write the shared bucket, on purpose. M9 unpickles the demo
+> clip (`torch.load(weights_only=False)`), so a role that could write `hf-cache/`
+> would let one participant run code as all the others. Do not paste admin keys
+> into a Studio terminal to get around this.
 
 ### C. AlpaSim closed-loop reference eval — M10 (`m10-reference/`)
 M10 evaluates the Alpamayo policy **closed-loop** with the real AlpaSim simulator,

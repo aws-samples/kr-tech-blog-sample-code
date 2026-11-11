@@ -376,9 +376,10 @@ pip install huggingface_hub && hf auth login --token "$HF_TOKEN"
 
 > **`cache_models.sh` は `hf-cache/hub/` を作りません** — `scripts/cache_hf_tree.sh` を使ってください。
 > 2026-09-26 まで、このリポジトリのどれもそのツリーを生成できませんでした: `scripts/` 内のすべての
-> `hf-cache` 参照は S3 から*読む*側で、書く側が存在せず、唯一のレシピが下の手動手順でした。
-> `cache_models.sh` は代替になりません — 別のプレフィックス（`model-cache/`）に別のレイアウト
-> （フラットな `hf download --local-dir`。`models--org--name/snapshots/<sha>/…` ではない）で書きます。
+> `hf-cache` 参照は S3 から*読む*側で、書く側が存在せず、唯一のレシピが GPU アプリ上の手動手順でした
+> （現在は廃止しています。下の警告を参照）。`cache_models.sh` は代替になりません — 別のプレフィックス
+> （`model-cache/`）に別のレイアウト（フラットな `hf download --local-dir`。`models--org--name/snapshots/<sha>/…`
+> ではない）で書きます。
 >
 > 結果として 2 点が実際に問題になりました:
 > * **新しいリージョンでは再構築ではなくコピー。** シード済みリージョンからバケット間 `aws s3 sync`
@@ -389,22 +390,138 @@ pip install huggingface_hub && hf auth login --token "$HF_TOKEN"
 >   `cache_models.sh` が正常終了したことは、このプレフィックスについて何も証明しません。
 
 M5/M6/M9 はゲート付きチェックポイントを実行時に HF **独自のキャッシュレイアウト**経由で
-ロードします（M9 は隠れた Cosmos-Reason2-8B バックボーンもプルします）。これを確実に
-埋める方法は、**あなたの管理者トークンで GPU JupyterLab アプリ上で M5、M6、M9 を一度ずつ実行し**、
-その後キャッシュツリーを同期することです:
+ロードします（M9 は隠れた Cosmos-Reason2-8B バックボーンもプルします）。`setup_cosmos_env.sh` が
+`hf-cache/hub/` を `HF_HOME` に復元し `HF_HUB_OFFLINE=1` を設定するため、参加者はトークンなしで
+オフライン実行できます。シードは**管理者ワークステーションから、管理者の認証情報で**行います:
 ```bash
-aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/ --only-show-errors
+# 2 つ目以降のリージョン: すでに動いているリージョンからバイト単位でそのままコピー（README step 6b）。
+aws s3 sync s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/ \
+            s3://<shared>/hf-cache/ --source-region <seeded-region> --region "$AWS_REGION"
+# 最初のリージョン: 固定されたマニフェストからツリーを構築（GPU 不要、スクラッチ約 65 GiB）。
+AWS_REGION="$AWS_REGION" HF_TOKEN=hf_... ./scripts/cache_hf_tree.sh
+./scripts/check_seeding.sh --region "$AWS_REGION"
 ```
-`setup_cosmos_env.sh` はこれを `HF_HOME` に復元し `HF_HUB_OFFLINE=1` を設定するため、
-参加者はトークンなしでオフライン実行できます。**M9 はデモクリップも必要とします**（その
-データセットはオフラインでは読めません）:
+
+**`.no_exist` マーカー（M9）。** `check_seeding.sh` は、`Alpamayo-1.5-10B` と `Cosmos-Reason2-8B` の下に
+ある 0 バイトの `models--*/.no_exist/<revision>/<file>` ファイル数個も数えます。HuggingFace は、
+*オンライン*でのロード中にあるファイルがアップストリームに存在しないと分かったときにこのファイルを残します。
+ダウンロードでは作られないため、`cache_hf_tree.sh` は `scripts/hf_cache_manifest.tsv` に `no_exist` 行として
+記録されたマーカーだけを作成します。バケット間コピーではマーカーも一緒にコピーされます。マニフェストに
+マーカーが記録されていない場合、`cache_hf_tree.sh` だけで作ったツリーは 2 つのリポジトリのオブジェクト数が
+それぞれ 15/16、17/22 となり、チェックは失敗します。マーカーがないときに M9 が実際にオフラインで失敗するか
+はまだ試していないため、チェックは引き続きマーカーを数えます。マーカーを一度記録してから、マーカーだけを
+アップロードしてください（トークンもダウンロードも不要です）:
 ```bash
-source /mnt/sagemaker-nvme/cosmos-work/alpamayo_env.sh
-unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE   # this save must be online
-python scripts/alpamayo_save_clip.py --clip 030c760c-ae38-49aa-9ad8-f5650a545d26 \
-  --t0-us 5100000 --out /mnt/sagemaker-nvme/m6_work/clips
-aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-*.pt s3://<shared>/hf-cache/alpamayo-demo/
+# マーカーを持つツリーから記録（例: 以前の GPU アプリ手順でシードしたリージョン。読み取り専用の一覧取得）:
+aws s3 ls s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/hub/ --recursive \
+  --region <seeded-region> | ./scripts/cache_hf_tree.sh --record-markers
+AWS_REGION="$AWS_REGION" ./scripts/cache_hf_tree.sh --markers-only
 ```
+そのようなツリーがない場合は、自分の GPU アプリで M9 をオンラインで一度実行するとマーカーが作られます。
+下のクリップ手順のステップ 1 と 3 を参照してください。`--record-markers` はキー名だけを読み、オブジェクトの
+中身は読みません。空でないマーカーや、マニフェストがダウンロードするファイルを隠してしまうマーカーは拒否し、
+マニフェストが固定していないリビジョンはスキップします。更新したマニフェストは自分のリポジトリのコピーに
+コミットしておいてください。そうすれば、次に最初のリージョンを立ち上げるときは `cache_hf_tree.sh` が
+マーカーまで直接作成します。
+
+> **Studio のターミナルから `hf-cache/` に書き込まないでください。管理者の AWS キーを Studio の
+> ターミナルに貼り付けることもしないでください。** このガイドの以前の版では GPU JupyterLab アプリから
+> キャッシュをアップロードしており、そのために SageMaker 実行ロールが `hf-cache/*` に書き込める必要が
+> ありました。しかしこのロールは全参加者で共有され、全参加者のカーネルがこのプレフィックスを読み込みます。
+> M9 は `hf-cache/alpamayo-demo/*.pt` を `torch.load(weights_only=False)` で開きますが、これはファイルを
+> unpickle するため、中に含まれるコードが実行されます。つまり 1 人の参加者が、他のすべての参加者の権限で
+> コードを実行できる状態でした。この書き込み権限は削除したため、Studio アプリから `hf-cache/` への
+> `aws s3 cp`/`sync` は意図どおり `AccessDenied` になります。これを避けるために管理者キーをターミナルに
+> 入れるのはさらに危険です。アプリのホームディレクトリは起動のたびに S3 の `users/<profile>/` から
+> 同期されるため、そこに仕込まれた `.bashrc` にキーを盗まれる可能性があります。
+
+> **この変更より前にデプロイしたスタックをアップグレードする場合。** これまでは全参加者が `hf-cache/*` に
+> 書き込めたため、監査するまではこのプレフィックスを信頼しないでください。このプレフィックスに依存する前、
+> そしてこのリージョンをコピー元として使う前に監査してください。コピーすると差し替えられたオブジェクトも
+> 新しいリージョンにそのまま持ち込まれ、`check_seeding.sh --source-region` は 2 つのリージョンを互いに
+> 比べるだけなので、それに気づけません。共有バケットはバージョニングが有効なので、読み取り専用の一覧取得
+> だけですべての書き込みの履歴を確認できます。読み取り専用の認証情報を使ってください:
+> ```bash
+> # 最新でないバージョンと削除マーカー: 1 つ 1 つが最初のアップロード後に行われた書き込みです。
+> aws s3api list-object-versions --bucket <shared> --prefix hf-cache/ --region <r> \
+>   --query 'Versions[?IsLatest==`false`].[LastModified,Key]' --output text
+> aws s3api list-object-versions --bucket <shared> --prefix hf-cache/ --region <r> \
+>   --query 'DeleteMarkers[].[LastModified,Key]' --output text      # "None" = 削除なし
+> # 現在のバージョンを新しい順に: 最初にシードした時点より後のものは確認が必要です。
+> aws s3api list-object-versions --bucket <shared> --prefix hf-cache/ --region <r> \
+>   --query 'Versions[?IsLatest].[LastModified,Key]' --output text | sort -r | head -20
+> ```
+> 見つかった項目はすべて調査してください。最も重要なのは、ロードするとコードが実行される pickle 形式の
+> ファイルです。`alpamayo-demo/*.pt`、そして hub ツリーにある Cosmos-Transfer2.5 と Cosmos-Predict2.5 の
+> `*_ema_bf16.pt`、Predict2.5 の `tokenizer.pth`、Guardrail1 の `safety_filter.pt` と
+> `Resnet50_Final.pth` がこれに当たります。監査の結果にかかわらず、`alpamayo-demo/*.pt` は引き継がずに、
+> 下の手順で作り直して公開してください。オブジェクトのバージョン削除は破壊的な操作なので、実行する前に
+> 別途承認を得てください。
+
+**M9 はデモクリップも必要とします。** そのデータセットはオフラインでは読めず、クリップは GPU アプリ上の
+`a1_5` venv の中で生成する必要があります。そこで、クリップの*生成*は GPU アプリで、*公開*は
+ワークステーションで行います。参加者をプロビジョニングする（§9）前に実施してください。シード済みの
+リージョンから `hf-cache/` をコピーした場合はクリップも一緒にコピーされているので（`check_seeding.sh` で
+確認できます）、公開し直すのでなければステップ 1-3 は飛ばしてください。コピー元のリージョンがこの変更
+より前にデプロイされたものなら、一度は公開し直してください（上のアップグレードの注記を参照）。
+
+**始める前に、どの参加者も自分のワークスペースに書き込めないことを確認してください。** クリップは、
+参加者のプロファイルが 1 つも存在しないうちに作るか、ユーザーワークスペースのバケットがユーザーごとに
+分離された後に作ってください。それまでは、全参加者で共有する実行ロールがすべての `users/<profile>/`
+プレフィックスに書き込めます。そしてアプリは起動のたびに `users/<your-profile>/` をホームディレクトリに
+コピーします。そのため、仕込まれた `.bashrc` や IPython の起動ファイル、差し替えられた
+`scripts/alpamayo_save_clip.py` が、`.pt` とそれについて表示される sha256 の両方を左右でき、あなたが
+export した `HF_TOKEN` も見えてしまいます。ハッシュが証明するのは、ファイルがアプリを出た後に変更されて
+いないことだけです。すでにワークショップを一度実施したスタックでは、先に参加者のプロファイルを削除してから、
+新しく作った自分のプロファイルを使ってください。以前のプレフィックスに仕込まれたファイルはそのまま残り、
+同じプロファイルの下に新しいスペースを作っても、そのプレフィックスがそのままコピーされるからです。
+
+1. 自分のプロファイルの GPU JupyterLab アプリで、ライセンス（§3）に同意済みのアカウントの
+   `HF_TOKEN` を使って:
+   ```bash
+   export HF_TOKEN=hf_...
+   bash scripts/setup_cosmos_env.sh alpamayo     # build the a1_5 venv
+   source /mnt/sagemaker-nvme/cosmos-work/alpamayo_env.sh
+   unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE     # this save must be online
+   python scripts/alpamayo_save_clip.py --clip 030c760c-ae38-49aa-9ad8-f5650a545d26 \
+     --t0-us 5100000 --out /mnt/sagemaker-nvme/m6_work/clips
+   ```
+   スクリプトは最後に `sha256  <hash>  030c760c-….pt` を出力します。**このハッシュは手で書き写し、
+   自分のメモに保管してください。** クリップの横に S3 のファイルとして保存すると、クリップと一緒に
+   差し替えられるおそれがあります。
+
+   *`.no_exist` マーカーが必要な場合のみ（上を参照）:* 同じターミナルで推論をオンラインで一度実行し、
+   そのとき作られたマーカーを staging に移します。マーカーは空のファイルで、使われるのは名前だけです。
+   ```bash
+   python scripts/alpamayo_infer.py \
+     --clips /mnt/sagemaker-nvme/m6_work/clips/030c760c-ae38-49aa-9ad8-f5650a545d26.pt \
+     --out /mnt/sagemaker-nvme/m6_work/out
+   aws s3 sync /mnt/sagemaker-nvme/hf/hub "s3://$USER_BUCKET/users/$USER_PROFILE/staging/hub-markers/" \
+     --exclude '*' --include '*/.no_exist/*' --exclude '*/snapshots/*'
+   ```
+2. 次のどちらかの方法で `.pt` をアプリの外へ移します:
+   * `cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-*.pt ~/` の後、JupyterLab のファイルブラウザで
+     ファイルを右クリックして **Download**。または
+   * `aws s3 cp /mnt/sagemaker-nvme/m6_work/clips/030c760c-*.pt "s3://$USER_BUCKET/users/$USER_PROFILE/staging/"`
+     （自分のワークスペースのプレフィックスです。実行ロールはここには書き込めますが、`hf-cache/` には書き込めません）。
+3. 管理者ワークステーションで、管理者の認証情報を使って:
+   ```bash
+   CLIP=030c760c-ae38-49aa-9ad8-f5650a545d26.pt
+   USERB=av30lab-user-workspace-<account>-$AWS_REGION
+   aws s3 cp "s3://$USERB/users/<your-profile>/staging/$CLIP" . --region "$AWS_REGION"   # skip if downloaded
+   shasum -a 256 "$CLIP"       # MUST equal the hash from step 1 (Linux: sha256sum "$CLIP")
+   aws s3 cp "$CLIP" "s3://<shared>/hf-cache/alpamayo-demo/" --region "$AWS_REGION"
+   aws s3 rm "s3://$USERB/users/<your-profile>/staging/$CLIP" --region "$AWS_REGION"
+   # ステップ 1 で .no_exist マーカーを staging に置いた場合のみ:
+   aws s3 ls "s3://$USERB/users/<your-profile>/staging/hub-markers/" --recursive \
+     --region "$AWS_REGION" | ./scripts/cache_hf_tree.sh --record-markers
+   AWS_REGION="$AWS_REGION" ./scripts/cache_hf_tree.sh --markers-only
+   aws s3 rm "s3://$USERB/users/<your-profile>/staging/hub-markers/" --recursive --region "$AWS_REGION"
+   ./scripts/check_seeding.sh --region "$AWS_REGION"
+   ```
+   ハッシュが一致しない場合、ファイルはアプリを出た後に変更されています。アップロードせず、
+   クリップを作り直してください。
+
 完全な手順: [COSMOS_M5_M6.md](COSMOS_M5_M6.md)、[ALPAMAYO_M9.md](ALPAMAYO_M9.md)。
 
 ### 6.4 M10 AlpaSim リファレンス評価（M10 を実行する場合のみ）
@@ -655,6 +772,7 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
 | M5/M6/M9 が `Local entry not found … offline mode is enabled` で失敗 | 復元されたキャッシュが**部分的**です。中断された `aws s3 sync` が典型的な原因で — **同じ sync をもう一度実行してください**。欠けているもの・サイズ違いのものを再コピーして再開します。`sync` が検出できないのはサイズが正しく内容が誤ったオブジェクトです（size+mtime 比較）。`check_seeding.sh --source-region <seeded>` が CRC64 不一致を報告したら、そのオブジェクトだけ削除して再 sync してください。 |
 | M7 トレーニングセルが gsplat で失敗する | M7 セル 3（`scripts/setup_gsplat_env.sh`）を再実行 — CUDA ビルドはセッションごとで、アプリ再起動時にリセットされます。§11。 |
 | M9 がクリップのロードに失敗する | デモの `.pt` が `hf-cache/alpamayo-demo/` にアップロードされていない（§6.3）。 |
+| Studio のターミナルから `hf-cache/` への `aws s3 cp`/`sync` が `AccessDenied` になる | 想定どおりです。全参加者で共有する実行ロールには、共有バケットへの書き込み権限を意図的に付けていません（§6.3）。シードと公開は管理者ワークステーションから行い、管理者キーを Studio のターミナルに貼り付けないでください。 |
 | M10 ノートブックに何も表示されない（cell-4 が "No M10 AlpaSim results found in S3" を出す） | `m10-reference/` リファレンス評価が未実行（§6.4）。 |
 | M10 のメトリクス・グラフは出るが**動画だけ**が空白 | **バンドル欠落ではなく、§6.4 を再実行してはいけない。** コーデックの問題: AlpaSim レンダラーが MPEG-4 Part 2 で書き出し、Chrome/Firefox/Edge はこれをデコードできない。cell-7 が検出したコーデックを出力する。GPU ホスト不要で、そのオブジェクト 1 つを H.264 に置き換えればよい: `aws s3 cp s3://$SHARED_BUCKET/m10-reference/eval/eval.mp4 .` の後 `ffmpeg -i eval.mp4 -vf scale=1280:-2 -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an eval_h264.mp4` を実行し `m10-reference/eval/eval.mp4` に上書きする。`scripts/alpasim_ec2_setup.sh` はアップロード時に変換するようになったので、その変更以降に作られたバンドルは既に H.264 である。 |
 | M4 の検索デモが**同じキャプションを複数回**ランクし、インデックスセルが削除で `403 authorization_exception` を出力 | コレクションのデータアクセスポリシーが **`aoss:DeleteIndex`** 付与より前のもので、M4 がインデックスを空にできません。AOSS は呼び出し側指定の `_id` を拒否するため `index()` は常に INSERT — 再実行ごとに全文書のコピーが追加されます（実測: キャプション 24 件に対し文書 24 → 48 → 72 → 96 → 120）。参加者ロールはポリシーを修正できません: `aoss:UpdateAccessPolicy` は意図的に付与していません（`collection/*` 範囲では、ある参加者が他の参加者のコレクションに到達できてしまうため）。admin 認証情報で**コレクションとデータポリシーの両方**を削除してください（ポリシーが残ればそれが古いものです）。その後参加者が Run All すると M4 が権限込みで再作成します: `aws opensearchserverless list-collections --region $REGION --query 'collectionSummaries[?starts_with(name,\`av30-semantic-\`)].[id,name]' --output text` → `aws opensearchserverless delete-collection --id <id> --region $REGION` → `aws opensearchserverless delete-access-policy --name <name>-access --type data --region $REGION`. |

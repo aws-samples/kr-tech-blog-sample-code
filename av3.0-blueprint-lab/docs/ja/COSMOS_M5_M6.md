@@ -125,10 +125,13 @@ M5/M6 の `examples/inference.py` は、ランタイムに Hugging Face 自身�
 すべての参加者に HF アカウント + トークン + ライセンス承認を強いることを避けるため、一度
 キャッシュしてオフラインで実行します:
 
-- **管理者 (一度):** 管理者の HF トークン (ライセンス承認済み) を持つ GPU アプリ上で M5 + M6 を
-  実行し、その後 `aws s3 sync /mnt/sagemaker-nvme/hf/hub s3://<shared>/hf-cache/hub/`。
-  モジュールを実行すること (素の `hf download` ではなく) が、cosmos が必要とするすべての
-  リビジョン + サイドファイル (Wan2.1 VAE、Reason1.1、Guardrail1、…) がツリーにあることを保証します。
+- **管理者 (リージョンごとに一度、管理者ワークステーションから):** 最初のリージョンは
+  `scripts/cache_hf_tree.sh`、以降のリージョンはバケット間の `aws s3 sync` で投入します
+  ([ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3)。スクリプトが読む `scripts/hf_cache_manifest.tsv` は、
+  モジュールを実際に実行して作ったツリーから生成したものなので、cosmos が必要とするすべての
+  リビジョン + サイドファイル (Wan2.1 VAE、Reason1.1、Guardrail1、…) が含まれています。GPU アプリから
+  キャッシュをアップロードしないでください。全参加者のカーネルが `hf-cache/` の内容を読み込むため、
+  全参加者で共有する実行ロールは意図的にここへ書き込めないようにしています。
 - **参加者のセットアップ:** `setup_cosmos_env.sh` が `hf-cache/hub/` を `$HF_HOME/hub` へ
   `aws s3 sync` で戻し、生成された `cosmos_env.sh` / `cosmos_predict_env.sh` が **そのキャッシュが
   存在する場合にのみ** **`HF_HUB_OFFLINE=1`** (+ `TRANSFORMERS_OFFLINE=1`) を export します。

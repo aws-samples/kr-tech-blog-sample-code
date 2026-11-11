@@ -58,25 +58,35 @@ M9 は `Alpamayo1_5.from_pretrained` を経由します。後者は隠れた `Co
 **HF キャッシュツリー**を `s3://<shared>/hf-cache/hub/` にステージングします。
 `setup_cosmos_env.sh` がそれを `HF_HOME` に復元し、`HF_HUB_OFFLINE=1` を設定します。
 
-このキャッシュを投入する最も信頼性の高い方法（各モデルが必要とするすべてのリビジョン ＋
-サイドファイルが確実に存在することを保証します）は、**管理者の HF トークンを使って GPU
-インスタンス上で M5、M6、M9 を一度実行し**、その結果生じたキャッシュを sync することです：
+このキャッシュは**管理者ワークステーションから、管理者の認証情報で**投入します。Studio アプリからは
+投入しません（下の注記を参照）。次のどちらかを使ってください：
 
 ```bash
-# On a GPU JupyterLab app, after M5 + M6 + M9 have each run once successfully:
-aws s3 sync /mnt/sagemaker-nvme/hf/hub \
-  s3://<shared-bucket>/hf-cache/hub/ --only-show-errors
+# First region: build the tree from the pinned manifest (no GPU, no notebook run).
+AWS_REGION=<region> HF_TOKEN=hf_... ./scripts/cache_hf_tree.sh
+# Any later region: copy byte-exact from a region that already works.
+aws s3 sync s3://av30lab-shared-data-<account>-<seeded-region>/hf-cache/ \
+  s3://<shared-bucket>/hf-cache/ --source-region <seeded-region> --region <region>
 ```
 
-その後は、参加者にトークンは不要です：`setup_cosmos_env.sh` が S3 キャッシュを認識し、
-それを復元してオフラインで実行します。
+マニフェスト（`scripts/hf_cache_manifest.tsv`）は正常に動作するツリーから生成したものなので、各モデルに
+必要なリビジョンとサイドファイルがすべて含まれています。例外は、オンラインでのロードでしか作られない M9 の
+リポジトリの 0 バイトの `.no_exist` マーカーです。マニフェストに記録されるまでは、下のチェックがこの 2 つの
+リポジトリのオブジェクト数不足を報告します（[ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3）。
+`./scripts/check_seeding.sh --region <region>` で確認してください。その後は、参加者にトークンは不要です：`setup_cosmos_env.sh` が S3 キャッシュを
+認識し、それを復元してオフラインで実行します。
 
 > **M9 にはデモクリップも必要です。** M9 の `PhysicalAI-Autonomous-Vehicles` データセットは
-> オフラインで読み込めないため、管理者がデモクリップを一度事前保存し
-> （`scripts/alpamayo_save_clip.py`）、`s3://<shared>/hf-cache/alpamayo-demo/` にアップロード
-> します（`hf-cache/` の下に置くことで、exec ロールの書き込みスコープを持つ GPU アプリの
-> ターミナルからアップロードできます）。一度限りの完全な手順は
-> [ALPAMAYO_M9.md](ALPAMAYO_M9.md) を参照。
+> オフラインで読み込めないため、管理者が GPU アプリでデモクリップを一度事前保存し
+> （`scripts/alpamayo_save_clip.py`）、sha256 を確認したうえで、**管理者ワークステーションから**
+> `s3://<shared>/hf-cache/alpamayo-demo/` にアップロードします。正確な手順は
+> [ADMIN_GUIDE.md](ADMIN_GUIDE.md) §6.3 を参照してください。
+>
+> **Studio アプリからアップロードしない理由：** SageMaker 実行ロールは全参加者で共有され、意図的に
+> 共有バケットへ書き込めないようにしています。M9 はデモクリップを unpickle するため
+> （`torch.load(weights_only=False)`）、`hf-cache/` に書き込めるロールがあると、1 人の参加者が
+> 他のすべての参加者の権限でコードを実行できてしまいます。これを回避するために管理者キーを
+> Studio のターミナルに貼り付けないでください。
 
 ### C. AlpaSim クローズドループリファレンス評価 — M10（`m10-reference/`）
 M10 は Alpamayo ポリシーを、本物の AlpaSim シミュレータで**クローズドループ**評価します。
