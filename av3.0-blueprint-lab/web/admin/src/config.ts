@@ -36,12 +36,18 @@ export function getConfig(): AppConfig {
 
 /**
  * Build the durable participant dashboard link for a provisioned user.
- * The user dashboard authenticates from the `userId` + `token` query params,
- * so this link lets a participant re-enter the dashboard at any time and mint
- * a fresh (5-min) workspace URL on demand — unlike the raw workspace URL,
- * which expires almost immediately.
+ * The user dashboard authenticates from `userId` + `token`, so this link lets a
+ * participant re-enter the dashboard at any time and mint a fresh (5-min)
+ * workspace URL on demand — unlike the raw workspace URL, which expires almost
+ * immediately.
+ *
+ * The link is a bearer credential: whoever holds it acts as that participant
+ * until the user is deleted. The pair goes in the URL fragment, which the
+ * browser never sends to the server (no CDN log, no Referer); the dashboard
+ * then moves it to sessionStorage and removes it from the address bar. Older
+ * `?userId=&token=` links are still accepted.
  */
 export function participantLink(userId: string, token: string): string {
   const base = getConfig().userDashboardUrl.replace(/\/+$/, "");
-  return `${base}/?userId=${encodeURIComponent(userId)}&token=${encodeURIComponent(token)}`;
+  return `${base}/#userId=${encodeURIComponent(userId)}&token=${encodeURIComponent(token)}`;
 }

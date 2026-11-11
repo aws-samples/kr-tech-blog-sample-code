@@ -375,9 +375,11 @@ This is what participants actually experience, and it fills the "real Studio env
 
 ## B1. Open the participant dashboard
 1. From the admin dashboard, get the test user's **participant dashboard link**
-   (`https://<user-dashboard>.cloudfront.net/?userId=<id>&token=<token>`).
+   (`https://<user-dashboard>.cloudfront.net/#userId=<id>&token=<token>`; an older `/?userId=…&token=…` link also works).
    If there isn't one, admin dashboard → Users → Provision to create a new user, and the link appears.
-2. Open that link in a browser → the Pipeline Map is shown.
+   The link is a bearer credential, so keep it out of shared channels.
+2. Open that link in a browser → the Pipeline Map is shown, and the token disappears from the address bar.
+   A reload keeps you signed in; a new tab or bookmark of the open page does not, so reopen the original link.
 
 ## B2. Confirm the instance = CPU (M10 needs no GPU)
 - The M10 notebook runs on **`ml.t3.medium` (CPU)**. The workspace default is t3.medium, so

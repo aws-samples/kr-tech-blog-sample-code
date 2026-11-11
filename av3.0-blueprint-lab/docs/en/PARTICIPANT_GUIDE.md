@@ -36,11 +36,18 @@ you. (Details for admins: [PREREQUISITES.md](PREREQUISITES.md).)
 Your admin gives you a **participant dashboard link** that looks like:
 
 ```
-https://<user-dashboard>.cloudfront.net/?userId=<your-id>&token=<your-token>
+https://<user-dashboard>.cloudfront.net/#userId=<your-id>&token=<your-token>
 ```
 
-- Open it in any browser. This link **does not expire** — bookmark it and reuse
-  it any time during the workshop.
+(An older link of the form `/?userId=<your-id>&token=<your-token>` works the same way.)
+
+- Open it in any browser. This link **does not expire** — keep the message it came
+  in and open the same link again whenever you need the dashboard during the workshop.
+- **Treat the link like a password.** Anyone who has it can open your workspace, so
+  don't paste it into a shared chat or show it on a shared screen.
+- Once the page loads, the dashboard removes your `userId`/`token` from the address
+  bar. Reloading the tab keeps you connected, but a **new tab** or a **bookmark** of
+  the open page does not carry the token — open the original link again instead.
 - If the page shows a **"Demo Mode"** banner, the link is missing your
   `userId`/`token` — go back and open the full link the admin sent you.
 - You'll see the **Pipeline Map**: nodes M1–M12 (12 of them), color-coded by status.
@@ -309,7 +316,7 @@ full architecture and the blog stage → module mapping.
 
 | Symptom | Fix |
 |---|---|
-| "Demo Mode" banner | Open the full dashboard link (`?userId=&token=`) from the admin. |
+| "Demo Mode" banner | Open the original dashboard link (`#userId=&token=`) from the admin again. A new tab or a bookmark of the open page does not carry your token. |
 | "No GPU detected" in a GPU notebook | You're on CPU — Instance Options → GPU instance → Apply & Restart → Open Workspace again. |
 | `EC2InsufficientCapacityError` | Pick the `ml.g6.12xlarge` (or next) alternative in Instance Options. |
 | Workspace link expired / blank | Click **Open Workspace** again from the dashboard for a fresh link. |

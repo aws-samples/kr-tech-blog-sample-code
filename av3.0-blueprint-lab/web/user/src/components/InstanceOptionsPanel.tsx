@@ -178,8 +178,8 @@ export function InstanceOptionsPanel({
   async function handleApply(): Promise<void> {
     if (!userId || !apiClient) {
       setApplyError(
-        "Not authenticated. Open this dashboard via the participant link " +
-          "(?userId=...&token=...)."
+        "Not authenticated. Open this dashboard via the original participant link " +
+          "from your admin (#userId=...&token=...)."
       );
       return;
     }

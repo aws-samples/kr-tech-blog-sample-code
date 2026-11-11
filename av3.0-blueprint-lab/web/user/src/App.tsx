@@ -344,9 +344,10 @@ function Dashboard(): React.JSX.Element {
                 color="text-status-warning"
                 fontSize="body-s"
               >
-                <strong>Demo Mode</strong> — Add{" "}
-                <code>?userId=YOUR_ID&amp;token=YOUR_TOKEN</code> to the URL to connect to
-                your lab environment.
+                <strong>Demo Mode</strong> — Open the participant dashboard link from your
+                admin (<code>…/#userId=YOUR_ID&amp;token=YOUR_TOKEN</code>) to connect to your
+                lab environment. A new tab or a bookmark of this page does not carry the token;
+                open the original link again.
               </Box>
             )}
 

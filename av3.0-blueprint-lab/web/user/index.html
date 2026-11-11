@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- A legacy ?userId=&token= link is still in the URL while the page loads;
+         without this, same-origin asset requests would carry it in Referer. -->
+    <meta name="referrer" content="no-referrer" />
     <title>AV 3.0 Blueprint Lab — Pipeline Map</title>
     <style>
       html, body, #root {

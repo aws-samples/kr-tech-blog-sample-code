@@ -470,8 +470,9 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
 
 1. 管理者ダッシュボード → **Add User** → テスト名 + メール → **Provision**。
 2. 成功ダイアログから**参加者ダッシュボードリンク**をコピーします（永続的な
-   `?userId=&token=` リンク — 5 分間の「Direct workspace URL」**ではありません**）。
-3. そのリンクを新しいブラウザで開く → 12 個のモジュールノード（M1〜M12。M0 は概要ノートブックでノードを持ちません）を持つ Pipeline Map が表示されます。
+   `#userId=&token=` リンク — 5 分間の「Direct workspace URL」**ではありません**）。
+3. そのリンクを新しいブラウザで開く → 12 個のモジュールノード（M1〜M12。M0 は概要ノートブックでノードを持ちません）を持つ Pipeline Map が表示され、
+   アドレスバーから `#userId=…&token=…` の部分が消えます。
 4. **M2** をクリック → **Instance Options** → 推奨の `ml.g5.12xlarge` が事前選択済み →
    **Apply & Restart** → **Open Workspace** → JupyterLab が開きます。
 4b. **スコープ付き IAM 条件が実際に解決されるかを確定（無料、約 1 分）。** そのアプリが
@@ -498,6 +499,20 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
 **単一ユーザー:** 管理者ダッシュボード → **Add User** → 名前 + メール → **Provision**。
 **参加者ダッシュボードリンク**（永続的、失効しない）を渡します。Users テーブルには
 ユーザーごとにコピーボタン付きの **Dashboard Link** 列があります。
+
+**このリンクは bearer credential です。パスワードと同じように扱ってください。** リンクを
+持っている人は、ユーザーを削除するまで（§12）その参加者のワークスペースを開き、インスタンスを
+変更できます。共有チャンネルではなく、参加者本人に直接送ってください。
+- トークンは URL フラグメント（`#userId=…&token=…`）に載せています。ブラウザはフラグメントを
+  サーバーに送らないため、CloudFront のログや `Referer` ヘッダーには残りません。
+- ダッシュボードはページを開いた時点でトークンをタブの session storage に移し、アドレスバーから
+  消します。そのため画面共有やコピーした URL にトークンは現れません。再読み込みしてもログインは
+  保たれますが、開いているページを新しいタブで開いたりブックマークしたりした URL では Demo Mode になります。
+  参加者には、元のリンクを手元に残して開き直すよう案内してください。
+- 以前 `?userId=&token=` 形式で配布したリンクも引き続き使え、同じようにアドレスバーから消えます。
+  トークン自体は変わりません（ローテーション機能はありません）。漏れたリンクを無効にしたうえで
+  参加を続けてもらうには、ユーザーを削除し（ワークスペースのファイルも削除されます）、
+  プロビジョニングし直してください。
 
 **一括（CSV）:** 管理者ダッシュボード → 一括アップロード。CSV には `name` と `email` 列を持つ
 ヘッダー行が必要です（大文字小文字を区別しません）。プロビジョニングは並列で実行されます。
@@ -630,7 +645,7 @@ AlpaSim を自分自身で実行する**ようにしたい場合:
 | M10 のメトリクス・グラフは出るが**動画だけ**が空白 | **バンドル欠落ではなく、§6.4 を再実行してはいけない。** コーデックの問題: AlpaSim レンダラーが MPEG-4 Part 2 で書き出し、Chrome/Firefox/Edge はこれをデコードできない。cell-7 が検出したコーデックを出力する。GPU ホスト不要で、そのオブジェクト 1 つを H.264 に置き換えればよい: `aws s3 cp s3://$SHARED_BUCKET/m10-reference/eval/eval.mp4 .` の後 `ffmpeg -i eval.mp4 -vf scale=1280:-2 -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an eval_h264.mp4` を実行し `m10-reference/eval/eval.mp4` に上書きする。`scripts/alpasim_ec2_setup.sh` はアップロード時に変換するようになったので、その変更以降に作られたバンドルは既に H.264 である。 |
 | M4 の検索デモが**同じキャプションを複数回**ランクし、インデックスセルが削除で `403 authorization_exception` を出力 | コレクションのデータアクセスポリシーが **`aoss:DeleteIndex`** 付与より前のもので、M4 がインデックスを空にできません。AOSS は呼び出し側指定の `_id` を拒否するため `index()` は常に INSERT — 再実行ごとに全文書のコピーが追加されます（実測: キャプション 24 件に対し文書 24 → 48 → 72 → 96 → 120）。参加者ロールはポリシーを修正できません: `aoss:UpdateAccessPolicy` は意図的に付与していません（`collection/*` 範囲では、ある参加者が他の参加者のコレクションに到達できてしまうため）。admin 認証情報で**コレクションとデータポリシーの両方**を削除してください（ポリシーが残ればそれが古いものです）。その後参加者が Run All すると M4 が権限込みで再作成します: `aws opensearchserverless list-collections --region $REGION --query 'collectionSummaries[?starts_with(name,\`av30-semantic-\`)].[id,name]' --output text` → `aws opensearchserverless delete-collection --id <id> --region $REGION` → `aws opensearchserverless delete-access-policy --name <name>-access --type data --region $REGION`. |
 | SNS 予算アラートが placeholder@example.com に届いた | `--context admin_email` なしでデプロイされた — `deploy.sh` で再デプロイ。 |
-| 参加者リンクが「Demo Mode」と表示される | 素の URL を開いた。完全な `?userId=&token=` リンクを再送してください。 |
+| 参加者リンクが「Demo Mode」と表示される | 素の URL を開いたか、開いているダッシュボードを新しいタブやブックマークから開いた（トークンはページを開いた時点でアドレスバーから消える）。元の `#userId=&token=` リンクを開き直してもらうか、再送してください。 |
 | 一括プロビジョニングが部分的に失敗 | 失敗した行を個別に再試行。`bulk_provision` の CloudWatch ログを確認。 |
 
 ---

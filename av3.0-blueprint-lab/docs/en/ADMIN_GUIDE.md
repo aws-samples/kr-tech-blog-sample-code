@@ -485,8 +485,9 @@ provisioning + IAM) and [M10_PARTICIPANT_SSM_RUNBOOK.md](M10_PARTICIPANT_SSM_RUN
 
 1. Admin Dashboard → **Add User** → test name + email → **Provision**.
 2. Copy the **Participant Dashboard Link** from the success dialog (the durable
-   `?userId=&token=` link — **not** the 5-minute "Direct workspace URL").
-3. Open that link in a fresh browser → the Pipeline Map with 12 module nodes renders (M1-M12; M0 is the overview notebook and has no node).
+   `#userId=&token=` link — **not** the 5-minute "Direct workspace URL").
+3. Open that link in a fresh browser → the Pipeline Map with 12 module nodes renders (M1-M12; M0 is the overview notebook and has no node),
+   and the `#userId=…&token=…` part disappears from the address bar.
 4. Click **M2** → **Instance Options** → recommended `ml.g5.12xlarge` preselected →
    **Apply & Restart** → **Open Workspace** → JupyterLab opens.
 4b. **Settle whether the scoped IAM conditions resolve (free, ~1 min).** While that app is
@@ -513,6 +514,20 @@ provisioning + IAM) and [M10_PARTICIPANT_SSM_RUNBOOK.md](M10_PARTICIPANT_SSM_RUN
 **Single user:** Admin Dashboard → **Add User** → name + email → **Provision**.
 Hand them the **Participant Dashboard Link** (durable, non-expiring). The Users
 table has a **Dashboard Link** column with a copy button per user.
+
+**The link is a bearer credential — treat it like a password.** Whoever holds it can
+open that participant's workspace and change its instance until you delete the user
+(§12), so send each link to its participant directly, not to a shared channel.
+- The token rides in the URL fragment (`#userId=…&token=…`), which the browser never
+  sends to the server, so it stays out of CloudFront logs and the `Referer` header.
+- On load the dashboard moves it into the tab's session storage and removes it from
+  the address bar, so it doesn't show up in a screen share or a copied URL. A reload
+  keeps the participant signed in; a new tab or a bookmark of the open page does not.
+  Tell participants to keep the original link and reopen it.
+- Links handed out earlier in the `?userId=&token=` form keep working and are cleaned
+  out of the address bar the same way. The token itself never changes (there is no
+  rotation): to retire a leaked link and keep the participant, delete the user — which
+  also removes their workspace files — and provision them again.
 
 **Bulk (CSV):** Admin Dashboard → bulk upload. The CSV needs a header row with
 `name` and `email` columns (case-insensitive). Provisioning runs in parallel;
@@ -649,7 +664,7 @@ source-builds `gsplat==1.4.0`.
 | M10 shows metrics and plots but the **video** is blank | **Not a missing bundle — do NOT re-run §6.4.** The codec: AlpaSim's renderer writes MPEG-4 Part 2, which Chrome/Firefox/Edge cannot decode. cell-7 prints the codec it found. Fix by replacing that one object with an H.264 version — no GPU host needed: `aws s3 cp s3://$SHARED_BUCKET/m10-reference/eval/eval.mp4 .` then `ffmpeg -i eval.mp4 -vf scale=1280:-2 -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an eval_h264.mp4` and copy it back over `m10-reference/eval/eval.mp4`. `scripts/alpasim_ec2_setup.sh` now transcodes at upload time, so a bundle produced after that change is already H.264. |
 | M4's search demo ranks the **same caption several times**, and its index cell prints `403 authorization_exception` on delete | The collection's data-access policy predates the **`aoss:DeleteIndex`** grant, so M4 cannot clear its index — and because AOSS rejects a caller-supplied document `_id`, every `index()` INSERTS. Each re-run therefore adds another full copy (measured: 24 → 48 → 72 → 96 → 120 documents for 24 captions). The participant role cannot fix the policy: `aoss:UpdateAccessPolicy` is deliberately not granted, because on `collection/*` it would let one participant reach another's collection. With admin creds delete BOTH the collection and its data policy — a surviving policy is the old one — then have the participant Run All, and M4 recreates them with the grant: `aws opensearchserverless list-collections --region $REGION --query 'collectionSummaries[?starts_with(name,\`av30-semantic-\`)].[id,name]' --output text`, then `aws opensearchserverless delete-collection --id <id> --region $REGION` and `aws opensearchserverless delete-access-policy --name <name>-access --type data --region $REGION`. |
 | SNS budget alert went to placeholder@example.com | Deployed without `--context admin_email` — redeploy via `deploy.sh`. |
-| Participant link shows "Demo Mode" | They opened the bare URL; resend the full `?userId=&token=` link. |
+| Participant link shows "Demo Mode" | They opened the bare URL, or a new tab or bookmark of an already-open dashboard (the token leaves the address bar on load). Have them reopen the original `#userId=&token=` link, or resend it. |
 | Bulk provision partial failure | Retry failed rows individually; check `bulk_provision` CloudWatch logs. |
 
 ---

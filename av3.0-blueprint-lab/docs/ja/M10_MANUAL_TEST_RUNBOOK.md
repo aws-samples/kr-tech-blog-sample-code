@@ -376,9 +376,11 @@ UN aws iam delete-user --user-name $PID
 
 ## B1. 参加者ダッシュボードを開く
 1. admin ダッシュボードでテスト用ユーザーの **participant dashboard link** を取得
-   (`https://<user-dashboard>.cloudfront.net/?userId=<id>&token=<token>`)。
+   (`https://<user-dashboard>.cloudfront.net/#userId=<id>&token=<token>`。以前の `/?userId=…&token=…` リンクも使えます)。
    なければ admin ダッシュボード → Users → Provision で新しいユーザーを 1 人作るとリンクが出ます。
-2. ブラウザでそのリンクを開く → Pipeline Map が表示される。
+   リンク自体が bearer credential なので、共有チャンネルには貼らないこと。
+2. ブラウザでそのリンクを開く → Pipeline Map が表示され、アドレスバーからトークンが消える。
+   再読み込みしても保たれますが、開いているページを新しいタブやブックマークから開くとトークンがないため、元のリンクを開き直します。
 
 ## B2. インスタンス = CPU の確認 (M10 は GPU 不要)
 - M10 ノートは **`ml.t3.medium`(CPU)** で回ります。ワークスペースのデフォルトが t3.medium なので

@@ -472,8 +472,9 @@ aws s3 sync scripts/   s3://<shared>/notebook-templates/scripts/ --region "$AWS_
 
 1. Admin Dashboard → **Add User** → 테스트 이름 + 이메일 → **Provision**.
 2. 성공 다이얼로그에서 **Participant Dashboard Link**를 복사하세요(내구성 있는
-   `?userId=&token=` 링크 — 5분짜리 "Direct workspace URL"이 **아님**).
-3. 그 링크를 새 브라우저에서 열면 → 12개 모듈 노드가 있는 Pipeline Map(M1~M12. M0은 개요 노트북이라 노드가 없습니다)이 렌더링됩니다.
+   `#userId=&token=` 링크 — 5분짜리 "Direct workspace URL"이 **아님**).
+3. 그 링크를 새 브라우저에서 열면 → 12개 모듈 노드가 있는 Pipeline Map(M1~M12. M0은 개요 노트북이라 노드가 없습니다)이 렌더링되고,
+   주소창에서 `#userId=…&token=…` 부분이 사라집니다.
 4. **M2** 클릭 → **Instance Options** → 권장 `ml.g5.12xlarge`가 미리 선택됨 →
    **Apply & Restart** → **Open Workspace** → JupyterLab이 열립니다.
 4b. **스코프 IAM 조건이 실제로 해석되는지 확정(무료, ~1분).** 그 앱이 실행 중인 상태에서
@@ -499,6 +500,20 @@ aws s3 sync scripts/   s3://<shared>/notebook-templates/scripts/ --region "$AWS_
 **단일 사용자:** Admin Dashboard → **Add User** → 이름 + 이메일 → **Provision**.
 **Participant Dashboard Link**(내구성 있음, 만료 없음)를 전달하세요. Users
 테이블에는 사용자별 복사 버튼이 있는 **Dashboard Link** 열이 있습니다.
+
+**이 링크는 bearer credential이므로 비밀번호처럼 다루세요.** 링크를 가진 사람은 사용자를
+삭제하기 전까지(§12) 그 참가자의 워크스페이스를 열고 인스턴스를 바꿀 수 있습니다. 링크는
+공용 채널이 아니라 참가자 본인에게 직접 보내세요.
+- 토큰은 URL fragment(`#userId=…&token=…`)에 실립니다. 브라우저는 fragment를 서버로
+  보내지 않으므로 CloudFront 로그나 `Referer` 헤더에 남지 않습니다.
+- 대시보드는 페이지를 여는 즉시 토큰을 탭의 session storage로 옮기고 주소창에서
+  지웁니다. 그래서 화면 공유나 복사한 URL에 토큰이 드러나지 않습니다. 새로고침해도
+  로그인은 유지되지만, 열린 페이지를 새 탭으로 열거나 북마크한 주소로 열면 Demo Mode가
+  됩니다. 참가자에게 원래 링크를 보관해 두었다가 다시 열라고 안내하세요.
+- 예전에 `?userId=&token=` 형식으로 나눠 준 링크도 그대로 동작하고, 주소창에서도 같은
+  방식으로 지워집니다. 토큰 자체는 바뀌지 않습니다(교체 기능 없음). 유출된 링크를 무효화하고
+  참가자를 계속 참여시키려면 사용자를 삭제한 뒤(워크스페이스 파일도 함께 삭제됩니다) 다시
+  프로비저닝하세요.
 
 **대량(CSV):** Admin Dashboard → 대량 업로드. CSV에는
 `name`과 `email` 열(대소문자 구분 없음)이 있는 헤더 행이 필요합니다. 프로비저닝은 병렬로
@@ -631,7 +646,7 @@ PARTICIPANT_GUIDE가 서술하는 선택적 개념 + 데이터 준비 데모로 
 | M4 검색 데모가 **같은 캡션을 여러 번** 랭크하고, 인덱스 셀이 삭제에서 `403 authorization_exception` 을 출력 | 컬렉션의 데이터 액세스 정책이 **`aoss:DeleteIndex`** 부여 이전 것이어서 M4 가 인덱스를 비울 수 없습니다. AOSS 는 호출자 지정 `_id` 를 거부하므로 `index()` 는 항상 INSERT — 재실행마다 전체 사본이 추가됩니다(실측: 캡션 24개에 문서 24 → 48 → 72 → 96 → 120). 참가자 역할은 정책을 고칠 수 없습니다: `aoss:UpdateAccessPolicy` 를 일부러 주지 않았는데, `collection/*` 범위에서는 한 참가자가 다른 참가자의 컬렉션에 접근할 수 있게 되기 때문입니다. admin 자격증명으로 **컬렉션과 데이터 정책을 둘 다** 삭제하세요(정책이 남으면 그게 옛 정책입니다). 그 뒤 참가자가 Run All 하면 M4 가 권한 포함해 재생성합니다: `aws opensearchserverless list-collections --region $REGION --query 'collectionSummaries[?starts_with(name,\`av30-semantic-\`)].[id,name]' --output text` → `aws opensearchserverless delete-collection --id <id> --region $REGION` → `aws opensearchserverless delete-access-policy --name <name>-access --type data --region $REGION`. |
 | M7 트레이닝 셀이 gsplat에서 실패 | M7 셀 3(`scripts/setup_gsplat_env.sh`) 재실행 — CUDA 빌드는 세션별이며 앱 재시작 시 리셋됨. §11. |
 | SNS 예산 경보가 placeholder@example.com으로 감 | `--context admin_email` 없이 배포됨 — `deploy.sh`로 재배포. |
-| 참가자 링크가 "Demo Mode"를 표시 | 맨 URL을 열었음; 전체 `?userId=&token=` 링크를 다시 보내세요. |
+| 참가자 링크가 "Demo Mode"를 표시 | 맨 URL을 열었거나, 이미 열린 대시보드를 새 탭이나 북마크로 열었음(토큰은 페이지를 열 때 주소창에서 지워짐). 원래 `#userId=&token=` 링크를 다시 열게 하거나 다시 보내세요. |
 | 대량 프로비저닝 부분 실패 | 실패한 행을 개별 재시도; `bulk_provision` CloudWatch 로그를 확인. |
 
 ---

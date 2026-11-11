@@ -372,9 +372,11 @@ UN aws iam delete-user --user-name $PID
 
 ## B1. 참가자 대시보드 열기
 1. admin 대시보드에서 테스트용 유저의 **participant dashboard link** 확보
-   (`https://<user-dashboard>.cloudfront.net/?userId=<id>&token=<token>`).
+   (`https://<user-dashboard>.cloudfront.net/#userId=<id>&token=<token>`. 예전 `/?userId=…&token=…` 링크도 동작).
    없으면 admin 대시보드 → Users → Provision으로 새 유저 하나 만들면 링크가 나온다.
-2. 브라우저로 그 링크 열기 → Pipeline Map 표시.
+   링크 자체가 bearer credential이니 공용 채널에 올리지 말 것.
+2. 브라우저로 그 링크 열기 → Pipeline Map 표시, 주소창에서 토큰이 사라진다.
+   새로고침해도 유지되지만, 열린 페이지를 새 탭이나 북마크로 열면 토큰이 없으므로 원래 링크를 다시 연다.
 
 ## B2. 인스턴스 = CPU 확인 (M10은 GPU 불필요)
 - M10 노트는 **`ml.t3.medium`(CPU)** 에서 돈다. 워크스페이스 기본이 t3.medium이므로

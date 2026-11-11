@@ -36,11 +36,18 @@ VLA 추론 → 폐루프 시뮬레이션.
 관리자가 다음과 같은 형태의 **참가자 대시보드 링크**를 제공합니다:
 
 ```
-https://<user-dashboard>.cloudfront.net/?userId=<your-id>&token=<your-token>
+https://<user-dashboard>.cloudfront.net/#userId=<your-id>&token=<your-token>
 ```
 
-- 아무 브라우저에서나 여세요. 이 링크는 **만료되지 않습니다** — 북마크해 두고
-  워크숍 중 언제든 다시 사용하세요.
+(예전 형식인 `/?userId=<your-id>&token=<your-token>` 링크도 똑같이 동작합니다.)
+
+- 아무 브라우저에서나 여세요. 이 링크는 **만료되지 않습니다** — 링크를 받은 메시지를
+  잘 보관해 두고, 워크숍 중 대시보드가 필요할 때마다 그 링크를 다시 여세요.
+- **링크는 비밀번호처럼 다루세요.** 링크를 가진 사람은 누구나 내 워크스페이스를 열 수
+  있으니, 공용 채팅방에 붙여 넣거나 화면 공유 중에 보이지 않도록 주의하세요.
+- 페이지가 열리면 대시보드가 주소창에서 `userId`/`token`을 지웁니다. 같은 탭에서
+  새로고침하면 연결이 유지되지만, 열려 있는 페이지를 **새 탭**으로 열거나 **북마크**해
+  두면 토큰이 따라가지 않습니다 — 이럴 때는 원래 링크를 다시 여세요.
 - 페이지에 **"Demo Mode"** 배너가 표시되면, 링크에 `userId`/`token`이
   누락된 것입니다 — 뒤로 돌아가 관리자가 보낸 전체 링크를 여세요.
 - **Pipeline Map**이 표시됩니다: M1–M12 노드 12개가 상태별로 색상 구분되어 있습니다.
@@ -306,7 +313,7 @@ M1 (explore, CPU)
 
 | 증상 | 해결 방법 |
 |---|---|
-| "Demo Mode" 배너 | 관리자가 보낸 전체 대시보드 링크(`?userId=&token=`)를 엽니다. |
+| "Demo Mode" 배너 | 관리자가 보낸 원래 대시보드 링크(`#userId=&token=`)를 다시 엽니다. 열려 있는 페이지를 새 탭으로 열거나 북마크한 주소에는 토큰이 없습니다. |
 | GPU 노트북에서 "No GPU detected" | CPU에 있는 것입니다 — Instance Options → GPU 인스턴스 → Apply & Restart → Open Workspace 다시 클릭. |
 | `EC2InsufficientCapacityError` | Instance Options에서 `ml.g6.12xlarge`(또는 다음) 대체 인스턴스를 선택합니다. |
 | 워크스페이스 링크 만료 / 빈 화면 | 대시보드에서 **Open Workspace**를 다시 클릭하여 새 링크를 받습니다. |
