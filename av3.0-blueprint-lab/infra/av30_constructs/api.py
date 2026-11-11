@@ -77,10 +77,11 @@ class ApiConstruct(Construct):
         # cloud_watch_role: CDK creates an AWS::ApiGateway::Account when this is true, and
         # that resource is a per-account-PER-REGION SINGLETON implemented as an
         # unconditional PATCH /account — it OVERWRITES whatever cloudwatchRoleArn the
-        # region already has, and removes it on stack delete. Measured in this account:
+        # region already has, and removes it on stack delete. Measured in the
+        # reference account:
         #   us-west-2      -> this lab's own role
-        #   ap-northeast-1 -> inspection-kzsaka-apigw-cloudwatch      (another stack)
-        #   ap-northeast-2 -> FAST-stack-...FeedbackApiCloudWatchRol  (another stack)
+        #   ap-northeast-1 -> a role owned by an unrelated stack
+        #   ap-northeast-2 -> a role owned by an unrelated stack
         #   eu-west-1      -> none
         # So deploying this lab into ap-northeast-1/2 would silently break an unrelated
         # stack's API access logging. Default OFF unless the region is known to be free;

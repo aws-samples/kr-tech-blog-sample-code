@@ -17,7 +17,7 @@ AWS published pricing, not from an API call in that session.
 ## 0. Is the target region actually empty?
 
 Do this first. "Empty region" was already false in this account — `ap-northeast-2` hosts
-an unrelated `FAST-stack`.
+an unrelated stack.
 
 ```bash
 export R=ap-northeast-2
@@ -246,7 +246,7 @@ the shell guards just checked. Observed runtime **~3 minutes**, 176 resources.
 |---|---|
 | `OWNER_TAG` | Only for updating a stack whose `Owner` tag differs from the default. SageMaker treats domain **tags** as replacement-requiring, so a mismatch replaces the Studio domain and orphans its EFS. Needed only when updating a stack created with a different `Owner` tag — `deploy.sh` refuses the mismatch and prints the exact `OWNER_TAG=...` re-run command. |
 | `HOSTED_UI_DOMAIN_EXISTS` | The most dangerous lever here. It skips declaring the Cognito hosted-UI domain, producing a pool with **no sign-in endpoint**. It exists solely for the one pre-existing unmanaged domain in us-west-2. |
-| `APIGW_ACCOUNT_ROLE` | `AWS::ApiGateway::Account` is an unnamed **per-account-per-region singleton** implemented as an unconditional `PATCH /account`. If the region already has a CloudWatch role (Seoul has one belonging to `FAST-stack`), opting in **hijacks another stack's role**. Only set it if `aws apigateway get-account --region $R --query cloudwatchRoleArn` returns `None`. `deploy.sh` refuses when the existing role isn't ours. |
+| `APIGW_ACCOUNT_ROLE` | `AWS::ApiGateway::Account` is an unnamed **per-account-per-region singleton** implemented as an unconditional `PATCH /account`. If the region already has a CloudWatch role (Seoul has one belonging to an unrelated stack), opting in **hijacks another stack's role**. Only set it if `aws apigateway get-account --region $R --query cloudwatchRoleArn` returns `None`. `deploy.sh` refuses when the existing role isn't ours. |
 
 > **Use `deploy.sh`, not bare `cdk deploy`.** `admin_email` defaults to
 > `placeholder@example.com`, so a `cdk deploy` that omits `-c admin_email=...` **replaces

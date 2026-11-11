@@ -17,7 +17,7 @@ Cognito 풀, 대시보드, 예산을 갖는 독립된 랩입니다. AWS 계정 �
 ## 0. 대상 리전이 정말 비어 있는가?
 
 이것을 가장 먼저 하세요. 이 계정에서는 "빈 리전"이라는 전제가 이미 틀렸습니다 —
-`ap-northeast-2`에는 무관한 `FAST-stack`이 올라가 있습니다.
+`ap-northeast-2`에는 무관한 다른 스택이 이미 올라가 있습니다.
 
 ```bash
 export R=ap-northeast-2
@@ -230,7 +230,7 @@ export ADMIN_IP_ALLOWLIST=1.2.3.4/32          # omit to allow all
 |---|---|
 | `OWNER_TAG` | `Owner` 태그가 기본값과 다른 스택을 업데이트할 때만 씁니다. SageMaker는 도메인 **태그**를 교체가 필요한 속성으로 취급하므로, 불일치하면 Studio 도메인이 교체되고 그 EFS가 고아가 됩니다. `Owner` 태그가 다른 값으로 생성된 기존 스택을 업데이트할 때만 필요합니다 — `deploy.sh`가 불일치를 거부하고 다시 실행할 정확한 `OWNER_TAG=...` 명령을 출력합니다. |
 | `HOSTED_UI_DOMAIN_EXISTS` | 여기서 가장 위험한 스위치입니다. Cognito hosted-UI 도메인 선언을 건너뛰어 **로그인 엔드포인트가 없는** 풀을 만듭니다. us-west-2에 이미 존재하는, 스택이 관리하지 않는 도메인 하나만을 위해 존재합니다. |
-| `APIGW_ACCOUNT_ROLE` | `AWS::ApiGateway::Account`는 이름이 없는 **계정×리전당 싱글턴**이며 조건 없는 `PATCH /account`로 구현됩니다. 리전에 CloudWatch 역할이 이미 있으면(서울에는 `FAST-stack` 소유의 역할이 있습니다) 이 옵션을 켜는 순간 **다른 스택의 역할을 가로챕니다**. `aws apigateway get-account --region $R --query cloudwatchRoleArn`이 `None`을 반환할 때만 설정하세요. 기존 역할이 우리 것이 아니면 `deploy.sh`가 거부합니다. |
+| `APIGW_ACCOUNT_ROLE` | `AWS::ApiGateway::Account`는 이름이 없는 **계정×리전당 싱글턴**이며 조건 없는 `PATCH /account`로 구현됩니다. 리전에 CloudWatch 역할이 이미 있으면(서울에는 무관한 다른 스택이 소유한 역할이 있습니다) 이 옵션을 켜는 순간 **다른 스택의 역할을 가로챕니다**. `aws apigateway get-account --region $R --query cloudwatchRoleArn`이 `None`을 반환할 때만 설정하세요. 기존 역할이 우리 것이 아니면 `deploy.sh`가 거부합니다. |
 
 > **맨 `cdk deploy`가 아니라 `deploy.sh`를 쓰세요.** `admin_email`의 기본값이
 > `placeholder@example.com`이므로, `-c admin_email=...`을 빠뜨린 `cdk deploy`는

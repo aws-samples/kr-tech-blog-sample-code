@@ -28,7 +28,7 @@ call in the **6-env-unset wrapper** (to prevent credentials from another account
 > `<region>` in the document body are just example placeholders.)
 
 ```bash
-# After logging in the usual way (Isengard/SSO, etc.):
+# After logging in the usual way (IAM Identity Center/SSO, access keys, etc.):
 UN() { env -u AWS_PROFILE -u AWS_ACCESS_KEY_ID -u AWS_SECRET_ACCESS_KEY \
              -u AWS_SESSION_TOKEN -u AWS_SHARED_CREDENTIALS_FILE -u AWS_CONFIG_FILE "$@"; }
 UN aws sts get-caller-identity --query '[Account,Arn]' --output text

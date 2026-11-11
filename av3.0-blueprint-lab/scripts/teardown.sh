@@ -30,6 +30,7 @@ set -uo pipefail
 # ACCOUNT id, which is identical for every region.
 STACK_NAME="Av30BlueprintLabStack"
 TABLE="av30-sessions-v2"
+DOMAIN_NAME="av30-blueprint-lab"   # = domain_name in infra/av30_constructs/sagemaker.py
 
 YES=false; DESTROY=false; ONLY_USER=""; REGION_CLI=""
 while [ $# -gt 0 ]; do
@@ -91,7 +92,23 @@ fi
 OUTPUTS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
             --query 'Stacks[0].Outputs' --region "$REGION" 2>/dev/null || echo "[]")
 val() { echo "$OUTPUTS" | jq -r --arg k "$1" '.[]|select(.OutputKey==$k)|.OutputValue' 2>/dev/null; }
-DOMAIN=$(val SageMakerDomainId); [ -z "$DOMAIN" ] && DOMAIN="d-on0ous0ufsac"
+DOMAIN=$(val SageMakerDomainId)
+if [ -z "$DOMAIN" ]; then
+  # No stack output: look the domain up by its fixed name in THIS region. This used to
+  # fall back to a literal domain id, which names one particular deployment's domain and
+  # is wrong in every other account and region. Exactly one match, or refuse to guess.
+  MATCHES=$(aws sagemaker list-domains --region "$REGION" \
+              --query "Domains[?DomainName=='$DOMAIN_NAME'].DomainId" \
+              --output text 2>/dev/null | tr '\t' '\n' | grep '^d-')
+  N=$(echo "$MATCHES" | grep -c '^d-')
+  if [ "$N" != "1" ]; then
+    echo "ERROR: no SageMakerDomainId stack output, and list-domains found $N domain(s)" >&2
+    echo "       named $DOMAIN_NAME in $REGION (need exactly 1; 0 also if the call" >&2
+    echo "       failed) — refusing to guess which domain to sweep." >&2
+    exit 1
+  fi
+  DOMAIN="$MATCHES"
+fi
 WS_ARN=$(val UserWorkspaceBucketArn)
 USER_WS_BUCKET="${WS_ARN#arn:aws:s3:::}"
 # $REGION is part of the bucket name. Without it this fallback names a bucket that

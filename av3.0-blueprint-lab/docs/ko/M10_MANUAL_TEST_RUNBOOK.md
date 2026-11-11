@@ -27,7 +27,7 @@ M10은 두 겹이다. **Part A** = admin이 GPU EC2에서 진짜 AlpaSim을 돌�
 > `<region>`은 예시 자리표시자일 뿐이다.)
 
 ```bash
-# Isengard/SSO 등 평소 쓰는 방식으로 로그인 후:
+# IAM Identity Center/SSO, 액세스 키 등 평소 쓰는 방식으로 로그인 후:
 UN() { env -u AWS_PROFILE -u AWS_ACCESS_KEY_ID -u AWS_SECRET_ACCESS_KEY \
              -u AWS_SESSION_TOKEN -u AWS_SHARED_CREDENTIALS_FILE -u AWS_CONFIG_FILE "$@"; }
 UN aws sts get-caller-identity --query '[Account,Arn]' --output text

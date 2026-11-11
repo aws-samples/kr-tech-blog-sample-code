@@ -17,7 +17,7 @@ AWS アカウントそのものだけです — そして落とし穴はまさ�
 ## 0. 対象リージョンは本当に空か？
 
 まずこれを実行してください。このアカウントでは「空のリージョン」という前提がすでに崩れていました —
-`ap-northeast-2` には無関係な `FAST-stack` が存在します。
+`ap-northeast-2` には無関係な別のスタックが既に存在します。
 
 ```bash
 export R=ap-northeast-2
@@ -231,7 +231,7 @@ export ADMIN_IP_ALLOWLIST=1.2.3.4/32          # omit to allow all
 |---|---|
 | `OWNER_TAG` | `Owner` タグがデフォルトと異なるスタックを更新する場合のみ使います。SageMaker はドメインの**タグ**を置換が必要な属性として扱うため、不一致があると Studio ドメインが置換され、その EFS が孤立します。別の `Owner` タグで作成された既存スタックを更新する場合にのみ必要です — `deploy.sh` が不一致を拒否し、再実行用の正確な `OWNER_TAG=...` コマンドを出力します。 |
 | `HOSTED_UI_DOMAIN_EXISTS` | ここで最も危険なレバーです。Cognito ホステッド UI ドメインの宣言をスキップするため、**サインインエンドポイントを持たない**プールができてしまいます。これは us-west-2 に既存の、管理外のドメインが 1 つだけあるという事情のためだけに存在します。 |
-| `APIGW_ACCOUNT_ROLE` | `AWS::ApiGateway::Account` は名前を持たない**アカウント・リージョンごとのシングルトン**で、無条件の `PATCH /account` として実装されています。そのリージョンに既に CloudWatch ロールがある場合（ソウルには `FAST-stack` に属するものがあります）、これを有効にすると**別のスタックのロールを奪い取ります**。`aws apigateway get-account --region $R --query cloudwatchRoleArn` が `None` を返す場合にのみ設定してください。既存のロールが自分たちのものでない場合、`deploy.sh` は実行を拒否します。 |
+| `APIGW_ACCOUNT_ROLE` | `AWS::ApiGateway::Account` は名前を持たない**アカウント・リージョンごとのシングルトン**で、無条件の `PATCH /account` として実装されています。そのリージョンに既に CloudWatch ロールがある場合（ソウルには無関係な別のスタックに属するものがあります）、これを有効にすると**別のスタックのロールを奪い取ります**。`aws apigateway get-account --region $R --query cloudwatchRoleArn` が `None` を返す場合にのみ設定してください。既存のロールが自分たちのものでない場合、`deploy.sh` は実行を拒否します。 |
 
 > **素の `cdk deploy` ではなく `deploy.sh` を使ってください。** `admin_email` のデフォルトは
 > `placeholder@example.com` です。そのため `-c admin_email=...` を省略した `cdk deploy` は、

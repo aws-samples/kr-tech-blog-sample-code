@@ -29,7 +29,7 @@ M10 は 2 層構造です。**Part A** = admin が GPU EC2 上で本物の AlpaS
 > `<region>` は例示のプレースホルダーにすぎません。)
 
 ```bash
-# Isengard/SSO など普段使う方法でログインした後:
+# IAM Identity Center/SSO、アクセスキーなど普段使う方法でログインした後:
 UN() { env -u AWS_PROFILE -u AWS_ACCESS_KEY_ID -u AWS_SECRET_ACCESS_KEY \
              -u AWS_SESSION_TOKEN -u AWS_SHARED_CREDENTIALS_FILE -u AWS_CONFIG_FILE "$@"; }
 UN aws sts get-caller-identity --query '[Account,Arn]' --output text

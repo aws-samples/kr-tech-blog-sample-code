@@ -342,7 +342,7 @@ class SageMakerConstruct(Construct):
         #
         # The prerequisite is already met: create_user creates every space with
         # OwnershipSettings.OwnerUserProfileName = <userId> and SharingType = Private
-        # (infra/lambda/create_user/handler.py), verified live on d-izwhae6gmqd8.
+        # (infra/lambda/create_user/handler.py), verified on a live deployment.
         #
         # Resource ARNs use ${sagemaker:DomainId} rather than the real domain id ON PURPOSE.
         # This role IS the domain's default execution role, so the domain depends on the
@@ -911,6 +911,8 @@ class SageMakerConstruct(Construct):
         # participants can open their workspace from any browser. A VPC + subnets
         # are still supplied for EFS/home-directory traffic. Switching this value
         # is an in-place update (no domain replacement, domain ID preserved).
+        # domain_name is also how scripts/teardown.sh finds the domain when the
+        # stack outputs are unavailable — keep the two in step.
         self._domain = sagemaker.CfnDomain(
             self,
             "Domain",
