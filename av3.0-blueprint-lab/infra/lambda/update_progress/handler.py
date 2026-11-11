@@ -15,7 +15,7 @@ import boto3
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 
 from config import MODULE_CONFIG, SESSIONS_TABLE_NAME
-from errors import ApiError, api_handler
+from errors import ApiError, api_handler, require_own_user
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -65,13 +65,10 @@ def handler(event, context):
     if not user_id:
         raise ApiError(400, "Missing userId in path")
 
-    # Ownership guard: the TokenAuthorizer returns a stage-wide wildcard resource,
-    # so ANY valid token reaches this route for ANY {id}. Reject a write to a path
-    # whose userId != the token owner (context.userId set by token_authorizer).
-    authorizer_ctx = (event.get("requestContext") or {}).get("authorizer") or {}
-    caller_id = authorizer_ctx.get("userId")
-    if caller_id and caller_id != user_id:
-        raise ApiError(403, "Token not authorized for this userId")
+    # The TokenAuthorizer grants a stage-wide resource, so a valid token reaches this
+    # route for ANY userId. Without this, a participant could overwrite someone else's
+    # progress by editing the path. See require_own_user for the full reasoning.
+    require_own_user(event, user_id)
 
     # Parse request body
     body = event.get("body")

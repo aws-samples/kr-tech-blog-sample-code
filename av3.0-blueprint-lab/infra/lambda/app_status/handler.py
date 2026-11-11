@@ -16,7 +16,7 @@ import boto3
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 
 from config import SAGEMAKER_DOMAIN_ID, SESSIONS_TABLE_NAME, is_gpu_instance
-from errors import ApiError, api_handler
+from errors import ApiError, api_handler, require_own_user
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -41,13 +41,10 @@ def handler(event, context):
     if not user_id:
         raise ApiError(400, "Missing userId in path")
 
-    # Ownership guard: a valid token reaches this route for ANY {id} (the
-    # TokenAuthorizer returns a stage-wide resource). Reject reads of another
-    # user's live status/progress.
-    authorizer_ctx = (event.get("requestContext") or {}).get("authorizer") or {}
-    caller_id = authorizer_ctx.get("userId")
-    if caller_id and caller_id != user_id:
-        raise ApiError(403, "Token not authorized for this userId")
+    # The TokenAuthorizer grants a stage-wide resource, so a valid token reaches this
+    # route for ANY userId. Without this, a participant could read someone else's live
+    # status and progress by editing the path. See require_own_user for the full reasoning.
+    require_own_user(event, user_id)
 
     # Resolve the space name from DynamoDB (same source create_user wrote).
     table = dynamodb.Table(SESSIONS_TABLE_NAME)

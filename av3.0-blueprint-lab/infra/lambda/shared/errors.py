@@ -127,14 +127,22 @@ def require_own_user(event: dict, user_id: str) -> None:
     participant", never "this is THAT participant". The per-route ownership check
     is therefore the only thing standing between participants.
 
-    Three routes shipped without it while two had it inline:
+    Five routes call it. Three shipped with no check at all:
         POST  /presigned-url/{userId}      -> a working Studio URL into someone
                                              else's workspace
         PATCH /sessions/{id}/instance-type -> deletes their running app and
                                              rebuilds it on a chosen instance
         PATCH /sessions/{id}/storage       -> resizes their EBS volume
-    All three are token-auth ONLY (no admin path goes through them), so this can
+    and two had the fail-open inline guard described below:
+        POST  /sessions/{id}/progress      -> overwrites their module progress
+        GET   /sessions/{id}/app-status    -> reads their live app status
+    All five are token-auth ONLY (no admin path goes through them), so this can
     be applied unconditionally.
+
+    Do NOT use it on Cognito (admin) routes such as DELETE /users/{id}, POST
+    /users/{id}/reset or POST /sessions/{id}/terminate: the Cognito authorizer
+    context carries no userId, so every admin call would get 403. Nor on
+    /modules/{id}/..., where {id} is a module id, not a userId.
 
     FAILS CLOSED, unlike the original inline guard (`if caller_id and caller_id
     != user_id`), which passed when the context was missing. On a token-auth
