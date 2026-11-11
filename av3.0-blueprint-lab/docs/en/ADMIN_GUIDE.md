@@ -77,10 +77,9 @@ GPU quotas and gated-model availability are per-account **and** per-region.
 **Choosing the Region** — this matters more than the account, because it gates GPU
 capacity and model access:
 - **GPU availability varies by region.** The GPU families this lab uses (`g5`,
-  `g6`, and optionally `p4d`/`p5`) are **not** in every region, and quota approvals
+  `g6`, and optionally `p4d`) are **not** in every region, and quota approvals
   are per-region. Pick a region with strong GPU capacity — `us-west-2` (Oregon)
-  and `us-east-1` (N. Virginia) are the safest; **`ml.p5.48xlarge` in particular
-  is only offered in a few regions (us-west-2 / us-east-1).**
+  and `us-east-1` (N. Virginia) are the safest.
 - **Latency:** closer to the participants is nicer for the interactive Studio UI,
   but capacity should win the tie — a region where you can't get GPUs is useless.
 - **Data residency / org policy:** if your organisation restricts regions, choose a
@@ -112,12 +111,20 @@ Two families of quota matter. The README's quota table covers the first; the
 **job quotas** below are easy to miss and block M12/M11 for a full room.
 
 ### 2a. Studio JupyterLab App quotas (interactive notebooks)
-Search "**Studio JupyterLab Apps running on**" in the Service Quotas console. These
-are the instance types the **user dashboard's Instance Options** actually offers
-(recommended + alternatives), so a participant can only pick from this set — the
-quotas below cover every one of them. Quota **codes are region-independent** (verified
-identical across us-west-2 / ap-northeast-2 / eu-west-1); the **values are not**, and
-neither is which types have a quota at all.
+Search "**Studio JupyterLab Apps running on**" in the Service Quotas console. The table
+below is exactly the set the **user dashboard's Instance Options** offers (recommended +
+alternatives), and the API enforces it: `cdk synth` reads the list from
+`web/user/src/data/pipeline-config.ts` and keeps the types this region sells, and
+`change_instance` refuses any other type with a 400 before touching the running app, even
+when the API is called directly. To change the list, edit that file and redeploy the stack.
+Quota **codes are region-independent** (verified identical across us-west-2 /
+ap-northeast-2 / eu-west-1); the **values are not**, and neither is which types have a
+quota at all.
+
+> **The cap covers the dashboard's API, not Studio's own controls.** The participant
+> execution role can still start an app from inside Studio, and there a type outside the
+> list is stopped only by its quota. Do not request quota for a type you do not mean to
+> offer (see the p4d row).
 
 **GPU workhorse: `ml.g5.12xlarge` (4× A10G, 96 GB).** It is what the dashboard now
 recommends for M2, M3 and the four heavy modules (M5, M6, M8, M9), for reasons that are
@@ -135,7 +142,8 @@ So this exact instance is directly measured; it no longer rests on the geometry 
 published bundle contains.) One caveat carried by that run: M7's novel-view render
 finished with `rc=1` and produced **0 frames** — training completed, the render did not.
 The reason to prefer g5.12xlarge is quota and price.
-p4d/p5 remain the native-resolution / full-720p path if you have the quota.
+`ml.p4d.24xlarge` is the dashboard's only native-resolution / full-720p path; read its row
+below before requesting quota for it.
 
 > **The `us-west-2` column below is not your region.** Quota is a per-(account × region)
 > fact: the entire `ml.g6.*` family is sold in ap-northeast-2 with a quota of **0**, and
@@ -161,22 +169,14 @@ p4d/p5 remain the native-resolution / full-720p path if you have the quota.
 | ml.g6.2xlarge | L-92D1521D | 5 | ≥0 | M7 alternative (L4) — **0 in ap-northeast-2** |
 | ml.g6.4xlarge | L-692B8304 | 5 | ≥0 | M7 alternative (L4) — **0 in ap-northeast-2** |
 | ml.g6.12xlarge | L-962247BA | 2 | ≥0 | M2/M3 capacity fallback (4× L4, 96 GB) — **0 in ap-northeast-2** |
-| ml.g6.24xlarge | L-8ACE1754 | 2 | ≥0 | M2/M3/M5–M9 alternative (4× L4, 96 GB) — same geometry as g5.12xlarge but dearer; **0 in ap-northeast-2** |
-| ml.g6.48xlarge | L-125B7142 | 2 | ≥0 | M5/M6/M9 alternative (8× L4) — **0 in ap-northeast-2** |
-| ml.g7e.2xlarge | L-7A3E0A2C | **0** | ≥0 | M2/M3/M5–M9 **cheapest native-res path** (1× RTX PRO 6000, 96 GB; **defaults to 0 — must request**) |
-| ml.g7e.24xlarge | L-E481E4F8 | **0** | ≥0 | M5/M6/M9 alternative (4× RTX PRO 6000; **defaults to 0**) |
-| ml.p4d.24xlarge | L-AD63F1D2 | 2 | ≥2 | M5, M6, M9 native-res path (8× A100; **defaults to 0 — must request**) |
-| ml.p5.48xlarge | L-B41FBF28 | 1 | ≥0 | Heavy-model fallback (8× H100; **not sold in ap-northeast-2**) |
+| ml.g6.24xlarge | L-8ACE1754 | 2 | ≥0 | M2/M3 alternative (4× L4, 96 GB) — same geometry as g5.12xlarge but dearer; **0 in ap-northeast-2** |
+| ml.p4d.24xlarge | L-AD63F1D2 | 2 | 0 unless intended | M2, M3, M5, M6, M8, M9 alternative — the only native-res path (8× A100, ~$25.25/hr in us-west-2). **Defaults to 0; leave it there unless you mean to offer it** — at 0 the dashboard refuses it before touching the running app |
 
-> **g7e is optional and unverified here.** All six `ml.g7e.*` Studio quotas read
-> **0** in `us-west-2` for this account (verified via `list-service-quotas`), so
-> nobody can select it until you request an increase. It is listed because it is
-> the *cheapest* way to the native-resolution tier — one 96 GB card at ~$4.20/hr
-> beats `ml.p4d.24xlarge` at \~$25.25/hr and even undercuts the 24 GB default
-> (\~$8.34/hr) — but **no module has been run end-to-end on g7e in this lab**. If
-> you request it, smoke-test M5 on one user before pointing a room at it. Other
-> g7e sizes (4xl/8xl/12xl/48xl) have quota codes too (L-B7228EBF, L-0407753C,
-> L-5F015F52, L-A48244DF) but are not offered in the dashboard.
+> **Not offered: `ml.g7e.*`, `ml.p5.*`, `ml.g6.48xlarge`** and every other type missing
+> from the table. `change_instance` rejects them with a 400, so the dashboard needs no quota
+> for them. g7e would be the cheapest native-resolution path (one 96 GB card at ~$4.20/hr),
+> but it is not sold for Studio in ap-northeast-2 and no module has been run on it in this
+> lab, so it is not on the list. Their quotas still matter for the Studio path above.
 
 Sizing the room: request the **recommended** instance for each module at ≥ the
 number of concurrent participants, and at least the minimum shown for the one or
@@ -185,7 +185,7 @@ alternative in the dashboard). You do **not** need quota for every alternative �
 only the ones you'll actually direct the room to use. If you standardise the GPU
 modules on **g5.12xlarge** (recommended — and the only heavy-module recommendation that
 is non-zero in both us-west-2 and ap-northeast-2), request that one to ≥ your headcount
-and you can leave p4d/p5 at their defaults.
+and leave p4d at its default of 0 unless you mean to offer it.
 
 ### 2b. SageMaker **job** quotas (M12 and M11 — the ones people forget)
 M12 submits a real **training job** and M11 runs real **processing jobs** on
@@ -562,11 +562,11 @@ seeded with the notebook templates, and a personal dashboard link.
 
 - **Sessions tab** — live view of who's running what, on which instance, and cost.
 - **Capacity errors** (`EC2InsufficientCapacityError`): tell participants to pick any
-  alternative Instance Options offers for that module — the list is already filtered to
-  types this region sells, and a type whose quota is 0 is refused with an explanation
-  rather than accepted. Don't name a specific fallback from memory: `ml.g6.12xlarge` was
-  the old advice and is quota 0 in ap-northeast-2. It's a capacity shortage, not a quota
-  problem.
+  alternative Instance Options offers for that module. The panel shows the same list in
+  every region, so the API does the filtering: a type this region does not sell, or whose
+  quota is 0, is refused with an explanation before the running app is touched. Don't
+  name a specific fallback from memory: `ml.g6.12xlarge` was the old advice and is quota 0
+  in ap-northeast-2. It's a capacity shortage, not a quota problem.
 - **A change that silently didn't happen.** If a participant says their instance change
   did nothing, the app failed to launch on the new type (most often
   `ResourceLimitExceeded` — quota exists but every slot is in use) and was rolled back to

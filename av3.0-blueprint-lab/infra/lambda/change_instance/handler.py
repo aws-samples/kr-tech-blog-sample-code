@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 from config import (
     AWS_REGION,
     INSTANCE_RATES,
-    MODULE_CONFIG,
+    PARTICIPANT_INSTANCE_TYPES,
     SAGEMAKER_DOMAIN_ID,
     SESSIONS_TABLE_NAME,
     create_app_when_ready,
@@ -62,7 +62,12 @@ lambda_client = boto3.client("lambda")  # for the async self-invoke
 # which let a participant pick a type their region does not sell — accepted here, then the
 # app silently failed to start. Measured: eu-west-1 sells no ml.g6.* for Studio at all, and
 # ap-northeast-2 sells no ml.g7e.* / ml.p5.*.
+#
+# Being sold is necessary, not sufficient: a participant is further capped at
+# PARTICIPANT_INSTANCE_TYPES, the dashboard's own list (see config.py). ALLOWED_TYPES is
+# the intersection, and the only list a rejection ever shows.
 VALID_INSTANCE_TYPES = set(INSTANCE_RATES.keys())
+ALLOWED_TYPES = sorted(PARTICIPANT_INSTANCE_TYPES & VALID_INSTANCE_TYPES)
 
 # App type for user compute (JupyterLab spaces, matching create_user)
 APP_TYPE = "JupyterLab"
@@ -107,15 +112,32 @@ def _http_handler(event, context):
 
     # Validate the type is sold in THIS region. Naming the region matters: the participant
     # dashboard's recommendations are static (web/user/src/data/pipeline-config.ts) and
-    # recommend ml.g6.24xlarge for four modules, so in a region that does not sell g6 the
-    # rejection would otherwise look like a bug in the lab rather than a regional fact.
+    # offer ml.g6.* alternatives for several modules, so in a region that does not sell g6
+    # the rejection would otherwise look like a bug in the lab rather than a regional fact.
+    #
+    # Both checks run before ANY DynamoDB read or SageMaker call, so a refused type costs
+    # nothing and leaves the running workspace untouched.
     if new_instance_type not in VALID_INSTANCE_TYPES:
         raise ApiError(
             400,
             f"{new_instance_type} is not available for Studio JupyterLab in {AWS_REGION}",
             details=(
-                f"This is a REGIONAL limitation, not a quota. Types available in "
-                f"{AWS_REGION}: {sorted(VALID_INSTANCE_TYPES)}."
+                f"This is a REGIONAL limitation, not a quota. Types you can choose in "
+                f"{AWS_REGION}: {ALLOWED_TYPES}."
+            ),
+        )
+    # The participant cap. Without it this route accepted every type the region sells
+    # (ml.p5.48xlarge included) from any participant who called the API directly, although
+    # the dashboard only ever offers its own list.
+    if new_instance_type not in PARTICIPANT_INSTANCE_TYPES:
+        if not ALLOWED_TYPES:
+            logger.error("PARTICIPANT_INSTANCE_TYPES is empty; refusing every instance change")
+        raise ApiError(
+            400,
+            f"{new_instance_type} is not one of the instance types this workshop offers",
+            details=(
+                f"Choose a type listed in Instance Options. Types you can choose in "
+                f"{AWS_REGION}: {ALLOWED_TYPES}."
             ),
         )
 
@@ -132,39 +154,8 @@ def _http_handler(event, context):
     # race delete_user's teardown. See require_active_user.
     require_active_user(item)
 
-    current_module = item.get("currentModule")
     previous_type = item.get("instanceType", "ml.t3.medium")
     space_name = item.get("spaceName", f"{user_id}-space")
-
-    # Validate against module config if user has an active module.
-    #
-    # NOTE this is dormant in the real workshop: update_progress accepts currentModule
-    # as the short ids "m0".."m12" AND the canonical long ids the frontend and the
-    # notebooks actually emit ("m01-data-exploration".."m12-hyperpod" — see
-    # VALID_MODULE_IDS in infra/lambda/update_progress/handler.py). MODULE_CONFIG is keyed
-    # "module-1".."module-5", so the membership test is False for every id a real
-    # participant produces and the guard is skipped. It only fires for the legacy
-    # module-N ids.
-    #
-    # It also uses PRICE as a proxy for CAPABILITY, which is no longer sound now
-    # that ml.g7e.* exists: ml.g7e.2xlarge is 96 GB on one card ($4.20/hr) yet
-    # CHEAPER than ml.g6.24xlarge (4× 24 GB, $8.34/hr) while clearing every
-    # per-GPU tier the g6 box fails. If MODULE_CONFIG is ever populated with the
-    # real m0..m12 modules and their GPU defaults, this comparison must become a
-    # capability check (per-GPU VRAM / total VRAM), or it will reject the
-    # strictly better instance as "below minimum requirement".
-    if current_module and current_module in MODULE_CONFIG:
-        module_default = MODULE_CONFIG[current_module].get("instance_type")
-        # Allow the module default and any instance that is equal or higher cost
-        module_rate = INSTANCE_RATES.get(module_default, 0)
-        requested_rate = INSTANCE_RATES.get(new_instance_type, 0)
-        if requested_rate < module_rate:
-            raise ApiError(
-                400,
-                f"Instance type {new_instance_type} is below minimum "
-                f"requirement for {MODULE_CONFIG[current_module]['name']}",
-                details=f"Minimum: {module_default}",
-            )
 
     # 409 ONLY when there is genuinely nothing to do — that is, an app for this type is
     # already up (or coming up). It is NOT enough that DynamoDB records the type.
@@ -344,6 +335,15 @@ def _restore_previous(space_name, previous_type):
     """
     if not previous_type:
         logger.error(f"[async] No previousType recorded for {space_name}; cannot restore")
+        return False
+    # A row recorded before the participant cap existed can hold a type outside it (e.g.
+    # ml.p5.48xlarge). Relaunching it here would let a failed change bring that type back,
+    # so the participant is left without an app and can start an allowed one instead.
+    if previous_type not in PARTICIPANT_INSTANCE_TYPES:
+        logger.error(
+            f"[async] Not restoring {space_name} to {previous_type}: outside "
+            f"PARTICIPANT_INSTANCE_TYPES"
+        )
         return False
     try:
         sagemaker.update_space(

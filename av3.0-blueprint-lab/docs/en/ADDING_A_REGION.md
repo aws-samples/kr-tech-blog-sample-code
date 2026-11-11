@@ -106,7 +106,6 @@ search hits for "g6.24xlarge").
 | `ml.p4d.24xlarge` | `L-AD63F1D2` | 2 | **2** | 40 GB tier — 720p, guardrails ON |
 | **`ml.g6.12xlarge`** | `L-962247BA` | 2 | **0** ⚠ | M2/M3 alternative |
 | `ml.g6.24xlarge` | `L-8ACE1754` | 2 | **0** | not recommended by the dashboard (same tier as g5.12xlarge, dearer) |
-| `ml.p5.48xlarge` | `L-B41FBF28` | 1 | **0** | 80 GB tier |
 | `ml.m5.xlarge` *training* | `L-CCE2AFA6` | 30 | 30 | M12 |
 | `ml.m5.xlarge` *processing* | `L-0307F515` | 16 | 16 | M11 |
 
@@ -471,25 +470,14 @@ budget alert is actually delivered.
 
 ## Known sharp edges
 
-**`INSTANCE_RATES` is a us-west-2 price snapshot — and doubles as the instance
-allowlist.** `infra/lambda/shared/config.py` is not keyed by region, and
-`change_instance` derives `VALID_INSTANCE_TYPES` from its keys while `instance_options`
-builds the participant dropdown from them. Two consequences:
-
-| Studio-JupyterLab | us-west-2 | ap-northeast-2 | reported |
-|---|---|---|---|
-| `ml.t3.medium` | $0.0500 | $0.0620 | −24% |
-| `ml.g5.12xlarge` | $7.0900 | $8.7180 | −23% |
-| `ml.g6.24xlarge` | $8.3440 | $10.2600 | −23% |
-
-1. Every cost shown to participants and admins reads ~23% **low** in Seoul — the wrong
-   direction for a lab whose documented failure mode is unnoticed spend.
-2. The dropdown is unfiltered by region, so a region can be offered an instance it does
-   not have for Studio (e.g. `ml.g6.24xlarge` in `eu-west-1`), failing per-participant
-   at app start.
-
-The uniform ~23% Seoul delta is coincidence, not a rule — do not "fix" this with a
-multiplier; key the table by region.
+**Resolved: `INSTANCE_RATES` used to be a us-west-2 price snapshot that doubled as the
+instance allowlist.** Both halves are fixed. Prices come from a table generated per region
+(§2.5), so Seoul no longer reads ~23% low. The participant allowlist is a separate value,
+`PARTICIPANT_INSTANCE_TYPES`: the types `web/user/src/data/pipeline-config.ts` offers,
+intersected with this region's table at `cdk synth`. A dashboard type the region does not
+sell (every `ml.g6.*` in `eu-west-1`) drops out of it, and `change_instance` refuses it with
+a 400 that names the region instead of letting the app fail at start. (The panel itself
+still lists it; the list in the UI is static.)
 
 **`av30-alpasim-m7` (M10) is account-global and un-suffixed.** IAM role and
 instance-profile names are account-global, so a second region's M10 run fails

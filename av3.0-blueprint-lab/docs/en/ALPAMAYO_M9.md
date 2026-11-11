@@ -218,10 +218,12 @@ plain `device_map="auto"`:
   24 GB)** (`balanced-expert`, see below). The model is ~10.5 B params (~21 GB
   bf16) plus VLM-rollout activations.
   - **Single GPU ≥ 40 GB** (p5, p4d A100, g6e L40S 48 GB): loaded onto one device
-    (`.to("cuda")`), the verified path. p4d A100 40 GB should fit but is the
-    untested floor; if it OOMs, either use p5 or force `balanced-expert`.
+    (`.to("cuda")`), the verified path. Of these, participants can pick only p4d:
+    the dashboard's list is also the server-side cap, and p5 and g6e are not on it.
+    p4d A100 40 GB should fit but is the untested floor; if it OOMs, force
+    `balanced-expert`.
   - **24 GB multi-GPU** (g5, g6): `balanced-expert` shards the VLM and pins the
-    action stack to cuda:0. This is the **capacity hedge** — when p4d/p5 are
+    action stack to cuda:0. This is the **capacity hedge** — when p4d is
     unavailable, M9 still runs on whatever multi-GPU box is free.
 - The env + checkpoints live on the NVMe and are **reset on app restart**; the
   setup cell is idempotent, and a fresh app restores the checkpoints from S3

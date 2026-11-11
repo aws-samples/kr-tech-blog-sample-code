@@ -506,7 +506,9 @@ PRESIGNED_URL_EXPIRY = 28800
 #
 # This was a single hand-maintained us-west-2 snapshot that ALSO served as the participant
 # instance allowlist (VALID_INSTANCE_TYPES in change_instance, and the dropdown built by
-# instance_options). Both halves were wrong outside us-west-2, and both failed quietly:
+# instance_options). Both halves were wrong outside us-west-2, and both failed quietly
+# (the allowlist half is now PARTICIPANT_INSTANCE_TYPES below; this table only says what
+# the region sells):
 #
 #   * PRICES. ap-northeast-2 is ~+23% on every type (measured: t3.medium 0.050 -> 0.062,
 #     g5.12xlarge 7.09 -> 8.718, g6.24xlarge 8.344 -> 10.26). Every figure shown to a
@@ -528,15 +530,14 @@ PRESIGNED_URL_EXPIRY = 28800
 # launch it is a separate per-(account x region) fact: ml.g6.* is priced in ap-northeast-2
 # but its Studio quota there is 0.
 #
-# NOTHING IN THE REQUEST PATH CHECKS QUOTA TODAY. An earlier version of this comment said
-# "instance_options resolves live quota at request time" — that was false: instance_options
-# is dead code (zero call sites, keyed to placeholder module ids, imports no boto3), and
-# change_instance validates only membership in this table. So a participant can still pick
-# a type this region sells but the account has 0 quota for, and the failure surfaces as a
-# stalled app rather than a rejection. The admin-side check is
-# scripts/check_quotas.py --region <r> --participants N, which deploy.sh runs at the end of
-# a deployment; wiring a GetServiceQuota call into change_instance is the real fix and has
-# not been done.
+# Quota IS checked on the request path, by change_instance only: studio_quota_for below
+# reads the live value and a type at quota 0 is refused before the running app is deleted.
+# A quota that exists but is fully in use (ResourceLimitExceeded) still surfaces only once
+# CreateApp fails; change_instance then rolls back and records the reason for /app-status.
+# instance_options does not check quota (it is dead code: zero call sites, keyed to
+# placeholder module ids). The admin-side cohort check is
+# scripts/check_quotas.py --region <r> --participants N, which deploy.sh runs before
+# deploying.
 #
 # GPU GEOMETRY (the recurring source of confusion — size is NOT GPU count, and within a
 # family a bigger size adds GPUs, never per-GPU VRAM):
@@ -572,6 +573,22 @@ def _rates_for_region(region: str) -> dict:
 
 
 INSTANCE_RATES = _rates_for_region(AWS_REGION)
+
+# The types a participant may run: every recommendedInstance + alternative in
+# web/user/src/data/pipeline-config.ts that this region sells. The stack resolves it at
+# synth (infra/lambda/shared/pipeline_types.py) and passes it as a comma-separated env var,
+# because the dashboard source is not part of the Lambda bundle.
+#
+# INSTANCE_RATES is NOT the allowlist: it is everything the region sells for Studio, e.g. 34
+# types in us-west-2 including ml.p5.48xlarge at $63.30/hr, while the dashboard offers 17.
+#
+# Fails CLOSED: a missing or empty value is an empty set, so change_instance refuses every
+# type and expand_storage refuses every resize. Raising here instead would take down every
+# Lambda that imports this module, including the token authorizer, which is not given the
+# shared env at all.
+PARTICIPANT_INSTANCE_TYPES = frozenset(
+    t.strip() for t in os.environ.get("PARTICIPANT_INSTANCE_TYPES", "").split(",") if t.strip()
+)
 
 
 def studio_quota_for(instance_type: str, *, client=None):

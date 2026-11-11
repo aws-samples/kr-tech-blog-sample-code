@@ -21,6 +21,7 @@ import boto3
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 
 from config import (
+    PARTICIPANT_INSTANCE_TYPES,
     SAGEMAKER_DOMAIN_ID,
     SESSIONS_TABLE_NAME,
     create_app_when_ready,
@@ -118,6 +119,22 @@ def _http_handler(event, context):
     # storage expansion does not silently revert a GPU box (and its GPU image
     # + notebook-sync LCC) back to the CPU default.
     instance_type = item.get("instanceType", "ml.t3.medium")
+
+    # The resize relaunches the app on the RECORDED type, so a row written before the
+    # participant cap existed (e.g. ml.p5.48xlarge) would otherwise get that type back after
+    # every idle shutdown, just by asking for more disk. Refuse before safe_delete_app below:
+    # whatever is running now is left alone.
+    if instance_type not in PARTICIPANT_INSTANCE_TYPES:
+        if not PARTICIPANT_INSTANCE_TYPES:
+            logger.error("PARTICIPANT_INSTANCE_TYPES is empty; refusing every storage resize")
+        raise ApiError(
+            409,
+            f"Your workspace is recorded on {instance_type}, which is not one of the "
+            f"instance types this workshop offers, so storage was not changed",
+            details=(
+                "Switch to a type listed in Instance Options first, then expand storage."
+            ),
+        )
 
     # Verify the space exists, and take the CURRENT volume size from it.
     space_info = sagemaker.describe_space(

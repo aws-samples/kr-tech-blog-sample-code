@@ -72,6 +72,7 @@ class ApiConstruct(Construct):
         sagemaker_domain_id: str,
         sagemaker_execution_role: iam.IRole,
         notebook_lifecycle_config_arn: str,
+        participant_instance_types: list[str],
     ) -> None:
         super().__init__(scope, construct_id)
 
@@ -217,6 +218,11 @@ class ApiConstruct(Construct):
             # av30_constructs/__init__.py for why this is imported rather than repeated.
             "DEFAULT_SPACE_STORAGE_GB": str(DEFAULT_SPACE_STORAGE_GB),
             "NOTEBOOK_LIFECYCLE_CONFIG_ARN": notebook_lifecycle_config_arn,
+            # The participant instance cap: the dashboard's types that this region sells,
+            # resolved at synth (see _participant_instance_types in stacks/av30_stack.py).
+            # change_instance and expand_storage refuse anything outside it; config.py
+            # treats a missing value as an empty set, so every type is refused.
+            "PARTICIPANT_INSTANCE_TYPES": ",".join(participant_instance_types),
             # B2 progress tracking: create_user writes this + the participant
             # token into users/<id>/.av30-progress.env so the notebook-sync LCC
             # can source it and the notebooks can POST module completion.

@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import argparse
 import pathlib
-import re
 import sys
 
 try:
@@ -67,12 +66,28 @@ def region_rates(region: str) -> dict[str, float]:
     return table[region]
 
 
+def _load_pipeline_types():
+    """infra/lambda/shared/pipeline_types.py, loaded by path (it is stdlib-only)."""
+    import importlib.util
+
+    path = SHARED / "pipeline_types.py"
+    spec = importlib.util.spec_from_file_location("av30_pipeline_types", path)
+    if spec is None or spec.loader is None:  # pragma: no cover
+        sys.exit(f"cannot load {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def _parse_pipeline_config() -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """(recommended, alternatives): instance type -> module titles, from the participant UI.
 
     Parsed rather than duplicated: this file is the ONLY place the participant-facing
     recommendation lives (the instance_options Lambda is dead code — getInstanceOptions has
     zero call sites), so a hand-copied list here would drift from what users actually see.
+    The parser lives in infra/lambda/shared/pipeline_types.py because the stack uses the
+    SAME parse at synth to build PARTICIPANT_INSTANCE_TYPES, the server-side cap on what a
+    participant can launch — so this report and the cap cannot disagree about the list.
 
     ALTERNATIVES matter as much as the recommendation. They are what the dashboard offers
     on a capacity error and what every errorHint tells a stuck participant to pick, so a
@@ -80,24 +95,19 @@ def _parse_pipeline_config() -> tuple[dict[str, list[str]], dict[str, list[str]]
     only recommendedInstance, which is how ml.g6.12xlarge and ml.g7e.2xlarge sat at the
     FRONT of M2/M3's alternatives — both unusable in ap-northeast-2 — while the report
     said everything was fine.
+
+    A parse failure exits instead of printing an empty section: an empty list would end
+    in "All recommended types are runnable", which is the false all-clear this script
+    exists to prevent. `cdk synth` refuses the same file for the same reason.
     """
     if not PIPELINE_CONFIG.exists():
-        return {}, {}
-    text = PIPELINE_CONFIG.read_text()
-    rec_out: dict[str, list[str]] = {}
-    alt_out: dict[str, list[str]] = {}
-    # Walk module blocks so a type can be attributed to a module title.
-    for block in re.split(r"\n  \{\n", text):
-        title_m = re.search(r'title:\s*"([^"]+)"', block)
-        title = title_m.group(1) if title_m else "(unknown module)"
-        rec = re.search(r'recommendedInstance:\s*"(ml\.[a-z0-9.]+)"', block)
-        if rec:
-            rec_out.setdefault(rec.group(1), []).append(title)
-        alts = re.search(r'alternatives:\s*\[([^\]]*)\]', block)
-        if alts:
-            for t in re.findall(r'"(ml\.[a-z0-9.]+)"', alts.group(1)):
-                alt_out.setdefault(t, []).append(title)
-    return rec_out, alt_out
+        sys.exit(f"{PIPELINE_CONFIG} is missing")
+    try:
+        return _load_pipeline_types().parse_pipeline_config(
+            PIPELINE_CONFIG.read_text(encoding="utf-8")
+        )
+    except ValueError as exc:
+        sys.exit(f"Could not parse {PIPELINE_CONFIG}: {exc}")
 
 
 def recommended_types() -> dict[str, list[str]]:
@@ -165,8 +175,6 @@ def main() -> int:
     tight: list[str] = []
 
     print("Types the participant dashboard RECOMMENDS:")
-    if not recs:
-        print("  (could not parse web/user/src/data/pipeline-config.ts)")
     for itype in sorted(recs, key=lambda t: -rates.get(t, 0)):
         modules = recs[itype]
         sold = itype in rates
@@ -220,7 +228,9 @@ def main() -> int:
         print(f"                 offered by: {', '.join(sorted(set(alts[itype])))}")
 
     print()
-    print("Other lab types sold here, by quota:")
+    # Not reachable from the dashboard: the stack caps participants at the dashboard list
+    # (PARTICIPANT_INSTANCE_TYPES), so change_instance rejects these with a 400.
+    print("Other types sold here (NOT offered to participants), by quota:")
     # quotas[t] is (value, code); sort on the value only. A type with no quota row sorts last.
     for itype in sorted(rates, key=lambda t: (-(quotas[t][0] if t in quotas else 0), t)):
         if itype in recs or itype in alts:
@@ -243,7 +253,9 @@ def main() -> int:
         print(f"BLOCKED: {len(blocked)} recommended type(s) cannot run here: "
               f"{', '.join(t for t, _ in blocked)}")
         print("  Either request quota IN THIS REGION, or point the affected modules at a")
-        print("  type that is available (check the 'Other lab types' list above).")
+        print("  type that is available (check the 'Other types' list above). The dashboard")
+        print("  list is also the participant cap, so a new type must be added to")
+        print("  web/user/src/data/pipeline-config.ts and the stack redeployed.")
         for itype, code in blocked:
             if code:
                 print(f"  aws service-quotas request-service-quota-increase "

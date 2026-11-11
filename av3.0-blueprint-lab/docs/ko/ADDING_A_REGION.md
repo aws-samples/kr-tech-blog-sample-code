@@ -107,7 +107,6 @@ the ACCOUNT, RESOURCE, or ALL levels"라고 말합니다. 즉 *account-level*은
 | `ml.p4d.24xlarge` | `L-AD63F1D2` | 2 | **2** | 40 GB 티어 — 720p, guardrails ON |
 | **`ml.g6.12xlarge`** | `L-962247BA` | 2 | **0** ⚠ | M2/M3 대안 |
 | `ml.g6.24xlarge` | `L-8ACE1754` | 2 | **0** | 대시보드가 권장하지 않음(g5.12xlarge와 같은 티어인데 더 비쌈) |
-| `ml.p5.48xlarge` | `L-B41FBF28` | 1 | **0** | 80 GB 티어 |
 | `ml.m5.xlarge` *학습* | `L-CCE2AFA6` | 30 | 30 | M12 |
 | `ml.m5.xlarge` *프로세싱* | `L-0307F515` | 16 | 16 | M11 |
 
@@ -445,25 +444,14 @@ SageMaker 학습 잡 `sourcedir.tar.gz`이고 읽는 노트북이 없으며, 도
 
 ## 알려진 함정
 
-**`INSTANCE_RATES`는 us-west-2 가격 스냅샷이며, 동시에 인스턴스 허용 목록 역할까지
-합니다.** `infra/lambda/shared/config.py`는 리전을 키로 갖지 않는데,
-`change_instance`는 그 키에서 `VALID_INSTANCE_TYPES`를 파생하고 `instance_options`는
-그 키로 참가자 드롭다운을 만듭니다. 결과는 두 가지입니다:
-
-| Studio-JupyterLab | us-west-2 | ap-northeast-2 | 표시값 |
-|---|---|---|---|
-| `ml.t3.medium` | $0.0500 | $0.0620 | −24% |
-| `ml.g5.12xlarge` | $7.0900 | $8.7180 | −23% |
-| `ml.g6.24xlarge` | $8.3440 | $10.2600 | −23% |
-
-1. 서울에서는 참가자와 관리자에게 보이는 모든 비용이 ~23% **낮게** 읽힙니다 — 문서화된
-   실패 모드가 "눈치채지 못한 지출"인 랩에서 방향이 잘못된 오차입니다.
-2. 드롭다운이 리전으로 필터링되지 않으므로, 어떤 리전에 그 리전의 Studio에는 없는
-   인스턴스(예: `eu-west-1`의 `ml.g6.24xlarge`)가 제시될 수 있고, 참가자별로 앱 시작
-   시점에 실패합니다.
-
-서울의 ~23% 차이가 균일한 것은 우연이며 규칙이 아닙니다 — 배수를 곱해 이것을
-"고치려" 하지 말고, 표를 리전으로 키잉하세요.
+**해결됨: `INSTANCE_RATES`는 us-west-2 가격 스냅샷이면서 인스턴스 허용 목록 역할까지
+했습니다.** 두 문제 모두 고쳤습니다. 가격은 리전별로 생성한 표(§2.5)에서 가져오므로 서울
+비용이 더 이상 ~23% 낮게 보이지 않습니다. 참가자 허용 목록은 별도 값인
+`PARTICIPANT_INSTANCE_TYPES`로, `web/user/src/data/pipeline-config.ts`가 제공하는 타입을
+`cdk synth` 시점에 이 리전의 표와 교집합한 것입니다. 리전이 판매하지 않는 대시보드 타입
+(`eu-west-1`의 `ml.g6.*` 전부)은 이 목록에서 빠지고, `change_instance`는 앱이 시작 단계에서
+실패하게 두는 대신 리전 이름을 밝힌 400으로 거부합니다. (패널 자체는 정적 목록이라 그 타입을
+계속 보여 줍니다.)
 
 **`av30-alpasim-m7`(M10)은 계정 전역이며 리전 접미사가 없습니다.** IAM 역할과 인스턴스
 프로파일 이름은 계정 전역이므로, 두 번째 리전에서 M10을 실행하면

@@ -19,8 +19,8 @@ from av30_constructs.api import ApiConstruct
 from av30_constructs.dashboards import DashboardConstruct
 
 
-def _require_generated_rate_table(region: str) -> None:
-    """Fail at SYNTH if this region has no generated Studio-JupyterLab rate table.
+def _require_generated_rate_table(region: str) -> dict:
+    """This region's Studio-JupyterLab rate table; fail at SYNTH if it was never generated.
 
     Without this the failure mode is the worst possible shape: `cdk deploy` SUCCEEDS, and
     then every Lambda dies at import, because infra/lambda/shared/config.py resolves the
@@ -62,6 +62,32 @@ def _require_generated_rate_table(region: str) -> None:
             f"    ./scripts/refresh_instance_rates.py --region {region} --merge\n"
             f"Generated today: {', '.join(sorted(generated))}"
         )
+    return generated[region]
+
+
+def _participant_instance_types(region_rates: dict) -> list[str]:
+    """The instance types a participant may run: the dashboard's list, as this region sells it.
+
+    Read from web/user/src/data/pipeline-config.ts (each module's recommendedInstance +
+    alternatives), which is exactly what the Instance Options panel offers, so the server
+    side cannot drift from the UI. It used to be "anything this region sells" — 34 types in
+    us-west-2, ml.p5.48xlarge at $63.30/hr among them — while the UI showed 17, so a direct
+    API call could pick any of them. The parser is shared with scripts/check_quotas.py and
+    raises ValueError (failing synth) on anything it cannot read as a literal list.
+    """
+    import importlib.util
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent.parent
+    path = root / "infra" / "lambda" / "shared" / "pipeline_types.py"
+    spec = importlib.util.spec_from_file_location("av30_pipeline_types", path)
+    if spec is None or spec.loader is None:  # pragma: no cover
+        raise RuntimeError(f"cannot load {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.participant_instance_types(
+        root / "web" / "user" / "src" / "data" / "pipeline-config.ts", region_rates
+    )
 
 
 class Av30BlueprintLabStack(cdk.Stack):
@@ -71,7 +97,8 @@ class Av30BlueprintLabStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # Refuse at synth rather than deploying a stack whose Lambdas cannot import.
-        _require_generated_rate_table(self.region)
+        region_rates = _require_generated_rate_table(self.region)
+        participant_instance_types = _participant_instance_types(region_rates)
 
         # Apply project-level tags.
         #
@@ -186,6 +213,7 @@ class Av30BlueprintLabStack(cdk.Stack):
             sagemaker_domain_id=sagemaker_domain.domain_id,
             sagemaker_execution_role=sagemaker_domain.execution_role,
             notebook_lifecycle_config_arn=sagemaker_domain.notebook_lifecycle_config_arn,
+            participant_instance_types=participant_instance_types,
         )
 
         # Attach WAF (REGIONAL) to the API Gateway stage. Only created when

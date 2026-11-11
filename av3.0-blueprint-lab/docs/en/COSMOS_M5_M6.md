@@ -156,19 +156,15 @@ offline:
 
   | per-GPU | Strategy | M5 output | M6 output | Guardrails | Example (~$/hr) |
   |---|---|---|---|---|---|
-  | ≥70 GB | single GPU | 720p | native | ON | `ml.g7e.2xlarge` (**4.20**), `ml.p5.48xlarge` (63.30) |
+  | ≥70 GB | single GPU | 720p | native | ON | none offered (the verified 720p run used `ml.p5.48xlarge`) |
   | ≥38 GB | N-GPU shard | 720p | native | ON | `ml.p4d.24xlarge` (25.25) |
   | <38 GB | N-GPU shard | 480p, 16/57 frames | 480×832, 45 frames | **OFF** | `ml.g5.12xlarge` (7.09) ← default |
 
   Because every A10G and L4 is 24 GB, **no g5/g6 size reaches the ≥38 GB tier** —
-  a bigger g5/g6 adds GPUs, not per-GPU VRAM. The families that do are g7e
-  (RTX PRO 6000 Blackwell, 96 GB/card), p4d (A100 40 GB) and p5 (H100 80 GB).
-
-  **`ml.g7e.2xlarge` is the cheapest top-tier box** — 96 GB on ONE card at
-  ~$4.20/hr, i.e. the `≥70 GB` single-GPU path at *half* the 24 GB default's
-  price. Two caveats: it needs **its own Studio-JupyterLab quota**, and this lab
-  has **no verified g7e run** (the verified runs below are g6.24xlarge and
-  p5.48xlarge). Treat it as a promising opt-in, not the tested path.
+  a bigger g5/g6 adds GPUs, not per-GPU VRAM. On the participant list the only type
+  that does is `ml.p4d.24xlarge` (A100 40 GB). `ml.g7e.*` and `ml.p5.*` would also
+  clear it, but the lab caps participants at the dashboard's types and neither is
+  one of them, so the dashboard refuses both.
 - The 24 GB path also halts if another process already holds GPU memory (the
   "foreign occupancy" check) — close other notebooks' kernels before running.
 - Verified on 24 GB cards — `ml.g6.24xlarge` (480p) — and on p5.48xlarge H100×8
