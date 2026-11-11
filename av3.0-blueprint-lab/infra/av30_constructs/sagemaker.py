@@ -232,6 +232,19 @@ class SageMakerConstruct(Construct):
             description="Execution role for AV 3.0 Blueprint Lab SageMaker Studio users",
         )
 
+        # Let SageMaker stamp each role session with aws:SourceIdentity (the user
+        # profile name). STEP 1 of a two-step upgrade: this is a no-op until the
+        # domain's ExecutionRoleIdentityConfig is set to USER_PROFILE_NAME in a
+        # later deploy. KEEP IT even if that setting is later turned back to
+        # DISABLED: while the domain asks for SourceIdentity, a trust policy
+        # without sts:SetSourceIdentity makes CreateApp and job creation fail.
+        self._execution_role.assume_role_policy.add_statements(
+            iam.PolicyStatement(
+                actions=["sts:SetSourceIdentity"],
+                principals=[iam.ServicePrincipal("sagemaker.amazonaws.com")],
+            )
+        )
+
         # S3 read access on shared-data bucket (all objects)
         self._execution_role.add_to_policy(
             iam.PolicyStatement(
