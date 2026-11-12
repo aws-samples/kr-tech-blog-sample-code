@@ -30,6 +30,9 @@ done
 [ ${#ARGS[@]} -gt 0 ] && { echo "Unknown argument: ${ARGS[0]}" >&2; exit 2; }
 
 ADMIN_EMAIL="${ADMIN_EMAIL:?Set ADMIN_EMAIL environment variable}"
+# Remember whether the operator set the allowlist at all, before defaulting it: the
+# live-state guard 4 below must tell "forgot it" apart from "chose 0.0.0.0/0".
+ADMIN_IP_ALLOWLIST_GIVEN="${ADMIN_IP_ALLOWLIST+yes}"
 ADMIN_IP_ALLOWLIST="${ADMIN_IP_ALLOWLIST:-0.0.0.0/0}"
 REGION="${REGION_CLI:-${REGION:-${AWS_REGION:-$(aws configure get region 2>/dev/null)}}}"
 if [ -z "$REGION" ]; then
@@ -139,7 +142,7 @@ CDK_CONTEXT=(--context admin_email="$ADMIN_EMAIL"
              # cannot pick a different one from the ambient environment.
              --context region="$REGION")
 
-# --- Live-state guards for the two contexts that destroy things when forgotten ------
+# --- Live-state guards for the contexts that destroy things when forgotten ----------
 #
 # OWNER_TAG and HOSTED_UI_DOMAIN_EXISTS were documented-only, in one file the deploy
 # runbook does not even link. Forgetting either on an UPDATE is destructive, so decide
@@ -394,6 +397,44 @@ if [ -n "$SM_DOMAIN_ID" ]; then
     fi
 fi
 rm -f "$SM_GUARD_ERR"
+
+# 4. Admin IP allowlist. Unset means 0.0.0.0/0, and 0.0.0.0/0 means NO WebACL, so an update
+#    that merely forgot ADMIN_IP_ALLOWLIST would delete the WAF and silently drop the admin
+#    API's IP restriction. If the stack has a WebACL today, the variable must be set
+#    explicitly: the same CIDRs to keep it, new ones to change it, or 0.0.0.0/0 to remove it.
+if [ -n "$STACK_STATUS_NOW" ]; then
+    WAF_LIVE=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" \
+        --query "Stacks[0].Outputs[?OutputKey=='WebAclArn'].OutputValue|[0]" --output text) || {
+        echo "ERROR: could not read the stack outputs to check the admin IP allowlist." >&2
+        exit 1
+    }
+    if [ -n "$WAF_LIVE" ] && [ "$WAF_LIVE" != "None" ]; then
+        IPSET_ARN=$(aws wafv2 get-web-acl --scope REGIONAL --region "$REGION" \
+            --name "$(echo "$WAF_LIVE" | cut -d/ -f3)" --id "$(echo "$WAF_LIVE" | cut -d/ -f4)" \
+            --query 'WebACL.Rules[].Statement.IPSetReferenceStatement.ARN|[0]' --output text) &&
+        ALLOWLIST_LIVE=$(aws wafv2 get-ip-set --scope REGIONAL --region "$REGION" \
+            --name "$(echo "$IPSET_ARN" | cut -d/ -f3)" --id "$(echo "$IPSET_ARN" | cut -d/ -f4)" \
+            --query 'IPSet.Addresses' --output text | tr '\t' '\n' | sort | paste -sd, -) &&
+        [ -n "$ALLOWLIST_LIVE" ] || {
+            echo "ERROR: the stack has a WebACL ($WAF_LIVE) but its IP set could not be read," >&2
+            echo "       so this script cannot tell whether the update would drop it." >&2
+            exit 1
+        }
+        if [ -z "$ADMIN_IP_ALLOWLIST_GIVEN" ]; then
+            echo "REFUSING: ADMIN_IP_ALLOWLIST is not set, which would REMOVE the admin API's" >&2
+            echo "          IP allowlist that this stack has today:  $ALLOWLIST_LIVE" >&2
+            echo "          Keep it:    ADMIN_IP_ALLOWLIST='$ALLOWLIST_LIVE' $0 --region $REGION" >&2
+            echo "          Remove it:  ADMIN_IP_ALLOWLIST=0.0.0.0/0 $0 --region $REGION" >&2
+            exit 1
+        fi
+        ALLOWLIST_NEW=$(echo "$ADMIN_IP_ALLOWLIST" | tr ',' '\n' | tr -d ' ' | sort | paste -sd, -)
+        if [ "$ALLOWLIST_NEW" = "0.0.0.0/0" ]; then
+            echo "    NOTE: removing the admin IP allowlist (was: $ALLOWLIST_LIVE)."
+        elif [ "$ALLOWLIST_NEW" != "$ALLOWLIST_LIVE" ]; then
+            echo "    NOTE: changing the admin IP allowlist: $ALLOWLIST_LIVE -> $ALLOWLIST_NEW"
+        fi
+    fi
+fi
 
 npx cdk deploy --require-approval never "${CDK_CONTEXT[@]}"
 cd ..

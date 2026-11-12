@@ -197,6 +197,8 @@ export HF_TOKEN="hf_..."                      # admin Hugging Face read token
 # stay open to any IP (token auth); do not add participant or SageMaker IPs here.
 # Outside the list the admin page still loads but its data calls fail ("Failed to fetch").
 export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # default 0.0.0.0/0 = no WAF
+# List the IP your BROWSER egresses from (open https://checkip.amazonaws.com in it); a
+# proxy or VPN often differs from this terminal's. Re-export it on every later deploy.
 # Cognito hosted-UI prefix: unique per region across ALL accounts, and the default
 # "av30lab-admin" is already taken in us-west-2 / ap-northeast-2. Use your own, and
 # keep exporting the same value on every later deploy of this stack.

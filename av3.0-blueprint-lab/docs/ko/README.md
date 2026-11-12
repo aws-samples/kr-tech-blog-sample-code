@@ -182,6 +182,8 @@ export HF_TOKEN="hf_..."                      # 관리자 Hugging Face 읽기 �
 # 열려 있으므로(토큰 인증) 참가자나 SageMaker IP는 넣지 마세요. 목록 밖에서는
 # 관리자 페이지는 열리지만 데이터 호출이 실패합니다("Failed to fetch").
 export ADMIN_IP_ALLOWLIST="203.0.113.0/24"    # 기본값 0.0.0.0/0 = WAF 없음
+# 브라우저가 나가는 IP를 넣으세요(브라우저에서 https://checkip.amazonaws.com 확인). 프록시나
+# VPN을 쓰면 이 터미널의 IP와 다를 수 있습니다. 이후 배포할 때도 같은 값을 export하세요.
 # Cognito 호스티드 UI 접두사: 리전 안에서 모든 계정을 통틀어 고유하며, 기본값
 # "av30lab-admin"은 us-west-2 / ap-northeast-2에서 이미 사용 중입니다. 자신만의 값을 쓰고,
 # 이 스택을 이후에 다시 배포할 때도 같은 값을 export하세요.

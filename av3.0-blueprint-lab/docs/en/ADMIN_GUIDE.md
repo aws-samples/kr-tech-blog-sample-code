@@ -451,8 +451,20 @@ still load, but every data call fails with **"Failed to fetch"**. In the browser
 tab the `OPTIONS` preflight shows **403**: every admin call sends `Authorization` and a JSON
 `Content-Type`, so the browser always preflights. The fix is to add your own IP. **Do not add
 participant or SageMaker IP ranges**: they need nothing, and listing them only opens the
-admin API's network path to those addresses. Export the same value on every later deploy;
-running `deploy.sh` without it falls back to `0.0.0.0/0` and removes the WAF.
+admin API's network path to those addresses.
+
+**Which IP to list.** List the address your **browser** reaches AWS from, not your
+terminal's: a corporate proxy or VPN often sends browser traffic out through a different
+address. Open https://checkip.amazonaws.com **in the browser** you will run the admin
+dashboard from, and list every network each admin will use (office, VPN, home) as
+comma-separated CIDRs. Proxy egress addresses can change; when they do, the symptom is the
+"Failed to fetch" above. To change the list, re-run `deploy.sh` with the new value; the IP set
+is updated in place.
+
+**Keep it on later deploys.** Leaving `ADMIN_IP_ALLOWLIST` unset means `0.0.0.0/0`, which
+would delete the WAF. So when the stack already has an allowlist, `deploy.sh` **refuses** to
+run without the variable and prints the current list to re-use. To remove the allowlist on
+purpose, set `ADMIN_IP_ALLOWLIST=0.0.0.0/0` explicitly.
 
 **Create the admin login** (username must be the email — Cognito uses email as the
 sign-in alias):
