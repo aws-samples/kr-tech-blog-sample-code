@@ -189,7 +189,7 @@ def safe_delete_app(sagemaker_client, domain_id: str, space_name: str,
 
     Returns True if a delete was issued, False if the app was already gone.
 
-    Two "already gone" cases must both be swallowed, or an instance change /
+    Three "already gone" cases must all be swallowed, or an instance change /
     storage resize / user delete 502s when the previous app is not cleanly
     running:
       * ResourceNotFound     — no app was ever created for the space.
@@ -199,6 +199,11 @@ def safe_delete_app(sagemaker_client, domain_id: str, space_name: str,
         deleted. For tracking purposes, apps are available in the ListApps API
         results for only 24 hours after failure." That is not an error for us —
         the app is already gone, so proceed to update_space/create_app.
+      * ValidationException  — the app was DELETED earlier (admin Terminate, a
+        delete-app before a deploy, a previous instance change) and is still listed for
+        24 hours: "App [default] has already been deleted. For tracking purposes...".
+        Not swallowing this left the participant unable to restart from the dashboard
+        for a day after any deliberate stop.
     """
     try:
         sagemaker_client.delete_app(
@@ -213,10 +218,11 @@ def safe_delete_app(sagemaker_client, domain_id: str, space_name: str,
     except ClientError as e:
         code = e.response.get("Error", {}).get("Code", "")
         msg = e.response.get("Error", {}).get("Message", "")
-        # A previously-failed, auto-deleted app surfaces as ValidationException.
+        # An auto-deleted (previously failed) or already-deleted app surfaces as
+        # ValidationException while it is still listed for 24 hours.
         if code == "ValidationException" and (
             "previously failed" in msg or "automatically deleted" in msg
-            or "does not exist" in msg
+            or "already been deleted" in msg or "does not exist" in msg
         ):
             return False
         raise

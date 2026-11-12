@@ -284,6 +284,7 @@ def safe_delete_app(sm, domain_id: str, space_name: str,
         msg = e.response.get("Error", {}).get("Message", "")
         if code == "ValidationException" and (
             "previously failed" in msg or "automatically deleted" in msg
+            or "already been deleted" in msg
             or "does not exist" in msg
         ):
             return False
