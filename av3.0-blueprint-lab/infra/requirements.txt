@@ -1,0 +1,17 @@
+aws-cdk-lib>=2.150.0
+constructs>=10.0.0
+
+# boto3 is NOT optional, even though nothing under infra/ imports it at synth time.
+#
+# scripts/deploy.sh creates this venv, activates it, and never deactivates — so every
+# later step in the deploy runs under this interpreter, including the tooling that does
+# need boto3:
+#   scripts/check_quotas.py          (live GetServiceQuota / ListServiceQuotas)
+#   scripts/refresh_instance_rates.py (Price List API + quota codes)
+# Both hard-exit with "boto3 is required: pip install boto3". Without this line the quota
+# pre-flight README.md advertises was a silent no-op on every fresh clone (measured:
+# 0 lines of output, because deploy.sh also discarded stderr).
+#
+# README.md's manual path hits the same trap: it activates this venv, then `cd ..` — which
+# does NOT deactivate — and runs refresh_instance_rates.py.
+boto3>=1.34.0

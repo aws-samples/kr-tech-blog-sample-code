@@ -17,6 +17,7 @@ AWS 기술 블로그에서 제공하는 샘플 코드 저장소입니다.
   - [database - Amazon Aurora](#database---amazon-aurora)
   - [iot - AWS IoT Core](#iot---aws-iot-core)
   - [serverless - AWS Lambda](#serverless---aws-lambda)
+  - [av3.0-blueprint-lab - Amazon SageMaker AI + NVIDIA](#av30-blueprint-lab---amazon-sagemaker-ai--nvidia)
 - [Getting Started](#getting-started)
 - [Contributing](#contributing)
 - [Security](#security)
@@ -55,6 +56,7 @@ kr-tech-blog-sample-code/
 │   ├── opensearch_custom_plugin/
 │   └── opensearch_ltr/
 ├── opensearch-ubi-workshop/    # UBI 검색 관련성 워크샵 참여자 artifact
+├── av3.0-blueprint-lab/        # 자율주행 3.0 Physical AI 데이터 파이프라인 워크샵 (SageMaker + NVIDIA)
 ├── database/                   # Amazon Aurora 관련 샘플
 │   └── auroramysql-task-automation-tip/
 ├── iot/                        # AWS IoT Core 관련 샘플
@@ -113,6 +115,14 @@ AWS Lambda 개발을 위한 유틸리티 및 레이어 샘플입니다.
 | Project | Description | Tech Stack |
 |---------|-------------|------------|
 | [lambda_layers](./serverless/lambda_layers) | Lambda Layer 패키지 (PyIceberg, PyMySQL) | Python |
+
+### av3.0-blueprint-lab - Amazon SageMaker AI + NVIDIA
+
+NVIDIA 오픈 모델로 자율주행 3.0 Physical AI 데이터 파이프라인을 AWS에서 처음부터 끝까지 실습하는 워크샵입니다.
+
+| Project | Description | Tech Stack | Blog |
+|---------|-------------|------------|------|
+| [av3.0-blueprint-lab](./av3.0-blueprint-lab) | Cosmos·Alpamayo·AlpaSim 기반 AV 3.0 데이터 파이프라인 실습 (노트북 13개, SageMaker Studio 멀티유저, en/ko/ja 문서) | CDK (Python), Python, React, Jupyter | [Link](https://aws.amazon.com/ko/blogs/tech/building-an-end-to-end-physical-ai-data-pipeline-for-autonomous-vehicle-3-0-on-aws-with-nvidia/) |
 
 ---
 
