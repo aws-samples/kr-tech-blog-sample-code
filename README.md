@@ -16,6 +16,7 @@ AWS 기술 블로그에서 제공하는 샘플 코드 저장소입니다.
   - [opensearch - Amazon OpenSearch Service](#opensearch---amazon-opensearch-service)
   - [database - Amazon Aurora](#database---amazon-aurora)
   - [iot - AWS IoT Core](#iot---aws-iot-core)
+  - [security - AWS 보안](#security---aws-보안)
   - [serverless - AWS Lambda](#serverless---aws-lambda)
   - [av3.0-blueprint-lab - Amazon SageMaker AI + NVIDIA](#av30-blueprint-lab---amazon-sagemaker-ai--nvidia)
 - [Getting Started](#getting-started)
@@ -61,6 +62,8 @@ kr-tech-blog-sample-code/
 │   └── auroramysql-task-automation-tip/
 ├── iot/                        # AWS IoT Core 관련 샘플
 │   └── cdk_iot_dev/
+├── security/                   # 보안 관련 샘플
+│   └── ec2-workload-authentication-with-spire/
 └── serverless/                 # AWS Lambda 관련 샘플
     └── lambda_layers/
 ```
@@ -107,6 +110,14 @@ AWS IoT Core 기반 디바이스 관리 및 데이터 수집 샘플입니다.
 | Project | Description | Tech Stack | Blog |
 |---------|-------------|------------|------|
 | [cdk_iot_dev](./iot/cdk_iot_dev) | CDK를 활용한 FMS(Fleet Management System) 자동화 | CDK, TypeScript | [Link](https://aws.amazon.com/ko/blogs/tech/aws-cloud-development-kit-cdk-42dot-fleet-management-systemfms-automation/) |
+
+### security - AWS 보안
+
+AWS 환경의 워크로드 인증과 보안 통제 샘플입니다.
+
+| Project | Description | Tech Stack | Blog |
+|---------|-------------|------------|------|
+| [ec2-workload-authentication-with-spire](./security/ec2-workload-authentication-with-spire) | SPIFFE/SPIRE로 Amazon EC2 워크로드에 단기 신원을 발급하고 SPIFFE ID 기반 mTLS를 통제하는 예제 서버와 호출자 | Python, SPIRE | 준비 중 |
 
 ### serverless - AWS Lambda
 
