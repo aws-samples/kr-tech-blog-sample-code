@@ -96,7 +96,7 @@ result=FAIL stage=tls reason=TLSV1_ALERT_UNKNOWN_CA
 
 ```bash
 # [Workload A] Fetch the server SVID (user orders)
-sudo install -d -o orders /opt/lab/svid-orders
+sudo install -d -m 0700 -o orders /opt/lab/svid-orders
 sudo -u orders spire-agent api fetch x509 -socketPath /tmp/spire-agent/public/api.sock -write /opt/lab/svid-orders >/dev/null
 
 # [Workload A] Run the server: allow only portal (exact match)
@@ -110,7 +110,7 @@ while true; do
 done
 
 # [Workload B] Call: fetch the SVID right before calling
-sudo install -d -o portal /opt/lab/svid-portal
+sudo install -d -m 0700 -o portal /opt/lab/svid-portal
 sudo -u portal spire-agent api fetch x509 -socketPath /tmp/spire-agent/public/api.sock -write /opt/lab/svid-portal >/dev/null
 sudo -u portal python3 /opt/lab/data_client.py --host <Workload A private IP> --port 8443 \
   --svid-dir /opt/lab/svid-portal --expect-server spiffe://lab.example.org/backend/orders
@@ -121,7 +121,7 @@ To switch to the prefix rule, restart the server with `--allow-prefix spiffe://l
 ## Security considerations
 
 - `--bind 0.0.0.0` lets other instances connect. Restrict the source of TCP 8443 to the caller security group. Connections without a client certificate are rejected at the TLS stage.
-- Keep the SVID private key (`svid.0.key`) in a directory that only the running user can read. The example creates per-user directories with `install -d -o <user>`.
+- Keep the SVID private key (`svid.0.key`) in a directory that only the running user can read. The example creates per-user directories with `install -d -m 0700 -o <user>`, so the directory is owned by that user with mode 0700.
 - The server trusts only the CAs in the SPIRE trust bundle. A certificate signed by another CA is rejected at the TLS stage, even if it carries the same SPIFFE ID.
 - This sample fetches SVIDs as files and reloads them periodically. In production, use a SPIFFE library that subscribes to the Workload API (for example, [go-spiffe](https://github.com/spiffe/go-spiffe)), [spiffe-helper](https://github.com/spiffe/spiffe-helper), or Envoy SDS integration.
 - The sample server implements only simple HTTP handling. It does not include production features such as request size limits, rate limiting, or audit log storage.

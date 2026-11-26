@@ -95,7 +95,7 @@ result=FAIL stage=tls reason=TLSV1_ALERT_UNKNOWN_CA
 
 ```bash
 # [Workload A] 서버 SVID 받기 (orders 사용자)
-sudo install -d -o orders /opt/lab/svid-orders
+sudo install -d -m 0700 -o orders /opt/lab/svid-orders
 sudo -u orders spire-agent api fetch x509 -socketPath /tmp/spire-agent/public/api.sock -write /opt/lab/svid-orders >/dev/null
 
 # [Workload A] 서버 실행: portal만 허용(정확 일치)
@@ -109,7 +109,7 @@ while true; do
 done
 
 # [Workload B] 호출: 호출 직전에 SVID 받기
-sudo install -d -o portal /opt/lab/svid-portal
+sudo install -d -m 0700 -o portal /opt/lab/svid-portal
 sudo -u portal spire-agent api fetch x509 -socketPath /tmp/spire-agent/public/api.sock -write /opt/lab/svid-portal >/dev/null
 sudo -u portal python3 /opt/lab/data_client.py --host <Workload A 사설 IP> --port 8443 \
   --svid-dir /opt/lab/svid-portal --expect-server spiffe://lab.example.org/backend/orders
@@ -120,7 +120,7 @@ sudo -u portal python3 /opt/lab/data_client.py --host <Workload A 사설 IP> --p
 ## 보안 고려 사항
 
 - `--bind 0.0.0.0`은 다른 인스턴스에서 접속하게 하기 위한 값입니다. 보안 그룹에서 TCP 8443의 소스를 호출자 보안 그룹으로 제한하세요. 클라이언트 인증서가 없는 연결은 TLS 단계에서 거부됩니다.
-- SVID 개인 키(`svid.0.key`)는 해당 실행 사용자만 읽을 수 있는 디렉터리에 두세요. 예제는 `install -d -o <사용자>`로 사용자별 디렉터리를 만듭니다.
+- SVID 개인 키(`svid.0.key`)는 해당 실행 사용자만 읽을 수 있는 디렉터리에 두세요. 예제는 `install -d -m 0700 -o <사용자>`로 소유자가 해당 사용자이고 모드가 0700인 사용자별 디렉터리를 만듭니다.
 - 서버는 SPIRE trust bundle의 CA만 신뢰합니다. 같은 SPIFFE ID를 적었더라도 다른 CA가 서명한 인증서는 TLS 단계에서 거부됩니다.
 - 이 예제는 파일 방식으로 SVID를 받아 주기적으로 다시 읽습니다. 운영 환경에서는 Workload API를 구독하는 SPIFFE 라이브러리(예: [go-spiffe](https://github.com/spiffe/go-spiffe)), [spiffe-helper](https://github.com/spiffe/spiffe-helper), 또는 Envoy SDS 연동을 사용하세요.
 - 예제 서버는 단순한 HTTP 처리만 구현합니다. 요청 크기 제한, 속도 제한, 감사 로그 저장 같은 운영 기능은 포함하지 않습니다.
